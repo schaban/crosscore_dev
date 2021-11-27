@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+	<link rel="shortcut icon" href="favicon.ico">
+	<title>crosscore web test</title>
+	<style>
+	body { font-family:Verdana, Geneva, sans-serif; font-size:10pt; color:#828282; background-color: #212121; }
+	.emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+	textarea.emscripten { font-family: monospace; width: 40%; color:#828282; background-color: black; height: 180px; border: 0px none; }
+	div.emscripten { text-align: center; }
+	div.emscripten_border { border: 0px solid black; }
+	/* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+	canvas.emscripten { border: 0px none; background-color: black; }
+
+	a { color:#878784; }
+
+	.spinner {
+		height: 50px;
+		width: 50px;
+		margin: 0px auto;
+		-webkit-animation: rotation .8s linear infinite;
+		-moz-animation: rotation .8s linear infinite;
+		-o-animation: rotation .8s linear infinite;
+		animation: rotation 0.8s linear infinite;
+		border-left: 10px solid rgb(2400,150,0);
+		border-right: 10px solid rgb(240,150,0);
+		border-bottom: 10px solid rgb(240,150,0);
+		border-top: 10px solid rgb(200,100,0);
+		border-radius: 100%;
+		background-color: rgb(200,250,100);
+	}
+	@-webkit-keyframes rotation {
+		from {-webkit-transform: rotate(0deg);}
+		to {-webkit-transform: rotate(360deg);}
+	}
+	@-moz-keyframes rotation {
+		from {-moz-transform: rotate(0deg);}
+		to {-moz-transform: rotate(360deg);}
+	}
+	@-o-keyframes rotation {
+		from {-o-transform: rotate(0deg);}
+		to {-o-transform: rotate(360deg);}
+	}
+	@keyframes rotation {
+		from {transform: rotate(0deg);}
+		to {transform: rotate(360deg);}
+	}
+      
+	.btn {
+		font-family: Verdana, Geneva, sans-serif;
+		border: 0;
+		line-height: 2.5;
+		padding: 0 20px;
+		font-size: 12pt;
+		text-align: center;
+		color: #E2E2F0;
+		text-shadow: 1px 1px 1px #000;
+		border-radius: 4px;
+		background-color: rgba(55, 66, 77, 1);
+		background-image: linear-gradient(to top left, rgba(0, 0, 0, .2), rgba(0, 0, 0, .2) 30%, rgba(0, 0, 0, 0));
+		box-shadow: inset 2px 2px 3px rgba(200, 200, 200, .5), inset -2px -2px 3px rgba(0, 0, 0, .4);
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	.btn:hover {
+		background-color: rgba(77, 88, 99, 1);
+	}
+
+	.btn:active {
+		box-shadow: inset -2px -2px 3px rgba(255, 255, 255, .6), inset 2px 2px 3px rgba(0, 0, 0, .6);
+	}
+
+	.ctrls {
+		text-align: center;
+	}
+
+	</style>
+</head>
+
+<body>
+	<figure style="overflow:visible;" id="spinner"><div class="spinner"></div>
+	</figure>
+	<div class="emscripten" id="status">Downloading...</div>
+	<div class="emscripten">
+		<progress value="0" max="100" id="progress" hidden=1></progress>  
+	</div>
+	<div class="emscripten_border">
+		<canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+	</div>
+
+	<br/>
+
+	<div class="ctrls">
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['UP',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['UP',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['UP',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['UP',0])}catch(e){alert(e);}"
+	> &#x2191; </button>
+	</div>
+	<div class="ctrls">
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LEFT',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LEFT',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LEFT',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LEFT',0])}catch(e){alert(e);}"
+	> &#x2190; </button>
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['DOWN',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['DOWN',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['DOWN',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['DOWN',0])}catch(e){alert(e);}"
+	> &#x2193; </button>
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['RIGHT',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['RIGHT',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['RIGHT',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['RIGHT',0])}catch(e){alert(e);}"
+	> &#x2192; </button>
+	</div>
+
+	<div class="ctrls">
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LSHIFT',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LSHIFT',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LSHIFT',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['LSHIFT',0])}catch(e){alert(e);}"
+	>
+	&#x01F3C3;
+	</button>
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['TAB',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['TAB',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['TAB',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['TAB',0])}catch(e){alert(e);}"
+	>
+	&#x01F6B9;&#x01F6BA;
+	</button>
+	<button class="btn" type="button"
+		onmousedown="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['ENTER',1])}catch(e){alert(e);}"
+		onmouseup="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['ENTER',0])}catch(e){alert(e);}"
+		ontouchstart="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['ENTER',1])}catch(e){alert(e);}"
+		ontouchend="try{Module.ccall('wi_set_key_state', '', ['string','number'], ['ENTER',0])}catch(e){alert(e);}"
+	>
+	&#x01F50D;&#x01F4AC;
+	</button>
+	</div>
+
+	<br/>
+	<div class="ctrls">
+	Keyboard: cursor keys to walk (+LSHIFT to run), TAB to switch between characters, ENTER to talk/examine.
+	</div>
+
+	<br/>
+	<textarea class="emscripten" id="output" rows="8"></textarea>
+	<script type='text/javascript'>
+		var statusElement = document.getElementById('status');
+		var progressElement = document.getElementById('progress');
+		var spinnerElement = document.getElementById('spinner');
+
+		var Module = {
+			preRun: [],
+			postRun: [],
+			print: (function() {
+				var element = document.getElementById('output');
+				if (element) element.value = ''; // clear browser cache
+				return function(text) {
+					if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+					// These replacements are necessary if you render to raw HTML
+					//text = text.replace(/&/g, "&amp;");
+					//text = text.replace(/</g, "&lt;");
+					//text = text.replace(/>/g, "&gt;");
+					//text = text.replace('\n', '<br>', 'g');
+					console.log(text);
+					if (element) {
+						element.value += text + "\n";
+						element.scrollTop = element.scrollHeight; // focus on bottom
+					}
+				};
+			})(),
+			printErr: function(text) {
+				if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+				console.error(text);
+			},
+			canvas: (function() {
+				var canvas = document.getElementById('canvas');
+
+				// As a default initial behavior, pop up an alert when webgl context is lost. To make your
+				// application robust, you may want to override this behavior before shipping!
+				// See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+				canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+				return canvas;
+			})(),
+			setStatus: function(text) {
+				if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+				if (text === Module.setStatus.last.text) return;
+				var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+				var now = Date.now();
+				if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+				Module.setStatus.last.time = now;
+				Module.setStatus.last.text = text;
+				if (m) {
+					text = m[1];
+					progressElement.value = parseInt(m[2])*100;
+					progressElement.max = parseInt(m[4])*100;
+					progressElement.hidden = false;
+					spinnerElement.hidden = false;
+				} else {
+					progressElement.value = null;
+					progressElement.max = null;
+					progressElement.hidden = true;
+					if (!text) spinnerElement.hidden = true;
+				}
+				statusElement.innerHTML = text;
+			},
+			totalDependencies: 0,
+			monitorRunDependencies: function(left) {
+				this.totalDependencies = Math.max(this.totalDependencies, left);
+				Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : '...');
+			}
+		};
+		Module.setStatus('Downloading...');
+		window.onerror = function() {
+			Module.setStatus('Exception thrown, see JavaScript console');
+			spinnerElement.style.display = 'none';
+			Module.setStatus = function(text) {
+				if (text) Module.printErr('[post-exception status] ' + text);
+			};
+		};
+	</script>
+
+	<center><div alignment="left">
+		<b>Programming</b>:&nbsp;<a href="https://github.com/schaban">S. Chaban</a>
+		<br/>
+		<b>Character Modeling</b>:&nbsp;SERH II
+		<br/>
+		<b>Stage Modeling and Texturing</b>:&nbsp;<a href="https://www.artstation.com/kostiantyn-buryak">Kostiantyn Buryak</a>
+	</div></center>
+
+	<center>
+		[<a href="xcore_web.tar.xz#66">Sources</a>]
+	</center>
+
+	{{{ SCRIPT }}}
+</body>
+
+</html>

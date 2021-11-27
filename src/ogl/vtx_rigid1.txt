@@ -1,0 +1,4 @@
+vec3 vtxPos
+vec2 vtxOct
+vec4 vtxClr
+vec2 vtxTex
