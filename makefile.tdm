@@ -1,0 +1,62 @@
+SUFFIXES += .d
+
+DEPS:=$(patsubst src/%.cpp,tmp/dep/%.d,$(SRCS))
+DEPS_DBG:=$(patsubst src/%.cpp,tmp/dep/dbg/%.d,$(SRCS))
+
+XCORE_EXE:=$(OUT_DIR)/$(PROG_NAME).exe
+XCORE_EXE_DBG:=$(OUT_DIR)/$(PROG_NAME)_dbg.exe
+.DEFAULT_GOAL := $(XCORE_EXE)
+
+CPP_FLAGS:=-std=c++11 -march=native -ffast-math -ftree-vectorize -g -Wno-psabi -Wno-deprecated-declarations -fno-use-linker-plugin -I src -I inc
+CPP_OPTIM:=-O3 -flto
+CPP_DEBUG:=-Og -ggdb
+
+LINK_LIBS:=-l gdi32 -l ole32
+
+
+XCORE_FLAGS:=-DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1 -DDEF_DEMO="\"roof\""
+
+
+XCORE_CPP:=$(TDM_GPP) $(CPP_OPTIM) $(CPP_FLAGS) $(XCORE_FLAGS)
+XCORE_LINK:=$(TDM_GPP) $(CPP_OPTIM) $(CPP_FLAGS)
+
+XCORE_CPP_DBG:=$(TDM_GPP) $(CPP_DEBUG) $(CPP_FLAGS) $(XCORE_FLAGS)
+XCORE_LINK_DBG:=$(TDM_GPP) $(CPP_DEBUG) $(CPP_FLAGS)
+
+-include $(DEPS)
+-include $(DEPS_DBG)
+
+tmp/dep/%.d: src/%.cpp
+	@$(XCORE_CPP) -MM -MT "$(patsubst src/%.cpp,tmp/obj/%.o,$<)" $< -MF $@
+
+tmp/dep/dbg/%.d: src/%.cpp
+	@$(XCORE_CPP_DBG) -MM -MT "$(patsubst src/%.cpp,tmp/obj/dbg/%.o,$<)" $< -MF $@
+
+
+debug: $(XCORE_EXE_DBG)
+
+OBJS:=$(patsubst src/%.cpp,tmp/obj/%.o,$(SRCS))
+OBJS_DBG:=$(patsubst src/%.cpp,tmp/obj/dbg/%.o,$(SRCS))
+
+tmp/obj/%.o: src/%.cpp tmp/dep/%.d
+	$(info Compiling $<)
+	@$(XCORE_CPP) -c -o $@ $<
+
+tmp/obj/dbg/%.o: src/%.cpp tmp/dep/dbg/%.d
+	$(info Compiling $< (Debug))
+	@$(XCORE_CPP_DBG) -c -o $@ $<
+
+$(XCORE_EXE): $(OBJS)
+#	$(info $(XCORE_FLAGS))
+#	$(info $(LINK_LIBS))
+	$(info Linking $(XCORE_EXE))
+	@$(XCORE_LINK) $^ -o $@ $(LINK_LIBS)
+
+$(XCORE_EXE_DBG): $(OBJS_DBG)
+	$(info Linking $(XCORE_EXE_DBG))
+	@$(XCORE_LINK_DBG) $^ -o $@ $(LINK_LIBS)
+
+.PHONY=clean
+clean:
+	$(info Cleaning $(XCORE_EXE))
+	$(info TODO)

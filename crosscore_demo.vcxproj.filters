@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\crosscore.cpp" />
+    <ClCompile Include="src\draw_ogl.cpp" />
+    <ClCompile Include="src\dynrig.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\oglsys.cpp" />
+    <ClCompile Include="src\scene.cpp" />
+    <ClCompile Include="src\demo.cpp" />
+    <ClCompile Include="src\demo_ex1.cpp" />
+    <ClCompile Include="src\demo_roof.cpp" />
+    <ClCompile Include="src\demo_lot.cpp" />
+    <ClCompile Include="src\smpchar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\crosscore.hpp" />
+    <ClInclude Include="src\draw.hpp" />
+    <ClInclude Include="src\dynrig.hpp" />
+    <ClInclude Include="src\oglsys.hpp" />
+    <ClInclude Include="src\scene.hpp" />
+    <ClInclude Include="src\demo.hpp" />
+    <ClInclude Include="src\smpchar.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\oglsys.inc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\etc\crosscore.rc" />
+  </ItemGroup>
+</Project>
