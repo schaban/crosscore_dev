@@ -21,7 +21,7 @@ in terms of visual effects.
 
 [~ **Here is online demo.** ~](https://schaban.github.io/crosscore_web_demo/wgl_test.html)\
 It is one the included demo programs compiled to WebAssembly,
-a kind of a mock-up adventure game, you can move the player character around,
+a kind of a mock-up adventure game. Here you can move the player character around,
 interact with some elements in the scene and talk to NPCs
 (all the text in this demo is in imaginary language).\
 (Scaled-down version of this demo is
