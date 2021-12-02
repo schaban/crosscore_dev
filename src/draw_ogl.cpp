@@ -39,6 +39,8 @@ static int s_shadowCastCnt = 0;
 
 static GLuint s_primVBO = 0;
 static uint32_t s_maxPrimVtx = 0;
+static GLuint s_primIBO = 0;
+static uint32_t s_maxPrimIdx = 0;
 
 static GLuint s_quadVBO = 0;
 static GLuint s_quadIBO = 0;
@@ -1472,6 +1474,12 @@ static void reset() {
 		s_maxPrimVtx = 0;
 	}
 
+	if (s_primIBO) {
+		glDeleteBuffers(1, &s_primIBO);
+		s_primIBO = 0;
+		s_maxPrimIdx = 0;
+	}
+
 	if (s_quadIBO) {
 		glDeleteBuffers(1, &s_quadIBO);
 		s_quadIBO = 0;
@@ -2319,7 +2327,15 @@ void symbol(const Draw::Symbol* pSym) {
 	}
 }
 
-void init_prims(const uint32_t maxVtx) {
+static bool ck_prim_vtx_range(const uint32_t org, const uint32_t num) {
+	return !(org >= s_maxPrimVtx || org + num > s_maxPrimVtx);
+}
+
+static bool ck_prim_idx_range(const uint32_t org, const uint32_t num) {
+	return !(org >= s_maxPrimIdx || org + num > s_maxPrimIdx);
+}
+
+void init_prims(const uint32_t maxVtx, const uint32_t maxIdx) {
 	if (!s_drwInitFlg) return;
 	if (s_primVBO) return;
 	if (maxVtx < 3) return;
@@ -2329,13 +2345,24 @@ void init_prims(const uint32_t maxVtx) {
 		glBufferData(GL_ARRAY_BUFFER, maxVtx * sizeof(sxPrimVtx), nullptr, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		s_maxPrimVtx = maxVtx;
+
+		s_maxPrimIdx = 0;
+		if (maxIdx >= 3) {
+			glGenBuffers(1, &s_primIBO);
+			if (s_primIBO) {
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_primIBO);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxIdx * sizeof(uint16_t), nullptr, GL_DYNAMIC_DRAW);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				s_maxPrimIdx = maxIdx;
+			}
+		}
 	}
 }
 
-void prim_verts(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc) {
-	if (!s_primVBO) return;
+static void prim_geom_vtx(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc) {
 	if (!pSrc) return;
-	if (org >= s_maxPrimVtx || org + num > s_maxPrimVtx) return;
+	if (!s_primVBO) return;
+	if (!ck_prim_vtx_range(org, num)) return;
 	glBindBuffer(GL_ARRAY_BUFFER, s_primVBO);
 	GLintptr offs = org * sizeof(sxPrimVtx);
 	GLsizeiptr len = num * sizeof(sxPrimVtx);
@@ -2351,15 +2378,43 @@ void prim_verts(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+static void prim_geom_idx(const uint32_t org, const uint32_t num, const uint16_t* pSrc) {
+	if (!pSrc) return;
+	if (!s_primIBO) return;
+	if (!ck_prim_idx_range(org, num)) return;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_primIBO);
+	GLintptr offs = org * sizeof(uint16_t);
+	GLsizeiptr len = num * sizeof(uint16_t);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offs, len, pSrc);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void prim_geom(const Draw::PrimGeom* pGeom) {
+	if (!pGeom) return;
+	prim_geom_vtx(pGeom->vtx.org, pGeom->vtx.num, pGeom->vtx.pSrc);
+	prim_geom_idx(pGeom->idx.org, pGeom->idx.num, pGeom->idx.pSrc);
+}
+
 void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 	if (!pPrim) return;
 	if (!pCtx) return;
 	if (!s_primVBO) return;
 	GPUProg* pProg = &s_prg_prim_prim;
 	if (!pProg->is_valid()) return;
-	uint32_t vorg = pPrim->vtxOrg;
-	uint32_t vnum = pPrim->vtxNum;
-	if (vorg >= s_maxPrimVtx || vorg + vnum > s_maxPrimVtx) return;
+	uint32_t vorg = 0;
+	uint32_t vnum = 0;
+	uint32_t iorg = 0;
+	uint32_t inum = 0;
+	if (pPrim->indexed) {
+		if (!s_primIBO) return;
+		iorg = pPrim->org;
+		inum = pPrim->num;
+		if (!ck_prim_idx_range(iorg, inum)) return;
+	} else {
+		vorg = pPrim->org;
+		vnum = pPrim->num;
+		if (!ck_prim_vtx_range(vorg, vnum)) return;
+	}
 	GLuint htex = get_tex_handle(pPrim->pTex);
 	if (!htex) {
 		htex = OGLSys::get_white_tex();
@@ -2430,7 +2485,12 @@ void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, s_primVBO);
 	pProg->enable_attrs(0);
-	glDrawArrays(GL_TRIANGLES, vorg, vnum);
+	if (inum > 0) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_primIBO);
+		glDrawElements(GL_TRIANGLES, inum, GL_UNSIGNED_SHORT, (const void*)(iorg * sizeof(uint16_t)));
+	} else {
+		glDrawArrays(GL_TRIANGLES, vorg, vnum);
+	}
 	if (pProg->mVAO) {
 		OGLSys::bind_vao(0);
 	} else {
@@ -2452,7 +2512,7 @@ struct DrwInit {
 		s_ifc.get_screen_height = get_screen_height;
 		s_ifc.get_shadow_bias_mtx = get_shadow_bias_mtx;
 		s_ifc.init_prims = init_prims;
-		s_ifc.prim_verts = prim_verts;
+		s_ifc.prim_geom = prim_geom;
 		s_ifc.begin = begin;
 		s_ifc.end = end;
 		s_ifc.batch = batch;

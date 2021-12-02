@@ -231,12 +231,26 @@ namespace Draw {
 
 	};
 
+	struct PrimGeom {
+		struct {
+			uint32_t org;
+			uint32_t num;
+			const sxPrimVtx* pSrc;
+		} vtx;
+		struct {
+			uint32_t org;
+			uint32_t num;
+			const uint16_t* pSrc;
+		} idx;
+	};
+
 	struct Prim {
 		sxTextureData* pTex;
 		cxMtx* pMtx;
-		uint32_t vtxOrg;
-		uint32_t vtxNum;
+		uint32_t org;
+		uint32_t num;
 		PrimType type;
+		bool indexed;
 		bool dblSided;
 		bool alphaBlend;
 	};
@@ -285,8 +299,8 @@ namespace Draw {
 
 		cxMtx (*get_shadow_bias_mtx)();
 
-		void (*init_prims)(const uint32_t maxVtx);
-		void (*prim_verts)(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc);
+		void (*init_prims)(const uint32_t maxVtx, const uint32_t maxIdx);
+		void (*prim_geom)(const PrimGeom* pGeom);
 
 		void (*begin)(const cxColor& clearColor);
 		void (*end)();

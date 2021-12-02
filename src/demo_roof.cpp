@@ -1355,7 +1355,7 @@ static void init() {
 	s_adapt = nxApp::get_int_opt("adapt", 0);
 	s_viewDist = nxApp::get_float_opt("view_dist", 0.0f);
 	Scene::alloc_local_heaps(1024 * 1024 * 2);
-	Scene::init_prims(1000);
+	Scene::init_prims(1000, 1000);
 
 	s_pViewWk = (VIEW_WK*)nxCore::mem_alloc(sizeof(VIEW_WK), "ViewWk");
 	init_view(s_pViewWk);
@@ -2151,9 +2151,9 @@ static void prim_test_tri() {
 		tri[i].clr.set(0.2f, 0.3f, 0.2f, 0.45f);
 		tri[i].tex.fill(0.0f);
 	}
-	tri[0].pos.set(-1.0, 0.0f, 0.0, 1.0f);
+	tri[0].pos.set(-1.0f, 0.0f, 0.0, 1.0f);
 	tri[1].pos.set(0.0, 1.0f, 0.0, 1.0f);
-	tri[2].pos.set(1.0, 0.0f, 0.0, 1.0f);
+	tri[2].pos.set(1.0f, 0.0f, 0.0, 1.0f);
 	Scene::prim_verts(0, 3, tri);
 	Scene::tris_semi_dsided(0, 1, &wm, nullptr);
 }
@@ -2175,12 +2175,34 @@ static void prim_test_spr() {
 		tri[i].tex.fill(0.0f);
 		tri[i].pos.set(pos.x, pos.y, pos.z, scl);
 	}
-	tri[0].prm.set(0.0, 0.0f, 0.0, rot);
-	tri[1].prm.set(-0.1, 1.0f, 0.0, rot);
-	tri[2].prm.set(0.1, 1.0f, 0.0, rot);
+	tri[0].prm.set(0.0f, 0.0f, 0.0, rot);
+	tri[1].prm.set(-0.1f, 1.0f, 0.0, rot);
+	tri[2].prm.set(0.1f, 1.0f, 0.0, rot);
 	Scene::prim_verts(0, 3, tri);
 	Scene::sprite_tris(0, 1, nullptr);
 	rot += 0.02f * (s_motSpeed * 2.0f);
+}
+
+static void prim_test_quad() {
+	ScnObj* pObj = Scene::find_obj("Den");
+	if (!pObj) return;
+	int ijnt = pObj->find_skel_node_id("j_Head");
+	cxMtx wm = pObj->calc_skel_world_mtx(ijnt);
+	sxPrimVtx vtx[4];
+	cxVec nrm(0.0f, 0.0f, 1.0f);
+	for (int i = 0; i < 4; ++i) {
+		vtx[i].prm.fill(0.0f);
+		vtx[i].encode_normal(nrm);
+		vtx[i].clr.set(0.2f, 0.3f, 0.2f, 0.5f);
+		vtx[i].tex.fill(0.0f);
+	}
+	vtx[0].pos.set(-0.5f, 0.5f, 0.0, 1.0f);
+	vtx[1].pos.set(0.5f, 0.5f, 0.0, 1.0f);
+	vtx[2].pos.set(0.5f, -0.5f, 0.0, 1.0f);
+	vtx[3].pos.set(-0.5f, -0.5f, 0.0, 1.0f);
+	uint16_t idx[] = { 0, 1, 2, 0, 2, 3 };
+	Scene::prim_geom(0, 4, vtx, 0, 6, idx);
+	Scene::idx_tris_semi_dsided(0, 2, &wm, nullptr);
 }
 
 static void prim_test() {
@@ -2213,7 +2235,7 @@ static void loop(void* pLoopCtx) {
 	}
 	Scene::frame_begin(cxColor(0.7f, 0.72f, 0.73f));
 	Scene::draw();
-	//prim_test();
+	//prim_test();////////////
 	draw_2d();
 	Scene::frame_end();
 	if (s_adapt == 3) {

@@ -1635,15 +1635,35 @@ cxVec get_obj_center_pos(const char* pName) {
 }
 
 
-void init_prims(const uint32_t maxVtx) {
+void init_prims(const uint32_t maxVtx, const uint32_t maxIdx) {
 	if (s_pDraw && s_pDraw->init_prims) {
-		s_pDraw->init_prims(maxVtx);
+		s_pDraw->init_prims(maxVtx, maxIdx);
 	}
 }
 
 void prim_verts(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc) {
-	if (s_pDraw && s_pDraw->prim_verts) {
-		s_pDraw->prim_verts(org, num, pSrc);
+	if (s_pDraw && s_pDraw->prim_geom) {
+		Draw::PrimGeom geom;
+		geom.vtx.org = org;
+		geom.vtx.num = num;
+		geom.vtx.pSrc = pSrc;
+		geom.idx.org = 0;
+		geom.idx.num = 0;
+		geom.idx.pSrc = nullptr;
+		s_pDraw->prim_geom(&geom);
+	}
+}
+
+void prim_geom(const uint32_t vorg, const uint32_t vnum, const sxPrimVtx* pVtxSrc, const uint32_t iorg, const uint32_t inum, const uint16_t* pIdxSrc) {
+	if (s_pDraw && s_pDraw->prim_geom) {
+		Draw::PrimGeom geom;
+		geom.vtx.org = vorg;
+		geom.vtx.num = vnum;
+		geom.vtx.pSrc = pVtxSrc;
+		geom.idx.org = iorg;
+		geom.idx.num = inum;
+		geom.idx.pSrc = pIdxSrc;
+		s_pDraw->prim_geom(&geom);
 	}
 }
 
@@ -1660,8 +1680,9 @@ void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx,
 	prim.type = Draw::PRIMTYPE_POLY;
 	prim.pMtx = pMtx;
 	prim.pTex = pTex;
-	prim.vtxOrg = vtxOrg;
-	prim.vtxNum = triNum * 3;
+	prim.org = vtxOrg;
+	prim.num = triNum * 3;
+	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = true;
 	prim_draw(&prim);
@@ -1672,10 +1693,24 @@ void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxText
 	prim.type = Draw::PRIMTYPE_POLY;
 	prim.pMtx = pMtx;
 	prim.pTex = pTex;
-	prim.vtxOrg = vtxOrg;
-	prim.vtxNum = triNum * 3;
+	prim.org = vtxOrg;
+	prim.num = triNum * 3;
+	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = false;
+	prim_draw(&prim);
+}
+
+void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex) {
+	Draw::Prim prim;
+	prim.type = Draw::PRIMTYPE_POLY;
+	prim.pMtx = pMtx;
+	prim.pTex = pTex;
+	prim.org = idxOrg;
+	prim.num = triNum * 3;
+	prim.indexed = true;
+	prim.alphaBlend = true;
+	prim.dblSided = true;
 	prim_draw(&prim);
 }
 
@@ -1684,8 +1719,9 @@ void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pT
 	prim.type = Draw::PRIMTYPE_SPRITE;
 	prim.pMtx = nullptr;
 	prim.pTex = pTex;
-	prim.vtxOrg = vtxOrg;
-	prim.vtxNum = triNum * 3;
+	prim.org = vtxOrg;
+	prim.num = triNum * 3;
+	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = false;
 	prim_draw(&prim);
