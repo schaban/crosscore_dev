@@ -96,7 +96,7 @@ static GLuint load_shader(const char* pName) {
 			pPath = (char*)nxCore::mem_alloc(pathSize, "glsl_path");
 			pathBufSize = pathSize;
 		}
-		if (pPath) {
+		if (pPath && pathBufSize > 0) {
 			XD_SPRINTF(XD_SPRINTF_BUF(pPath, pathBufSize), "%s/ogl/%s", pDataPath ? pDataPath : ".", pName);
 		}
 		size_t srcSize = 0;
@@ -355,7 +355,7 @@ static void save_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 		bufSize = pathSize;
 		pPath = (char*)nxCore::mem_alloc(pathSize, "GPUProg:save:path");
 	}
-	if (pPath) {
+	if (pPath && bufSize > 0) {
 		XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s_%s.%s", s_pGLSLBinSavePath, pVertName, pFragName, pExt);
 		nxCore::bin_save(pPath, pMem, saveSize);
 	}
@@ -383,7 +383,7 @@ static bool load_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 		bufSize = pathSize;
 		pPath = (char*)nxCore::mem_alloc(pathSize, "GPUProg:load:path");
 	}
-	if (pPath) {
+	if (pPath && bufSize > 0) {
 		XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s_%s.%s", s_pGLSLBinLoadPath, pVertName, pFragName, pExt);
 		size_t fsize = 0;
 		void* pBin = nxCore::bin_load(pPath, &fsize);

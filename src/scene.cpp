@@ -536,7 +536,7 @@ sxData* load_data_file(const char* pRelPath) {
 			pPath = (char*)nxCore::mem_alloc(pathSize, "Scn:data_path");
 			bufSize = pathSize;
 		}
-		if (pPath) {
+		if (pPath && bufSize > 0) {
 			XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s", pDataPath, pRelPath);
 		}
 		pData = nxData::load(pPath);
