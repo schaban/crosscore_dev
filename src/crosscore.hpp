@@ -3554,7 +3554,7 @@ struct sxView {
 
 	cxVec get_dir() const { return (mTgt - mPos).get_normalized(); }
 
-	cxVec get_uv_dir(const float u, const float v);
+	cxVec get_uv_dir(const float u, const float v) const;
 
 	float calc_fovx() const;
 	float calc_deg_fovx() const { return XD_RAD2DEG(calc_fovx()); }
@@ -5844,8 +5844,9 @@ protected:
 		return pSlots;
 	}
 
-	uint32_t calc_step(uint32_t hash, int size = 0) {
+	uint32_t calc_step(uint32_t hash, const int size = 0) {
 		uint32_t s = uint32_t(size <= 1 ? mSize : size);
+		if (s <= 1) return 1;
 		return (((hash >> 5) + 1U) % (s-1)) + 1;
 	}
 
@@ -6164,9 +6165,6 @@ template<typename T> T* load_as(const char* pPath) {
 	}
 	return nullptr;
 }
-
-void bswap_xmdl(sxModelData* pMdlData);
-void bswap_xcol(sxCollisionData* pColData);
 
 } // nxData
 

@@ -5088,7 +5088,7 @@ XD_NOINLINE float sxView::calc_fovx() const {
 	return 2.0f * ::atanf(::tanf(XD_DEG2RAD(mDegFOVY) * 0.5f) * get_aspect());
 }
 
-XD_NOINLINE cxVec sxView::get_uv_dir(const float u, const float v) {
+XD_NOINLINE cxVec sxView::get_uv_dir(const float u, const float v) const {
 	float nu = nxCalc::fit(u, 0.0f, 1.0f, -1.0f, 1.0f);
 	float nv = nxCalc::fit(v, 0.0f, 1.0f, -1.0f, 1.0f);
 	cxVec dir(nu, nv, 1.0f);
@@ -6280,363 +6280,6 @@ uint8_t* unpack(sxPackedData* pPkd, const char* pMemTag, uint8_t* pDstMem, const
 	return pDst;
 }
 
-
-static inline uint32_t xdat_u32(sxData::Status st, uint32_t* p) {
-	return st.native ? *p : nxSys::bswap_u32(*p);
-}
-
-static inline uint32_t xdat_get_swap_u32(sxData::Status st, uint32_t* p) {
-	uint32_t val = xdat_u32(st, p);
-	nxSys::mem_bswap_u32(p);
-	return val;
-}
-
-static void bswap_xdat(sxData* pData, sxData::Status* pSt, uint32_t* pNativeFlags = nullptr) {
-	if (!pData) return;
-	sxData::Status st = pSt ? *pSt : pData->get_status();
-	uint32_t offsStr = xdat_u32(st, &pData->mOffsStr);
-	uint32_t offsExt = xdat_u32(st, &pData->mOffsExt);
-	nxSys::mem_bswap_u32(&pData->mKind);
-	uint32_t flags = xdat_get_swap_u32(st, &pData->mFlags);
-	if (pNativeFlags) {
-		*pNativeFlags = flags;
-	}
-	nxSys::mem_bswap_u32(&pData->mFileSize);
-	nxSys::mem_bswap_u32(&pData->mHeadSize);
-	nxSys::mem_bswap_u32(&pData->mOffsStr);
-	nxSys::mem_bswap_u16((uint16_t*)&pData->mNameId);
-	nxSys::mem_bswap_u16((uint16_t*)&pData->mPathId);
-	pData->mFilePathLen = 0;
-	nxSys::mem_bswap_u32(&pData->mOffsExt);
-	if (offsStr) {
-		sxStrList* pStrLst = (sxStrList*)XD_INCR_PTR(pData, offsStr);
-		nxSys::mem_bswap_u32(&pStrLst->mSize);
-		uint32_t nstr = xdat_u32(st, &pStrLst->mNum);
-		nxSys::mem_bswap_u32(&pStrLst->mNum);
-		for (uint32_t i = 0; i < nstr; ++i) {
-			nxSys::mem_bswap_u32(&pStrLst->mOffs[i]);
-		}
-	}
-	if (offsExt) {
-		sxData::ExtList* pExtLst = (sxData::ExtList*)XD_INCR_PTR(pData, offsExt);
-		uint32_t nxtn = xdat_u32(st, &pExtLst->num);
-		nxSys::mem_bswap_u32(&pExtLst->num);
-		for (uint32_t i = 0; i < nxtn; ++i) {
-			nxSys::mem_bswap_u32(&pExtLst->lst[i].kind);
-			nxSys::mem_bswap_u32(&pExtLst->lst[i].offs);
-		}
-	}
-}
-
-static void bswap_bbox(cxAABB* pBBox) {
-	uint32_t* pMem = (uint32_t*)pBBox;
-	const uint32_t n = uint32_t(sizeof(cxAABB) / sizeof(uint32_t));
-	for (uint32_t i = 0; i < n; ++i) {
-		nxSys::mem_bswap_u32(&pMem[i]);
-	}
-}
-
-static void bswap_vec(cxVec* pVec) {
-	uint32_t* pMem = (uint32_t*)pVec;
-	const uint32_t n = uint32_t(sizeof(cxVec) / sizeof(uint32_t));
-	for (uint32_t i = 0; i < n; ++i) {
-		nxSys::mem_bswap_u32(&pMem[i]);
-	}
-}
-
-static void bswap_f(float* pF) {
-	uint32_t* pMem = (uint32_t*)pF;
-	nxSys::mem_bswap_u32(pMem);
-}
-
-static void bswap_f2(xt_float2* pF2) {
-	uint32_t* pMem = (uint32_t*)pF2;
-	nxSys::mem_bswap_u32(pMem);
-	nxSys::mem_bswap_u32(pMem + 1);
-}
-
-static void bswap_f3(xt_float3* pF3) {
-	uint32_t* pMem = (uint32_t*)pF3;
-	for (uint32_t i = 0; i < 3; ++i) {
-		nxSys::mem_bswap_u32(&pMem[i]);
-	}
-}
-
-static void bswap_h(xt_half* pH) {
-	uint16_t* pMem = (uint16_t*)pH;
-	nxSys::mem_bswap_u16(pMem);
-}
-
-static void bswap_h2(xt_half2* pH2) {
-	uint16_t* pMem = (uint16_t*)pH2;
-	nxSys::mem_bswap_u16(pMem);
-	nxSys::mem_bswap_u16(pMem + 1);
-}
-
-static void bswap_h4(xt_half4* pH4) {
-	uint16_t* pMem = (uint16_t*)pH4;
-	for (uint32_t i = 0; i < 4; ++i) {
-		nxSys::mem_bswap_u16(&pMem[i]);
-	}
-}
-
-template<typename T> bool data_is(const sxData* pData, const sxData::Status st) {
-	return pData->mKind == (st.native ? T::KIND : nxSys::bswap_u32(T::KIND));
-}
-
-void bswap_xmdl(sxModelData* pMdlData) {
-	if (!pMdlData) return;
-	sxData::Status st = pMdlData->get_status();
-	if (!st.fmt) return;
-	if (!data_is<sxModelData>(pMdlData, st)) {
-		return;
-	}
-	uint32_t flags = 0;
-	bswap_xdat(pMdlData, &st, &flags);
-	bswap_bbox(&pMdlData->mBBox);
-	uint32_t npnt = xdat_get_swap_u32(st, &pMdlData->mPntNum);
-	uint32_t ntri = xdat_get_swap_u32(st, &pMdlData->mTriNum);
-	uint32_t nmtl = xdat_get_swap_u32(st, &pMdlData->mMtlNum);
-	uint32_t ntex = xdat_get_swap_u32(st, &pMdlData->mTexNum);
-	uint32_t nbat = xdat_get_swap_u32(st, &pMdlData->mBatNum);
-	uint32_t nskn = xdat_get_swap_u32(st, &pMdlData->mSknNum);
-	uint32_t nskl = xdat_get_swap_u32(st, &pMdlData->mSklNum);
-	uint32_t ni16 = xdat_get_swap_u32(st, &pMdlData->mIdx16Num);
-	uint32_t ni32 = xdat_get_swap_u32(st, &pMdlData->mIdx32Num);
-	uint32_t maxJntsPerBat = xdat_get_swap_u32(st, &pMdlData->mMaxJntsPerBat);
-	uint32_t pntOffs = xdat_get_swap_u32(st, &pMdlData->mPntOffs);
-	uint32_t mtlOffs = xdat_get_swap_u32(st, &pMdlData->mMtlOffs);
-	uint32_t texOffs = xdat_get_swap_u32(st, &pMdlData->mTexOffs);
-	uint32_t batOffs = xdat_get_swap_u32(st, &pMdlData->mBatOffs);
-	uint32_t sknOffs = xdat_get_swap_u32(st, &pMdlData->mSknOffs);
-	uint32_t sklOffs = xdat_get_swap_u32(st, &pMdlData->mSklOffs);
-	uint32_t i16Offs = xdat_get_swap_u32(st, &pMdlData->mIdx16Offs);
-	uint32_t i32Offs = xdat_get_swap_u32(st, &pMdlData->mIdx32Offs);
-	bool halfEnc = (flags & 2) != 0;
-	bool hasSkin = nskn > 0;
-	bool hasSkel = nskl > 0;
-	size_t vsize = 0;
-	if (halfEnc) {
-		vsize = hasSkin ? sizeof(sxModelData::VtxSkinHalf) : sizeof(sxModelData::VtxRigidHalf);
-	} else {
-		vsize = hasSkin ? sizeof(sxModelData::VtxSkinShort) : sizeof(sxModelData::VtxRigidShort);
-	}
-	if (npnt && pntOffs) {
-		uint8_t* pPntMem = (uint8_t*)XD_INCR_PTR(pMdlData, pntOffs);
-		for (uint32_t i = 0; i < npnt; ++i) {
-			if (halfEnc) {
-				if (hasSkin) {
-					sxModelData::VtxSkinHalf* pVtx = (sxModelData::VtxSkinHalf*)pPntMem;
-					bswap_f3(&pVtx->pos);
-					bswap_h2(&pVtx->oct);
-					bswap_h2(&pVtx->tex);
-					bswap_h4(&pVtx->clr);
-					for (uint32_t j = 0; j < 4; ++j) {
-						nxSys::mem_bswap_u16(&pVtx->wgt[j]);
-					}
-				} else {
-					sxModelData::VtxRigidHalf* pVtx = (sxModelData::VtxRigidHalf*)pPntMem;
-					bswap_f3(&pVtx->pos);
-					bswap_h2(&pVtx->oct);
-					bswap_h2(&pVtx->tex);
-					bswap_h4(&pVtx->clr);
-				}
-			} else {
-				if (hasSkin) {
-					sxModelData::VtxSkinShort* pVtx = (sxModelData::VtxSkinShort*)pPntMem;
-					for (uint32_t j = 0; j < 3; ++j) {
-						nxSys::mem_bswap_u16(&pVtx->qpos[j]);
-					}
-					nxSys::mem_bswap_u16(&pVtx->w0);
-					for (uint32_t j = 0; j < 2; ++j) {
-						nxSys::mem_bswap_u16(&pVtx->oct[j]);
-					}
-					nxSys::mem_bswap_u16(&pVtx->w1);
-					nxSys::mem_bswap_u16(&pVtx->w2);
-					for (uint32_t j = 0; j < 4; ++j) {
-						nxSys::mem_bswap_u16(&pVtx->clr[j]);
-					}
-					for (uint32_t j = 0; j < 2; ++j) {
-						nxSys::mem_bswap_i16(&pVtx->tex[j]);
-					}
-				} else {
-					sxModelData::VtxRigidShort* pVtx = (sxModelData::VtxRigidShort*)pPntMem;
-					bswap_f3(&pVtx->pos);
-					for (uint32_t j = 0; j < 2; ++j) {
-						nxSys::mem_bswap_i16(&pVtx->oct[j]);
-					}
-					for (uint32_t j = 0; j < 4; ++j) {
-						nxSys::mem_bswap_u16(&pVtx->clr[j]);
-					}
-				}
-			}
-			pPntMem += vsize;
-		}
-	}
-	if (ni16 && i16Offs) {
-		uint16_t* pIdx16 = (uint16_t*)XD_INCR_PTR(pMdlData, i16Offs);
-		for (uint32_t i = 0; i < ni16; ++i) {
-			nxSys::mem_bswap_u16(&pIdx16[i]);
-		}
-	}
-	if (ni32 && i32Offs) {
-		uint32_t* pIdx32 = (uint32_t*)XD_INCR_PTR(pMdlData, i32Offs);
-		for (uint32_t i = 0; i < ni32; ++i) {
-			nxSys::mem_bswap_u32(&pIdx32[i]);
-		}
-	}
-	if (nbat && batOffs) {
-		sxModelData::Batch* pBat = (sxModelData::Batch*)XD_INCR_PTR(pMdlData, batOffs);
-		for (uint32_t i = 0; i < nbat; ++i) {
-			nxSys::mem_bswap_i32(&pBat->mNameId);
-			nxSys::mem_bswap_i32(&pBat->mMtlId);
-			nxSys::mem_bswap_i32(&pBat->mMinIdx);
-			nxSys::mem_bswap_i32(&pBat->mMaxIdx);
-			nxSys::mem_bswap_i32(&pBat->mIdxOrg);
-			nxSys::mem_bswap_i32(&pBat->mTriNum);
-			nxSys::mem_bswap_i32(&pBat->mJntNum);
-			nxSys::mem_bswap_i32(&pBat->mJntInfoOrg);
-			++pBat;
-		}
-	}
-	if (nmtl && mtlOffs) {
-		sxModelData::Material* pMtl = (sxModelData::Material*)XD_INCR_PTR(pMdlData, mtlOffs);
-		for (uint32_t i = 0; i < nmtl; ++i) {
-			nxSys::mem_bswap_i32(&pMtl->mNameId);
-			nxSys::mem_bswap_i32(&pMtl->mPathId);
-			nxSys::mem_bswap_i32(&pMtl->mBaseTexId);
-			nxSys::mem_bswap_i32(&pMtl->mSpecTexId);
-			nxSys::mem_bswap_i32(&pMtl->mBumpTexId);
-			nxSys::mem_bswap_i32(&pMtl->mSurfTexId);
-			nxSys::mem_bswap_i32(&pMtl->mExtTexId);
-			nxSys::mem_bswap_u32((uint32_t*)&pMtl->mFlags);
-			bswap_f3(&pMtl->mBaseColor);
-			bswap_f3(&pMtl->mSpecColor);
-			bswap_f(&pMtl->mRoughness);
-			bswap_f(&pMtl->mFresnel);
-			bswap_f(&pMtl->mMetallic);
-			bswap_f(&pMtl->mBumpScale);
-			bswap_f(&pMtl->mAlphaLim);
-			bswap_f(&pMtl->mShadowOffs);
-			bswap_f(&pMtl->mShadowWght);
-			bswap_f(&pMtl->mShadowDensity);
-			bswap_f(&pMtl->mShadowAlphaLim);
-			bswap_f(&pMtl->mMask);
-			uint32_t mtlExtOffs = xdat_get_swap_u32(st, &pMtl->mExtOffs);
-			uint32_t mtlSwapOffs = xdat_get_swap_u32(st, &pMtl->mSwapOffs);
-			bswap_h(&pMtl->mSortBias);
-			++pMtl;
-		}
-	}
-	if (ntex && texOffs) {
-		sxModelData::TexInfo* pTex = (sxModelData::TexInfo*)XD_INCR_PTR(pMdlData, texOffs);
-		for (uint32_t i = 0; i < ntex; ++i) {
-			nxSys::mem_bswap_i32(&pTex->mNameId);
-			nxSys::mem_bswap_i32(&pTex->mPathId);
-			++pTex;
-		}
-	}
-}
-
-void bswap_xcol(sxCollisionData* pColData) {
-	if (!pColData) return;
-	sxData::Status st = pColData->get_status();
-	if (!st.fmt) return;
-	if (!data_is<sxCollisionData>(pColData, st)) {
-		return;
-	}
-	bswap_xdat(pColData, &st);
-	bswap_bbox(&pColData->mBBox);
-	uint32_t npnt = xdat_get_swap_u32(st, &pColData->mPntNum);
-	uint32_t npol = xdat_get_swap_u32(st, &pColData->mPolNum);
-	uint32_t ngrp = xdat_get_swap_u32(st, &pColData->mGrpNum);
-	uint32_t ntri = xdat_get_swap_u32(st, &pColData->mTriNum);
-	uint32_t maxVtxPerPol = xdat_get_swap_u32(st, &pColData->mMaxVtxPerPol);
-	uint32_t pntOffs = xdat_get_swap_u32(st, &pColData->mPntOffs);
-	uint32_t polIdxOrgOffs = xdat_get_swap_u32(st, &pColData->mPolIdxOrgOffs);
-	uint32_t polVtxNumOffs = xdat_get_swap_u32(st, &pColData->mPolVtxNumOffs);
-	uint32_t polTriOrgOffs = xdat_get_swap_u32(st, &pColData->mPolTriOrgOffs);
-	uint32_t polIdxOffs = xdat_get_swap_u32(st, &pColData->mPolIdxOffs);
-	uint32_t polGrpOffs = xdat_get_swap_u32(st, &pColData->mPolGrpOffs);
-	uint32_t polTriIdxOffs = xdat_get_swap_u32(st, &pColData->mPolTriIdxOffs);
-	uint32_t polBBoxOffs = xdat_get_swap_u32(st, &pColData->mPolBBoxOffs);
-	uint32_t polNrmOffs = xdat_get_swap_u32(st, &pColData->mPolNrmOffs);
-	uint32_t grpInfoOffs = xdat_get_swap_u32(st, &pColData->mGrpInfoOffs);
-	uint32_t bvhBBoxOffs = xdat_get_swap_u32(st, &pColData->mBVHBBoxOffs);
-	uint32_t bvhInfoOffs = xdat_get_swap_u32(st, &pColData->mBVHInfoOffs);
-	if (npnt && pntOffs) {
-		cxVec* pPnt = (cxVec*)XD_INCR_PTR(pColData, pntOffs);
-		for (uint32_t i = 0; i < npnt; ++i) {
-			bswap_vec(&pPnt[i]);
-		}
-	}
-	if (npol && polBBoxOffs) {
-		cxAABB* pBBox = (cxAABB*)XD_INCR_PTR(pColData, polBBoxOffs);
-		for (uint32_t i = 0; i < npol; ++i) {
-			bswap_bbox(&pBBox[i]);
-		}
-	}
-	if (npol && polNrmOffs) {
-		uint16_t* pOct = (uint16_t*)XD_INCR_PTR(pColData, polNrmOffs);
-		for (uint32_t i = 0; i < npol; ++i) {
-			nxSys::mem_bswap_u16(pOct);
-			++pOct;
-			nxSys::mem_bswap_u16(pOct);
-			++pOct;
-		}
-	}
-	if (ngrp && grpInfoOffs) {
-		sxCollisionData::GrpInfo* pGrp = (sxCollisionData::GrpInfo*)XD_INCR_PTR(pColData, grpInfoOffs);
-		for (uint32_t i = 0; i < ngrp; ++i) {
-			nxSys::mem_bswap_i16(&pGrp->mNameId);
-			nxSys::mem_bswap_i16(&pGrp->mPathId);
-			++pGrp;
-		}
-	}
-	uint32_t nbvh = npol*2 - 1;
-	if (nbvh && bvhBBoxOffs) {
-		cxAABB* pBBox = (cxAABB*)XD_INCR_PTR(pColData, bvhBBoxOffs);
-		for (uint32_t i = 0; i < nbvh; ++i) {
-			bswap_bbox(&pBBox[i]);
-		}
-	}
-	if (nbvh && bvhInfoOffs) {
-		sxCollisionData::BVHNodeInfo* pNode = (sxCollisionData::BVHNodeInfo*)XD_INCR_PTR(pColData, bvhInfoOffs);
-		for (uint32_t i = 0; i < nbvh; ++i) {
-			nxSys::mem_bswap_i32(&pNode->mLeft);
-			nxSys::mem_bswap_i32(&pNode->mRight);
-			++pNode;
-		}
-	}
-	if (npol && polIdxOrgOffs && polIdxOffs) {
-		uint32_t* pIdxOrg = (uint32_t*)XD_INCR_PTR(pColData, polIdxOrgOffs);
-		uint32_t* pPolIdx = (uint32_t*)XD_INCR_PTR(pColData, polIdxOffs);
-		for (uint32_t i = 0; i < npol; ++i) {
-			uint32_t nvtx = maxVtxPerPol;
-			if (polVtxNumOffs) {
-				uint8_t* pNumVtx = (uint8_t*)XD_INCR_PTR(pColData, polVtxNumOffs);
-				nvtx = pNumVtx[i];
-			}
-			uint32_t org = xdat_u32(st, &pIdxOrg[i]);
-			for (uint32_t j = 0; j < nvtx; ++j) {
-				nxSys::mem_bswap_u32(&pPolIdx[org + j]);
-			}
-		}
-	}
-	if (npol && polIdxOrgOffs) {
-		uint32_t* pIdxOrg = (uint32_t*)XD_INCR_PTR(pColData, polIdxOrgOffs);
-		for (uint32_t i = 0; i < npol; ++i) {
-			nxSys::mem_bswap_u32(&pIdxOrg[i]);
-		}
-	}
-	if (npol && polTriOrgOffs) {
-		uint32_t* pTriOrg = (uint32_t*)XD_INCR_PTR(pColData, polTriOrgOffs);
-		for (uint32_t i = 0; i < npol; ++i) {
-			nxSys::mem_bswap_u32(&pTriOrg[i]);
-		}
-	}
-}
-
 } // nxData
 
 
@@ -6880,7 +6523,7 @@ int sxValuesData::Group::get_val_i(int idx) const {
 	int res = 0;
 	const ValInfo* pVal = get_val_info(idx);
 	if (pVal) {
-		float ftmp[1];
+		float ftmp[1] = { 0.0f };
 		eValType typ = pVal->get_type();
 		switch (typ) {
 			case eValType::INT:
@@ -8561,7 +8204,7 @@ int sxGeometryData::Polygon::get_vtx_pnt_id(int vtxIdx) const {
 
 int sxGeometryData::Polygon::get_vtx_num() const {
 	int nvtx = 0;
-	if (is_valid()) {
+	if (mpGeom && is_valid()) {
 		if (mpGeom->is_same_pol_size()) {
 			nvtx = mpGeom->mMaxVtxPerPol;
 		} else {
@@ -10962,7 +10605,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 	float valA;
 	float valB;
 	float valC;
-	float cmpRes;
+	float cmpRes = 0.0f;
 	int funcId;
 	String str1;
 	String str2;
@@ -10985,7 +10628,6 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 		case eOp::CMP:
 			valB = pStk->pop_num();
 			valA = pStk->pop_num();
-			cmpRes = 0.0f;
 			switch ((eCmp)pCode->mInfo) {
 			case eCmp::EQ:
 				cmpRes = valA == valB ? 1.0f : 0.0f;
