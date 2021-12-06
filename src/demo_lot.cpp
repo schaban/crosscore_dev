@@ -42,7 +42,6 @@ static void char_roam_ctrl(SmpChar* pChar) {
 				} else {
 					pChar->change_act(SmpChar::ACT_WALK, 5.0f);
 					pChar->reset_wall_touch();
-					wallTouchDT = 0.0;
 				}
 			}
 			break;
