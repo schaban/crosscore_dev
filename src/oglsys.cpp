@@ -3126,7 +3126,7 @@ namespace OGLSys {
 					pLst = (GLint*)GLG.mem_alloc(nfmt * sizeof(GLint), "OGLSys:BinFmts");
 				}
 				if (pLst) {
-					glGetIntegerv(GL_SHADER_BINARY_FORMATS, fmtLst);
+					glGetIntegerv(GL_SHADER_BINARY_FORMATS, pLst);
 					for (int i = 0; i < nfmt; ++i) {
 						if (pLst[i] == GL_SHADER_BINARY_FORMAT_SPIR_V_ARB) {
 							res = true;
