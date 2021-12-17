@@ -23,7 +23,7 @@ endif
 VULKAN_SO_NAME:=libvulkan.so.1
 VULKAN_SO_PATH:=/usr/lib/$(shell uname -m)-linux-gnu/$(VULKAN_SO_NAME)
 
-LINK_LIBS:=-lm -ldl -lpthread
+LINK_LIBS:=-lm -ldl -lpthread -lstdc++
 
 XCORE_FLAGS:=-DXD_TSK_NATIVE=1 -DDEF_DEMO="\"roof\"" -I src -I inc
 ifeq ("$(wildcard $(VULKAN_SO_PATH))","")
