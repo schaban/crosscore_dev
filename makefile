@@ -1,6 +1,6 @@
 PROG_NAME:=crosscore_demo
 
-XCORE_EXE_DIR:=bin/linux_$(shell uname -m)
+XCORE_EXE_DIR:=bin/$(shell uname -s)_$(shell uname -m)
 
 $(shell if [ ! -d "tmp/obj" ]; then mkdir -p tmp/obj; fi)
 $(shell if [ ! -d "tmp/obj/dbg" ]; then mkdir -p tmp/obj/dbg; fi)
@@ -23,7 +23,7 @@ endif
 VULKAN_SO_NAME:=libvulkan.so.1
 VULKAN_SO_PATH:=/usr/lib/$(shell uname -m)-linux-gnu/$(VULKAN_SO_NAME)
 
-LINK_LIBS:=-lm -ldl -lpthread -lstdc++
+LINK_LIBS:=-lm -lpthread -lstdc++
 
 XCORE_FLAGS:=-DXD_TSK_NATIVE=1 -DDEF_DEMO="\"roof\"" -I src -I inc
 ifeq ("$(wildcard $(VULKAN_SO_PATH))","")
@@ -34,6 +34,13 @@ else
 endif
 ifdef USE_CL
 	XCORE_FLAGS += -DOGLSYS_CL=$(USE_CL)
+endif
+
+ifeq ("$(shell uname -s)", "OpenBSD")
+	LINK_LIBS += -L/usr/X11R6/lib
+	XCORE_FLAGS += -I/usr/X11R6/include
+else
+	LINK_LIBS += -ldl
 endif
 
 ifdef VIVANTE_FB
