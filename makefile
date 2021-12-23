@@ -123,15 +123,15 @@ $(XCORE_EXE_DBG): $(OBJS_DBG)
 clean:
 	$(info Cleaning $(XCORE_EXE))
 	$(info Removing objs...)
-	@rm --force $(OBJS)
-	@rm --force $(OBJS_DBG)
+	@rm -f $(OBJS)
+	@rm -f $(OBJS_DBG)
 	$(info Removing deps...)
-	@rm --force $(DEPS)
-	@rm --force $(DEPS_DBG)
+	@rm -f $(DEPS)
+	@rm -f $(DEPS_DBG)
 	$(info Removing exes...)
-	@rm --force $(XCORE_EXE)
-	@rm --force $(XCORE_EXE).txt
-	@rm --force $(XCORE_EXE_DBG)
-	@rm --force $(XCORE_EXE_DBG).txt
+	@rm -f $(XCORE_EXE)
+	@rm -f $(XCORE_EXE).txt
+	@rm -f $(XCORE_EXE_DBG)
+	@rm -f $(XCORE_EXE_DBG).txt
 	$(info Done.)
 
