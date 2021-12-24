@@ -1608,7 +1608,7 @@ static GPUProg* prog_sel(const cxModelWork* pWk, const int ibat, const sxModelDa
 					GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
 					if (*pTexHandle == 0) {
 						const char* pTexName = pMdl->get_tex_name(tid);
-						sxTextureData* pTex = s_pRsrcMgr->find_texture_for_model(pMdl, pTexName);
+						sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
 						*pTexHandle = get_tex_handle(pTex);
 					}
 					if (*pTexHandle) {
@@ -2109,7 +2109,7 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 				GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
 				if (*pTexHandle == 0) {
 					const char* pTexName = pMdl->get_tex_name(tid);
-					sxTextureData* pTex = s_pRsrcMgr->find_texture_for_model(pMdl, pTexName);
+					sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
 					*pTexHandle = get_tex_handle(pTex);
 				}
 				htex = *pTexHandle;
@@ -2129,7 +2129,7 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 			GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
 			if (*pTexHandle == 0) {
 				const char* pTexName = pMdl->get_tex_name(tid);
-				sxTextureData* pTex = s_pRsrcMgr->find_texture_for_model(pMdl, pTexName);
+				sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
 				*pTexHandle = get_tex_handle(pTex);
 			}
 			if (*pTexHandle) {

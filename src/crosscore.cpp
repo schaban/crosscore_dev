@@ -13104,6 +13104,21 @@ bool cxModelWork::calc_batch_visibility(const cxFrustum* pFst, const int ibat, c
 	return visible;
 }
 
+sxTextureData* cxModelWork::find_texture(cxResourceManager* pRsrcMgr, const char* pTexName) const {
+	sxTextureData* pTex = nullptr;
+	if (pTexName && mpData) {
+		if (pRsrcMgr) {
+			pTex = pRsrcMgr->find_texture_for_model(mpData, pTexName);
+		}
+		if (!pTex) {
+			if (mpTexPkg) {
+				pTex = mpTexPkg->find_texture(pTexName);
+			}
+		}
+	}
+	return pTex;
+}
+
 cxModelWork* cxModelWork::create(sxModelData* pMdl, const size_t paramMemSize, const size_t extMemSize) {
 	if (!pMdl) return nullptr;
 	cxModelWork* pWk = nullptr;

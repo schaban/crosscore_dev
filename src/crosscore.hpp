@@ -137,7 +137,7 @@ typedef void* xt_fhandle;
 struct sxSysIfc {
 	void* (*fn_malloc)(size_t);
 	void (*fn_free)(void*);
-	xt_fhandle(*fn_fopen)(const char*);
+	xt_fhandle (*fn_fopen)(const char*);
 	void (*fn_fclose)(xt_fhandle);
 	size_t (*fn_fsize)(xt_fhandle);
 	size_t (*fn_fread)(xt_fhandle, void*, size_t);
@@ -148,7 +148,10 @@ struct sxLock;
 struct sxSignal;
 struct sxWorker;
 
-typedef void(*xt_worker_func)(void*);
+typedef void (*xt_worker_func)(void*);
+
+class cxMotionWork;
+class cxModelWork;
 
 namespace nxSys {
 
@@ -5232,120 +5235,6 @@ struct sxFileCatalogue : public sxData {
 };
 
 
-class cxMotionWork {
-private:
-	cxMotionWork() {}
-
-public:
-	sxModelData* mpMdlData;
-	const sxMotionData* mpCurrentMotData;
-
-	xt_xmtx* mpXformsL;
-	xt_xmtx* mpXformsW;
-	xt_xmtx* mpPrevXformsW;
-	xt_xmtx* mpBlendXformsL;
-	uint8_t* mpBlendDisableBits;
-	cxVec mMoveRelPos;
-	cxQuat mMoveRelQuat;
-	float mEvalFrame;
-	float mFrame;
-	float mBlendDuration;
-	float mBlendCount;
-	float mUniformScale;
-	int mRootId;
-	int mMoveId;
-	int mCenterId;
-	bool mPlayLastFrame;
-
-	bool ck_node_id(const int inode) const { return mpMdlData ? mpMdlData->ck_skel_id(inode) : false; }
-	int find_node_id(const char* pName) const { return mpMdlData ? mpMdlData->find_skel_node_id(pName) : -1; }
-
-	void apply_motion(const sxMotionData* pMotData, const float frameAdd, float* pLoopFlg = nullptr);
-
-	xt_xmtx eval_skel_node_chain_xform(const sxMotionData* pMotData, const int inode, const int itop, const float frame);
-
-	void adjust_leg(const cxVec& effPos, const int inodeTop, const int inodeRot, const int inodeEnd, const int inodeExt);
-
-	void copy_prev_world();
-	void calc_world();
-
-	xt_xmtx get_node_local_xform(const int inode) const;
-	xt_xmtx get_node_prev_world_xform(const int inode) const;
-	xt_xmtx calc_node_world_xform(const int inode, xt_xmtx* pParentXform = nullptr) const;
-	cxMtx calc_node_world_mtx(const int inode, cxMtx* pParentMtx = nullptr) const;
-
-	void reset_node_local_xform(const int inode);
-	void set_node_local_xform(const int inode, const xt_xmtx& lm);
-	void set_node_local_tx(const int inode, const float x);
-	void set_node_local_ty(const int inode, const float y);
-	void set_node_local_tz(const int inode, const float z);
-	void set_root_local_tx(const float x) { set_node_local_tx(mRootId, x); }
-	void set_root_local_ty(const float y) { set_node_local_ty(mRootId, y); }
-	void set_root_local_tz(const float z) { set_node_local_tz(mRootId, z); }
-
-	void disable_node_blending(const int inode, const float disable = true);
-	void blend_init(const int duration);
-	void blend_exec();
-
-	void set_base_node_ids(const char* pRootName = "root", const char* pMoveName = "n_Move", const char* pCenterName = "n_Center");
-
-	static cxMotionWork* create(sxModelData* pMdlData);
-	static void destroy(cxMotionWork* pWk);
-};
-
-
-class cxModelWork {
-private:
-	cxModelWork() {}
-
-public:
-	cxAABB mWorldBBox;
-	cxAABB mPrevWorldBBox;
-	sxModelData* mpData;
-	xt_xmtx* mpWorldXform;
-	xt_xmtx* mpSkinXforms;
-	cxAABB* mpBatBBoxes;
-	uint32_t* mpCullBits;
-	uint32_t* mpHideBits;
-	void* mpParamMem;
-	void* mpExtMem;
-	void* mpGPUWk;
-	float mRenderMask;
-	int mVariation;
-	bool mBoundsValid;
-
-	bool has_skel() const { return mpData && mpData->has_skel(); }
-	bool ck_skel_id(const int iskl) const { return mpData ? mpData->ck_skel_id(iskl) : false; }
-	int find_skel_node_id(const char* pName) const { return mpData ? mpData->find_skel_node_id(pName) : -1; }
-
-	xt_xmtx calc_skel_node_world_rest_xform(const int iskl) const { return mpData ? mpData->calc_skel_node_world_xform(iskl, nullptr) : nxMtx::xmtx_identity(); }
-	cxMtx calc_skel_node_world_rest_mtx(const int iskl) const { return nxMtx::mtx_from_xmtx(calc_skel_node_world_rest_xform(iskl)); }
-
-	int get_batches_num() const { return mpData ? mpData->mBatNum : 0; }
-	bool ck_batch_id(const int ibat) const { return mpData ? mpData->ck_batch_id(ibat) : false; }
-
-	int get_mtls_num() const { return mpData ? mpData->mMtlNum : 0; }
-	bool ck_mtl_id(const int imtl) const { return mpData ? mpData->ck_mtl_id(imtl) : false; }
-	int find_mtl_id(const char* pMtlName) { return mpData ? mpData->find_material_id(pMtlName) : -1; }
-	void hide_mtl(const int imtl, const bool hide = true);
-	void hide_mtl(const char* pMtlName, const bool hide = true) { hide_mtl(find_mtl_id(pMtlName), hide); }
-	bool is_mtl_hidden(const int imtl) const;
-	bool is_bat_mtl_hidden(const int ibat) const;
-
-	void copy_prev_world_bbox() { mPrevWorldBBox = mWorldBBox; }
-	void copy_prev_world_xform();
-	cxMtx get_prev_world_xform() const;
-
-	void set_pose(const cxMotionWork* pMot);
-	void update_bounds();
-	void frustum_cull(const cxFrustum* pFst, const bool precise = true);
-	bool calc_batch_visibility(const cxFrustum* pFst, const int ibat, const bool precise = true);
-
-	static cxModelWork* create(sxModelData* pMdl, const size_t paramMemSize = 0, const size_t extMemSize = 0);
-	static void destroy(cxModelWork* pWk);
-};
-
-
 #define XD_PLEXLST_TAG "xPlexLst"
 
 template <typename T, int PLEX_SIZE = 16>
@@ -6340,6 +6229,124 @@ public:
 	static cxResourceManager* create(const char* pAppPath, const char* pRelDataDir);
 	static void destroy(cxResourceManager* pMgr);
 };
+
+
+class cxMotionWork {
+private:
+	cxMotionWork() {}
+
+public:
+	sxModelData* mpMdlData;
+	const sxMotionData* mpCurrentMotData;
+
+	xt_xmtx* mpXformsL;
+	xt_xmtx* mpXformsW;
+	xt_xmtx* mpPrevXformsW;
+	xt_xmtx* mpBlendXformsL;
+	uint8_t* mpBlendDisableBits;
+	cxVec mMoveRelPos;
+	cxQuat mMoveRelQuat;
+	float mEvalFrame;
+	float mFrame;
+	float mBlendDuration;
+	float mBlendCount;
+	float mUniformScale;
+	int mRootId;
+	int mMoveId;
+	int mCenterId;
+	bool mPlayLastFrame;
+
+	bool ck_node_id(const int inode) const { return mpMdlData ? mpMdlData->ck_skel_id(inode) : false; }
+	int find_node_id(const char* pName) const { return mpMdlData ? mpMdlData->find_skel_node_id(pName) : -1; }
+
+	void apply_motion(const sxMotionData* pMotData, const float frameAdd, float* pLoopFlg = nullptr);
+
+	xt_xmtx eval_skel_node_chain_xform(const sxMotionData* pMotData, const int inode, const int itop, const float frame);
+
+	void adjust_leg(const cxVec& effPos, const int inodeTop, const int inodeRot, const int inodeEnd, const int inodeExt);
+
+	void copy_prev_world();
+	void calc_world();
+
+	xt_xmtx get_node_local_xform(const int inode) const;
+	xt_xmtx get_node_prev_world_xform(const int inode) const;
+	xt_xmtx calc_node_world_xform(const int inode, xt_xmtx* pParentXform = nullptr) const;
+	cxMtx calc_node_world_mtx(const int inode, cxMtx* pParentMtx = nullptr) const;
+
+	void reset_node_local_xform(const int inode);
+	void set_node_local_xform(const int inode, const xt_xmtx& lm);
+	void set_node_local_tx(const int inode, const float x);
+	void set_node_local_ty(const int inode, const float y);
+	void set_node_local_tz(const int inode, const float z);
+	void set_root_local_tx(const float x) { set_node_local_tx(mRootId, x); }
+	void set_root_local_ty(const float y) { set_node_local_ty(mRootId, y); }
+	void set_root_local_tz(const float z) { set_node_local_tz(mRootId, z); }
+
+	void disable_node_blending(const int inode, const float disable = true);
+	void blend_init(const int duration);
+	void blend_exec();
+
+	void set_base_node_ids(const char* pRootName = "root", const char* pMoveName = "n_Move", const char* pCenterName = "n_Center");
+
+	static cxMotionWork* create(sxModelData* pMdlData);
+	static void destroy(cxMotionWork* pWk);
+};
+
+
+class cxModelWork {
+private:
+	cxModelWork() {}
+
+public:
+	cxAABB mWorldBBox;
+	cxAABB mPrevWorldBBox;
+	sxModelData* mpData;
+	xt_xmtx* mpWorldXform;
+	xt_xmtx* mpSkinXforms;
+	cxAABB* mpBatBBoxes;
+	uint32_t* mpCullBits;
+	uint32_t* mpHideBits;
+	void* mpParamMem;
+	void* mpExtMem;
+	void* mpGPUWk;
+	float mRenderMask;
+	int mVariation;
+	bool mBoundsValid;
+	cxResourceManager::Pkg* mpTexPkg;
+
+	bool has_skel() const { return mpData && mpData->has_skel(); }
+	bool ck_skel_id(const int iskl) const { return mpData ? mpData->ck_skel_id(iskl) : false; }
+	int find_skel_node_id(const char* pName) const { return mpData ? mpData->find_skel_node_id(pName) : -1; }
+
+	xt_xmtx calc_skel_node_world_rest_xform(const int iskl) const { return mpData ? mpData->calc_skel_node_world_xform(iskl, nullptr) : nxMtx::xmtx_identity(); }
+	cxMtx calc_skel_node_world_rest_mtx(const int iskl) const { return nxMtx::mtx_from_xmtx(calc_skel_node_world_rest_xform(iskl)); }
+
+	int get_batches_num() const { return mpData ? mpData->mBatNum : 0; }
+	bool ck_batch_id(const int ibat) const { return mpData ? mpData->ck_batch_id(ibat) : false; }
+
+	int get_mtls_num() const { return mpData ? mpData->mMtlNum : 0; }
+	bool ck_mtl_id(const int imtl) const { return mpData ? mpData->ck_mtl_id(imtl) : false; }
+	int find_mtl_id(const char* pMtlName) { return mpData ? mpData->find_material_id(pMtlName) : -1; }
+	void hide_mtl(const int imtl, const bool hide = true);
+	void hide_mtl(const char* pMtlName, const bool hide = true) { hide_mtl(find_mtl_id(pMtlName), hide); }
+	bool is_mtl_hidden(const int imtl) const;
+	bool is_bat_mtl_hidden(const int ibat) const;
+
+	void copy_prev_world_bbox() { mPrevWorldBBox = mWorldBBox; }
+	void copy_prev_world_xform();
+	cxMtx get_prev_world_xform() const;
+
+	void set_pose(const cxMotionWork* pMot);
+	void update_bounds();
+	void frustum_cull(const cxFrustum* pFst, const bool precise = true);
+	bool calc_batch_visibility(const cxFrustum* pFst, const int ibat, const bool precise = true);
+
+	sxTextureData* find_texture(cxResourceManager* pRsrcMgr, const char* pTexName) const;
+
+	static cxModelWork* create(sxModelData* pMdl, const size_t paramMemSize = 0, const size_t extMemSize = 0);
+	static void destroy(cxModelWork* pWk);
+};
+
 
 namespace nxApp {
 
