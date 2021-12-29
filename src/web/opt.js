@@ -35,6 +35,7 @@ if (pageParams.get("shavian") !== null) {
 
 if (pageParams.get("lot") !== null) {
 	Module.arguments.push("-demo:lot");
+	Module.arguments.push("-mode:1");
 }
 
 var btns = document.getElementsByClassName("btn");

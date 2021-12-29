@@ -106,8 +106,35 @@ static void init_chars() {
 			descr.scale = 1.04f;
 		}
 		ScnObj* pObj = SmpCharSys::add_m(descr, char_roam_ctrl);
-		pObj->set_world_quat_pos(q, pos);
+		if (pObj) {
+			pObj->set_world_quat_pos(q, pos);
+		}
 		pos += add;
+	}
+
+	int mode = nxApp::get_int_opt("mode", 0);
+	if (mode == 1) {
+		cxVec pos(-8.0f, 0.0f, -2.0f);
+		cxVec add(0.75f, 0.0f, 0.0f);
+		cxQuat q = nxQuat::identity();
+		for (int i = 0; i < 20; ++i) {
+			ScnObj* pObj = nullptr;
+			descr.scale = 1.0f;
+			descr.variation = 9 - (i >> 1);
+			if (i & 1) {
+				pObj = SmpCharSys::add_f(descr, char_roam_ctrl);
+			} else {
+				pObj = SmpCharSys::add_m(descr, char_roam_ctrl);
+			}
+			if (pObj) {
+				pObj->set_world_quat_pos(q, pos);
+			}
+			pos += add;
+			if (i == 9) {
+				pos.x = -8.0f;
+				pos.z += -1.25f;
+			}
+		}
 	}
 }
 
