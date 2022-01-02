@@ -12,6 +12,7 @@
     <ClCompile Include="src\demo_roof.cpp" />
     <ClCompile Include="src\demo_lot.cpp" />
     <ClCompile Include="src\smpchar.cpp" />
+    <ClCompile Include="src\smprig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crosscore.hpp" />
@@ -21,6 +22,7 @@
     <ClInclude Include="src\scene.hpp" />
     <ClInclude Include="src\demo.hpp" />
     <ClInclude Include="src\smpchar.hpp" />
+    <ClInclude Include="src\smprig.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\oglsys.inc" />
