@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: 2019-2021 Sergey Chaban <sergey.chaban@gmail.com>
+// SPDX-FileCopyrightText: 2019-2022 Sergey Chaban <sergey.chaban@gmail.com>
 
 #define SCN_EXEC_PRIO_BITS 3
 #define SCN_NUM_EXEC_PRIO (1 << (SCN_EXEC_PRIO_BITS))
@@ -141,6 +141,7 @@ public:
 	void init_motion_blend(const int duration);
 	void exec_motion_blend();
 	void set_motion_uniform_scl(const float scl);
+	void set_motion_height_offs(const float offs);
 	void update_world();
 	void update_skin();
 	void update_bounds();

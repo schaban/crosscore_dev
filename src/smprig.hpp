@@ -38,7 +38,6 @@ struct SmpRig {
 	SupJnt mKneeR;
 	LegInfo mLegL;
 	LegInfo mLegR;
-	float mHeightOffs;
 	float mAnkleHeight;
 	float mScale;
 	ScnObj* mpObj;

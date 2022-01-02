@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// SPDX-FileCopyrightText: 2019-2021 Sergey Chaban <sergey.chaban@gmail.com>
+// SPDX-FileCopyrightText: 2019-2022 Sergey Chaban <sergey.chaban@gmail.com>
 
 #include "crosscore.hpp"
 #include "draw.hpp"
@@ -2690,6 +2690,12 @@ void ScnObj::exec_motion_blend() {
 void ScnObj::set_motion_uniform_scl(const float scl) {
 	if (mpMotWk) {
 		mpMotWk->mUniformScale = scl;
+	}
+}
+
+void ScnObj::set_motion_height_offs(const float offs) {
+	if (mpMotWk) {
+		mpMotWk->mHeightOffs = offs;
 	}
 }
 

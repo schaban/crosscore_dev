@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Copyright 2019-2021 Sergey Chaban
+ * Copyright 2019-2022 Sergey Chaban
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -12600,6 +12600,9 @@ void cxMotionWork::apply_motion(const sxMotionData* pMotData, const float frameA
 			cxVec pos = nxMtx::xmtx_get_pos(xform);
 			if (pMotNode->mTrkOffsT) {
 				pos = pMotData->eval_pos(i, mEvalFrame);
+				if (iskel == mCenterId) {
+					pos.y += mHeightOffs;
+				}
 				nxMtx::xmtx_set_pos(xform, pos);
 			}
 			cxQuat quat;

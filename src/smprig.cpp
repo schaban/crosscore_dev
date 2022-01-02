@@ -49,7 +49,6 @@ void SmpRig::init(ScnObj* pObj, sxValuesData* pVals) {
 	for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
 		tbl[i].pJnt->reset();
 	}
-	mHeightOffs = 0.0f;
 	mAnkleHeight = 0.01f;
 	if (pVals) {
 		sxValuesData::Group rigGrp = pVals->find_grp("rig");
@@ -72,6 +71,10 @@ void SmpRig::init(ScnObj* pObj, sxValuesData* pVals) {
 				mAnkleHeight = rigGrp.get_val_f(ival);
 			}
 			ival = rigGrp.find_val_idx("HeightOffs");
+			if (rigGrp.ck_val_idx(ival)) {
+				float hoffs = rigGrp.get_val_f(ival);
+				mpObj->set_motion_height_offs(hoffs);
+			}
 		}
 	}
 }
