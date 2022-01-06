@@ -6,3 +6,14 @@ cd crosscore_dev
 ./get_ogl_headers.sh
 make --jobs=$(nproc)
 ```
+
+***
+
+OpenBSD/X11:
+```
+(install prerequisites: pkg_add git wget gmake)
+git clone --depth 1 https://github.com/schaban/crosscore_dev.git
+cd crosscore_dev
+./get_data.sh
+./make_openbsd.sh
+```
