@@ -2597,6 +2597,12 @@ void ScnObj::set_shadow_density_scl(const float scl) {
 	}
 }
 
+void ScnObj::set_texture_pkg(cxResourceManager::Pkg* pTexPkg) {
+	if (mpMdlWk) {
+		mpMdlWk->mpTexPkg = pTexPkg;
+	}
+}
+
 void ScnObj::clear_int_wk() {
 	int n = XD_ARY_LEN(mIntWk);
 	for (int i = 0; i < n; ++i) {
@@ -2693,10 +2699,26 @@ void ScnObj::set_motion_uniform_scl(const float scl) {
 	}
 }
 
+float ScnObj::get_motion_uniform_scl() const {
+	float scl = 1.0f;
+	if (mpMotWk) {
+		scl = mpMotWk->mUniformScale;
+	}
+	return scl;
+}
+
 void ScnObj::set_motion_height_offs(const float offs) {
 	if (mpMotWk) {
 		mpMotWk->mHeightOffs = offs;
 	}
+}
+
+float ScnObj::get_motion_height_offs() const {
+	float offs = 0.0f;
+	if (mpMotWk) {
+		offs = mpMotWk->mHeightOffs;
+	}
+	return offs;
 }
 
 void ScnObj::update_world() {

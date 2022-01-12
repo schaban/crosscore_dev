@@ -106,6 +106,8 @@ public:
 	void set_shadow_weight_bias(const float bias);
 	void set_shadow_density_scl(const float scl);
 
+	void set_texture_pkg(cxResourceManager::Pkg* pTexPkg);
+
 	void clear_int_wk();
 	void clear_flt_wk();
 	void clear_ptr_wk();
@@ -141,7 +143,10 @@ public:
 	void init_motion_blend(const int duration);
 	void exec_motion_blend();
 	void set_motion_uniform_scl(const float scl);
+	float get_motion_uniform_scl() const;
 	void set_motion_height_offs(const float offs);
+	float get_motion_height_offs() const;
+
 	void update_world();
 	void update_skin();
 	void update_bounds();
