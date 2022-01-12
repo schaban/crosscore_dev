@@ -39,7 +39,6 @@ struct SmpRig {
 	LegInfo mLegL;
 	LegInfo mLegR;
 	float mAnkleHeight;
-	float mScale;
 	ScnObj* mpObj;
 
 	void init(ScnObj* pObj, sxValuesData* pVals);

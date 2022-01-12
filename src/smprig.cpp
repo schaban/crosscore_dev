@@ -25,7 +25,6 @@ void SmpRig::init(ScnObj* pObj, sxValuesData* pVals) {
 	mpObj = nullptr;
 	if (!pObj) return;
 	mpObj = pObj;
-	mScale = 1.0f;
 	mLegL.init(pObj, 'L');
 	mLegR.init(pObj, 'R');
 	struct {
@@ -84,6 +83,8 @@ void SmpRig::exec(sxCollisionData* pCol) {
 	if (!pObj) return;
 	cxMotionWork* pMotWk = pObj->mpMotWk;
 	if (pCol && pMotWk) {
+		float scale = pObj->get_motion_uniform_scl();
+		float ankleHeight = mAnkleHeight * scale;
 		for (int i = 0; i < 2; ++i) {
 			LegInfo* pLeg = i ? &mLegL : &mLegR;
 			if (pLeg->inodeEnd >= 0) {
@@ -96,7 +97,7 @@ void SmpRig::exec(sxCollisionData* pCol) {
 				cxLineSeg seg(legUp, legDn);
 				sxCollisionData::NearestHit hit = pCol->nearest_hit(seg);
 				if (hit.count > 0) {
-					float hy = hit.pos.y + (mAnkleHeight * mScale);
+					float hy = hit.pos.y + ankleHeight;
 					float ay = legPos.y;
 					if (hy > legPos.y) {
 						ay = hy;

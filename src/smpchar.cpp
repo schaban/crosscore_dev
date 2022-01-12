@@ -363,7 +363,6 @@ static ScnObj* add_char(const Pkg* pPkg, const SmpChar::Descr& descr, SmpChar::C
 			pChar->mpObj = pObj;
 			pChar->mMotLib.init(pPkg);
 			pChar->mRig.init(pChar);
-			pChar->mRig.mScale = scale;
 			pObj->mExecFunc = char_exec_func;
 			pObj->mDelFunc = char_del_func;
 			pObj->mBeforeMotionFunc = char_before_mot_func;
