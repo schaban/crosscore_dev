@@ -58,11 +58,16 @@ class TexExporter(xcore.BaseExporter):
 		else:
 			cdat = cop.allPixels(plane="C")
 			c = struct.pack(str(w*h*3)+"f", *cdat)
-		if "A" in cop.planes():
+		mskPln = None
+		for mskName in ["M", "A"]:
+			if mskName in cop.planes():
+				mskPln = mskName
+				break
+		if mskPln:
 			if useStrs:
-				a = cop.allPixelsAsString(plane="A", depth=dfmt)
+				a = cop.allPixelsAsString(plane=mskPln, depth=dfmt)
 			else:
-				adat = cop.allPixels(plane="A")
+				adat = cop.allPixels(plane=mskPln)
 				a = b""
 				for i in xrange(w*h):
 					a += struct.pack("f", adat[i])
