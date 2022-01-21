@@ -2678,7 +2678,7 @@ namespace OGLSys {
 
 	void link_prog_id_nock(const GLuint pid) {
 		if (pid) {
-#if !OGLSYS_ES && !defined(OGLSYS_WEB)
+#if !OGLSYS_ES && !defined(OGLSYS_WEB) && !defined(OGLSYS_APPLE)
 			if (glProgramParameteri) {
 				glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 			}
