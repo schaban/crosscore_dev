@@ -2,7 +2,7 @@
 
 ~ **crosscore** is a portable C++ library for graphics programming ~
 
-![roof chars](https://raw.githubusercontent.com/schaban/crosscore_dev/main/pic/cross_chars.png)
+![roof chars](https://github.com/schaban/schaban.github.io/raw/main/pic/cross_chars.png)
 
 The library itself is independent from rendering interfaces such as OpenGL or Vulkan,
 instead it is conceived as a set of tools to help with creating experimental renderers.\
