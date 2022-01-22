@@ -6,6 +6,10 @@
 
 #include "demo.hpp"
 
+#ifdef OGLSYS_MACOS
+#	include "mac_ifc.h"
+#endif
+
 #ifdef OGLSYS_VIVANTE_FB
 static const bool c_defBump = false;
 static const bool c_defSpec = false;
@@ -127,6 +131,51 @@ static void exec_demo() {
 }
 
 
+#ifdef OGLSYS_MACOS
+void mac_init(const char* pAppPath, int w, int h) {
+	int argc = 1;
+	const char* argv[] = { pAppPath };
+	nxApp::init_params(argc, (char**)argv);
+	init_sys();
+
+	init_ogl(0, 0, w, h, true);
+	init_scn(argv[0]);
+}
+
+void mac_exec() {
+	exec_demo();
+}
+
+void mac_stop() {
+	Scene::reset();
+	reset_ogl();
+
+	nxApp::reset();
+	nxCore::mem_dbg();
+}
+
+static float mac_mouse_y(float y) {
+	return float(OGLSys::get_height()) - y;
+}
+
+void mac_mouse_down(int btn, float x, float y) {
+	OGLSys::send_mouse_down((OGLSysMouseState::BTN)btn, x, mac_mouse_y(y), false);
+}
+
+void mac_mouse_up(int btn, float x, float y) {
+	OGLSys::send_mouse_up((OGLSysMouseState::BTN)btn, x, mac_mouse_y(y), false);
+}
+
+void mac_mouse_move(float x, float y) {
+	OGLSys::send_mouse_move(x, mac_mouse_y(y));
+}
+
+void mac_kbd(const char* pName, const bool state) {
+	OGLSys::set_key_state(pName, state);
+}
+
+#else
+
 int main(int argc, char* argv[]) {
 	nxApp::init_params(argc, argv);
 	init_sys();
@@ -158,3 +207,5 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
+#endif
