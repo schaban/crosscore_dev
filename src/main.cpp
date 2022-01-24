@@ -132,6 +132,8 @@ static void exec_demo() {
 
 
 #ifdef OGLSYS_MACOS
+static Demo::Ifc* s_pIfc = nullptr;
+
 void mac_init(const char* pAppPath, int w, int h) {
 	int argc = 1;
 	const char* argv[] = { pAppPath };
@@ -140,13 +142,27 @@ void mac_init(const char* pAppPath, int w, int h) {
 
 	init_ogl(0, 0, w, h, true);
 	init_scn(argv[0]);
+
+	s_pIfc = Demo::get_demo();
+	if (s_pIfc) {
+		nxCore::dbg_msg("executing demo program: %s\n", s_pIfc->info.pName);
+		s_pIfc->init();
+		Scene::mem_info();
+	}
 }
 
 void mac_exec() {
-	exec_demo();
+	if (s_pIfc && s_pIfc->loop) {
+		s_pIfc->loop(&s_pIfc->info);
+	}
 }
 
 void mac_stop() {
+	if (s_pIfc) {
+		s_pIfc->reset();
+		s_pIfc = nullptr;
+	}
+
 	Scene::reset();
 	reset_ogl();
 
