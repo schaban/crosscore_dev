@@ -30,3 +30,13 @@ gmake
 (to build with GCC: gmake CXX=g++10)
 ```
 
+***
+
+macOS (preliminary):
+```
+git clone --depth 1 https://github.com/schaban/crosscore_dev.git
+cd crosscore_dev
+./get_data.sh
+./mac_build.sh
+```
+
