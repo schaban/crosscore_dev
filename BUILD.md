@@ -34,6 +34,7 @@ gmake
 
 macOS (preliminary):
 ```
+(install the command line developer tools)
 git clone --depth 1 https://github.com/schaban/crosscore_dev.git
 cd crosscore_dev
 ./get_data.sh
