@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Copyright 2019-2021 Sergey Chaban
+ * Copyright 2019-2022 Sergey Chaban
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,14 @@
 #endif
 
 #include <cstdint>
+
+#if defined(__OpenBSD__)
+#	define OGLSYS_BSD
+#	define OGLSYS_OPENBSD
+#elif defined(__FreeBSD__)
+#	define OGLSYS_BSD
+#	define OGLSYS_FREEBSD
+#endif
 
 #if defined(ANDROID)
 #	define OGLSYS_ANDROID

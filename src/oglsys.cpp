@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: MIT
  *
- * Copyright 2019-2021 Sergey Chaban
+ * Copyright 2019-2022 Sergey Chaban
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,9 @@
 #	include <xf86drmMode.h>
 #	include <EGL/egl.h>
 #	include <EGL/eglext.h>
+#	if defined(OGLSYS_BSD)
+#		include <sys/select.h>
+#	endif
 #elif defined(OGLSYS_WEB)
 #	include <emscripten.h>
 #	include <SDL.h>

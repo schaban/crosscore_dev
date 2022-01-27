@@ -38,7 +38,7 @@ endif
 
 ifeq ("$(shell uname -s)", "OpenBSD")
 	LINK_LIBS += -L/usr/X11R6/lib
-	XCORE_FLAGS += -I/usr/X11R6/include
+	XCORE_FLAGS += -I/usr/X11R6/include -I/usr/X11R6/include/libdrm
 else ifeq ("$(shell uname -s)", "FreeBSD")
 	LINK_LIBS += -L/usr/local/lib
 	XCORE_FLAGS += -I/usr/local/include
