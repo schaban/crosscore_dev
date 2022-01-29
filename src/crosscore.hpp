@@ -66,8 +66,74 @@
 #	include <omp.h>
 #endif
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#ifdef XD_USE_VEMA
+#	include "vema.h"
+	template<typename T> inline T mth_isnan(T x) { return false; }
+#	define mth_frexpf VEMA_FN(FrExpF)
+#	define mth_ldexpf VEMA_FN(LdExpF)
+#	define mth_floorf VEMA_FN(FloorF)
+#	define mth_ceilf VEMA_FN(CeilF)
+#	define mth_roundf VEMA_FN(RoundF)
+#	define mth_truncf VEMA_FN(TruncF)
+#	define mth_fmodf VEMA_FN(ModF)
+#	define mth_fabsf VEMA_FN(AbsF)
+#	define mth_sqrtf VEMA_FN(SqrtF)
+#	define mth_sinf VEMA_FN(SinF)
+#	define mth_cosf VEMA_FN(CosF)
+#	define mth_tanf VEMA_FN(TanF)
+#	define mth_asinf VEMA_FN(ArcSinF)
+#	define mth_acosf VEMA_FN(ArcCosF)
+#	define mth_atanf VEMA_FN(ArcTanF)
+#	define mth_atan2f VEMA_FN(ArcTan2F)
+#	define mth_log10f VEMA_FN(Log10F)
+#	define mth_logf VEMA_FN(LogF)
+#	define mth_expf VEMA_FN(ExpF)
+#	define mth_powf VEMA_FN(PowF)
+#	define mth_floor VEMA_FN(FloorD)
+#	define mth_ceil VEMA_FN(CeilD)
+#	define mth_round VEMA_FN(RoundD)
+#	define mth_fabs VEMA_FN(AbsD)
+#	define mth_sqrt VEMA_FN(SqrtD)
+#	define mth_pow VEMA_FN(PowD)
+#	define mth_sin VEMA_FN(SinD)
+#	define mth_cos VEMA_FN(CosD)
+#	define mth_asin VEMA_FN(ArcSinD)
+#	define mth_acos VEMA_FN(ArcCosD)
+#else
+#	define _USE_MATH_DEFINES
+#	include <math.h>
+#	define mth_isnan isnan
+#	define mth_frexpf frexpf
+#	define mth_ldexpf ldexpf
+#	define mth_floorf floorf
+#	define mth_ceilf ceilf
+#	define mth_roundf roundf
+#	define mth_truncf truncf
+#	define mth_fmodf fmodf
+#	define mth_fabsf fabsf
+#	define mth_sqrtf sqrtf
+#	define mth_sinf sinf
+#	define mth_cosf cosf
+#	define mth_tanf tanf
+#	define mth_asinf asinf
+#	define mth_acosf acosf
+#	define mth_atanf atanf
+#	define mth_atan2f atan2f
+#	define mth_log10f log10f
+#	define mth_logf logf
+#	define mth_expf expf
+#	define mth_powf powf
+#	define mth_floor floor
+#	define mth_ceil ceil
+#	define mth_round round
+#	define mth_fabs fabs
+#	define mth_sqrt sqrt
+#	define mth_pow pow
+#	define mth_sin sin
+#	define mth_cos cos
+#	define mth_asin asin
+#	define mth_acos acos
+#endif
 #include <float.h>
 
 #include <new>
@@ -561,20 +627,20 @@ template<typename T> inline T cb(T x) { return x*x*x; }
 template<typename T> inline T div0(T x, T y) { return y != T(0) ? x / y : T(0); }
 template<typename T> inline T rcp0(T x) { return div0(T(1), x); }
 
-template<typename T> inline T tfabs(T x) { return T(::fabs((double)x)); }
-inline float tfabs(float x) { return ::fabsf(x); }
+template<typename T> inline T tfabs(T x) { return T(::mth_fabs((double)x)); }
+inline float tfabs(float x) { return ::mth_fabsf(x); }
 
-template<typename T> inline T tsqrt(T x) { return T(::sqrt((double)x)); }
-inline float tsqrt(float x) { return ::sqrtf(x); }
+template<typename T> inline T tsqrt(T x) { return T(::mth_sqrt((double)x)); }
+inline float tsqrt(float x) { return ::mth_sqrtf(x); }
 
-template<typename T> inline T tsin(T x) { return T(::sin((double)x)); }
-inline float tsin(float x) { return ::sinf(x); }
+template<typename T> inline T tsin(T x) { return T(::mth_sin((double)x)); }
+inline float tsin(float x) { return ::mth_sinf(x); }
 
-template<typename T> inline T tcos(T x) { return T(::cos((double)x)); }
-inline float tcos(float x) { return ::cosf(x); }
+template<typename T> inline T tcos(T x) { return T(::mth_cos((double)x)); }
+inline float tcos(float x) { return ::mth_cosf(x); }
 
-template<typename T> inline T tpow(T x, T y) { return T(::pow((double)x, (double)y)); }
-inline float tpow(float x, float y) { return ::powf(x, y); }
+template<typename T> inline T tpow(T x, T y) { return T(::mth_pow((double)x, (double)y)); }
+inline float tpow(float x, float y) { return ::mth_powf(x, y); }
 
 template<typename T> inline T ipow(const T x, const int n) {
 	T wx = x;
@@ -593,30 +659,30 @@ template<typename T> inline T ipow(const T x, const int n) {
 }
 
 inline float hypot(const float x, const float y) {
-	float m = max(::fabsf(x), ::fabsf(y));
+	float m = max(::mth_fabsf(x), ::mth_fabsf(y));
 	float im = rcp0(m);
-	return ::sqrtf(sq(x*im) + sq(y*im)) * m;
+	return ::mth_sqrtf(sq(x*im) + sq(y*im)) * m;
 }
 
 inline double hypot(const double x, const double y) {
-	double m = max(::fabs(x), ::fabs(y));
+	double m = max(::mth_fabs(x), ::mth_fabs(y));
 	double im = rcp0(m);
-	return ::sqrt(sq(x*im) + sq(y*im)) * m;
+	return ::mth_sqrt(sq(x*im) + sq(y*im)) * m;
 }
 
 inline float cb_root(const float x) {
-	float a = ::fabsf(x);
-	float r = ::expf(::logf(a) * (1.0f / 3.0f));
+	float a = ::mth_fabsf(x);
+	float r = ::mth_expf(::mth_logf(a) * (1.0f / 3.0f));
 	return x < 0.0f ? -r : r;
 }
 
 inline float lerp(const float a, const float b, const float t) { return a + (b - a)*t; }
 
 inline float sinc(const float x) {
-	if (::fabsf(x) < 1.0e-4f) {
+	if (::mth_fabsf(x) < 1.0e-4f) {
 		return 1.0f;
 	}
-	return (::sinf(x) / x);
+	return (::mth_sinf(x) / x);
 }
 
 template<typename T> inline T approach(const T& val, const T& dst, const int t) {
@@ -625,9 +691,9 @@ template<typename T> inline T approach(const T& val, const T& dst, const int t) 
 }
 
 inline float ease(const float t, const float e = 1.0f) {
-	float x = 0.5f - 0.5f*::cosf(t*XD_PI);
+	float x = 0.5f - 0.5f*::mth_cosf(t*XD_PI);
 	if (e != 1.0f) {
-		x = ::powf(x, e);
+		x = ::mth_powf(x, e);
 	}
 	return x;
 }
@@ -2043,9 +2109,9 @@ public:
 		z = -z;
 	}
 	void abs() {
-		x = ::fabsf(x);
-		y = ::fabsf(y);
-		z = ::fabsf(z);
+		x = ::mth_fabsf(x);
+		y = ::mth_fabsf(y);
+		z = ::mth_fabsf(z);
 	}
 
 	cxVec neg_val() const {
@@ -2104,7 +2170,7 @@ public:
 	float max_abs_elem() const { return max_elem(true); }
 
 	float mag2() const { return dot(*this); }
-	float mag_fast() const { return ::sqrtf(mag2()); }
+	float mag_fast() const { return ::mth_sqrtf(mag2()); }
 	float mag() const;
 	float length() const { return mag(); }
 
@@ -2116,8 +2182,8 @@ public:
 		return n;
 	}
 
-	float azimuth() const { return ::atan2f(x, z); }
-	float elevation() const { return -::atan2f(y, nxCalc::hypot(x, z)); }
+	float azimuth() const { return ::mth_atan2f(x, z); }
+	float elevation() const { return -::mth_atan2f(y, nxCalc::hypot(x, z)); }
 
 	void min(const cxVec& v) {
 		x = nxCalc::min(x, v.x);
@@ -2604,7 +2670,7 @@ public:
 	float dot(const cxQuat& q) const { return x*q.x + y*q.y + z*q.z + w*q.w; }
 
 	float mag2() const { return dot(*this); }
-	float mag() const { return ::sqrtf(mag2()); }
+	float mag() const { return ::mth_sqrtf(mag2()); }
 
 	void mul(const cxQuat& qa, const cxQuat& qb) {
 		float tx = qa.w*qb.x + qa.x*qb.w + qa.y*qb.z - qa.z*qb.y;
@@ -3112,7 +3178,7 @@ public:
 	cxVec get_normal() const { return mABC; }
 	float get_D() const { return mD; }
 	float signed_dist(const cxVec& pos) const { return pos.dot(get_normal()) - get_D(); }
-	float dist(const cxVec& pos) const { return ::fabsf(signed_dist(pos)); }
+	float dist(const cxVec& pos) const { return ::mth_fabsf(signed_dist(pos)); }
 	bool pnt_in_front(const cxVec& pos) const { return signed_dist(pos) >= 0.0f; }
 
 	bool seg_intersect(const cxVec& p0, const cxVec& p1, float* pT = nullptr, cxVec* pHitPos = nullptr) const {
@@ -3387,7 +3453,7 @@ public:
 			if (ch[i] <= 0.0f) {
 				ch[i] = 0.0f;
 			} else {
-				ch[i] = ::powf(ch[i], igamma);
+				ch[i] = ::mth_powf(ch[i], igamma);
 			}
 		}
 	}
@@ -3396,7 +3462,7 @@ public:
 		if (gamma <= 0.0f || gamma == 1.0f) return;
 		for (int i = 0; i < 3; ++i) {
 			if (ch[i] > 0.0f) {
-				ch[i] = ::powf(ch[i], gamma);
+				ch[i] = ::mth_powf(ch[i], gamma);
 			}
 		}
 	}
@@ -5997,7 +6063,7 @@ namespace nxSH {
 inline int calc_coefs_num(int order) { return order < 1 ? 0 : nxCalc::sq(order); }
 inline constexpr int calc_consts_num(int order) { return order < 1 ? 0 : order*order - (order - 1); }
 inline int calc_ary_idx(int l, int m) { return l*(l+1) + m; }
-inline int band_idx_from_ary_idx(int idx) { return (int)::sqrtf((float)idx); }
+inline int band_idx_from_ary_idx(int idx) { return (int)::mth_sqrtf((float)idx); }
 inline int func_idx_from_ary_band(int idx, int l) { return idx - l*(l + 1); }
 
 void calc_weights(float* pWgt, int order, float s, float scl = 1.0f);

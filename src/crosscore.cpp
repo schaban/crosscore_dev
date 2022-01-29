@@ -956,7 +956,7 @@ void* mem_resize(void* pMem, float factor, int alignment) {
 		if (pMemInfo) {
 			const char* pTag = mem_tag(pMem);
 			size_t oldSize = pMemInfo->mSize;
-			size_t newSize = (size_t)::ceilf((float)oldSize * factor);
+			size_t newSize = (size_t)::mth_ceilf((float)oldSize * factor);
 			size_t cpySize = nxCalc::min(oldSize, newSize);
 			if (alignment < 1) alignment = pMemInfo->mAlgn;
 			void* p = mem_alloc(newSize, pTag, alignment);
@@ -1250,12 +1250,12 @@ uint32_t f32_get_bits(const float x) {
 
 bool f32_almost_eq(const float x, const float y, const float tol) {
 	bool eq = false;
-	float adif = ::fabsf(x - y);
+	float adif = ::mth_fabsf(x - y);
 	if (x == 0.0f || y == 0.0f) {
 		eq = adif <= tol;
 	} else {
-		float ax = ::fabsf(x);
-		float ay = ::fabsf(y);
+		float ax = ::mth_fabsf(x);
+		float ay = ::mth_fabsf(y);
 		eq = (adif / ax) <= tol && (adif / ay) <= tol;
 	}
 	return eq;
@@ -1849,14 +1849,14 @@ float fit(const float val, const float oldMin, const float oldMax, const float n
 
 float calc_fovy(const float focal, const float aperture, const float aspect) {
 	float zoom = ((2.0f * focal) / aperture) * aspect;
-	float fovy = 2.0f * ::atan2f(1.0f, zoom);
+	float fovy = 2.0f * ::mth_atan2f(1.0f, zoom);
 	return fovy;
 }
 
 bool is_prime(const int32_t x) {
 	if (x <= 1) return false;
 	if (is_even(x)) return x == 2;
-	int n = int(::sqrt(x));
+	int n = int(::mth_sqrt(x));
 	for (int i = 3; i < n; i += 2) {
 		if ((x % i) == 0) return false;
 	}
@@ -2002,11 +2002,11 @@ cxVec get_axis(exAxis axis) {
 
 cxVec from_polar_uv(float u, float v) {
 	float azimuth = u * 2.0f * XD_PI;
-	float sinAzi = ::sinf(azimuth);
-	float cosAzi = ::cosf(azimuth);
+	float sinAzi = ::mth_sinf(azimuth);
+	float cosAzi = ::mth_cosf(azimuth);
 	float elevation = (v - 1.0f) * XD_PI;
-	float sinEle = ::sinf(elevation);
-	float cosEle = ::cosf(elevation);
+	float sinEle = ::mth_sinf(elevation);
+	float cosEle = ::mth_cosf(elevation);
 	float nx = cosAzi*sinEle;
 	float ny = cosEle;
 	float nz = sinAzi*sinEle;
@@ -2063,15 +2063,15 @@ cxVec rot_sc_z(const cxVec& v, const float s, const float c) {
 }
 
 cxVec rot_rad_x(const cxVec& v, const float rx) {
-	return rot_sc_x(v, ::sinf(rx), ::cosf(rx));
+	return rot_sc_x(v, ::mth_sinf(rx), ::mth_cosf(rx));
 }
 
 cxVec rot_rad_y(const cxVec& v, const float ry) {
-	return rot_sc_y(v, ::sinf(ry), ::cosf(ry));
+	return rot_sc_y(v, ::mth_sinf(ry), ::mth_cosf(ry));
 }
 
 cxVec rot_rad_z(const cxVec& v, const float rz) {
-	return rot_sc_z(v, ::sinf(rz), ::cosf(rz));
+	return rot_sc_z(v, ::mth_sinf(rz), ::mth_cosf(rz));
 }
 
 cxVec rot_deg_x(const cxVec& v, const float dx) {
@@ -2161,8 +2161,8 @@ xt_float2 cxVec::encode_octa() const {
 	float ox = x * d;
 	float oy = y * d;
 	if (z < 0.0f) {
-		float tx = (1.0f - ::fabsf(oy)) * (ox < 0.0f ? -1.0f : 1.0f);
-		float ty = (1.0f - ::fabsf(ox)) * (oy < 0.0f ? -1.0f : 1.0f);
+		float tx = (1.0f - ::mth_fabsf(oy)) * (ox < 0.0f ? -1.0f : 1.0f);
+		float ty = (1.0f - ::mth_fabsf(ox)) * (oy < 0.0f ? -1.0f : 1.0f);
 		ox = tx;
 		oy = ty;
 	}
@@ -2174,8 +2174,8 @@ xt_float2 cxVec::encode_octa() const {
 void cxVec::decode_octa(const xt_float2& oct) {
 	float ox = oct.x;
 	float oy = oct.y;
-	float ax = ::fabsf(ox);
-	float ay = ::fabsf(oy);
+	float ax = ::mth_fabsf(ox);
+	float ay = ::mth_fabsf(oy);
 	z = 1.0f - ax - ay;
 	if (z < 0.0f) {
 		x = (1.0f - ay) * (ox < 0.0f ? -1.0f : 1.0f);
@@ -2396,7 +2396,7 @@ cxQuat cxMtx::to_quat() const {
 	float w = 1.0f;
 	float trace = m[0][0] + m[1][1] + m[2][2];
 	if (trace > 0.0f) {
-		s = ::sqrtf(trace + 1.0f);
+		s = ::mth_sqrtf(trace + 1.0f);
 		w = s * 0.5f;
 		s = 0.5f / s;
 		x = (m[1][2] - m[2][1]) * s;
@@ -2406,7 +2406,7 @@ cxQuat cxMtx::to_quat() const {
 		if (m[1][1] > m[0][0]) {
 			if (m[2][2] > m[1][1]) {
 				s = m[2][2] - m[1][1] - m[0][0];
-				s = ::sqrtf(s + 1.0f);
+				s = ::mth_sqrtf(s + 1.0f);
 				z = s * 0.5f;
 				if (s != 0.0f) {
 					s = 0.5f / s;
@@ -2416,7 +2416,7 @@ cxQuat cxMtx::to_quat() const {
 				y = (m[2][1] + m[1][2]) * s;
 			} else {
 				s = m[1][1] - m[2][2] - m[0][0];
-				s = ::sqrtf(s + 1.0f);
+				s = ::mth_sqrtf(s + 1.0f);
 				y = s * 0.5f;
 				if (s != 0.0f) {
 					s = 0.5f / s;
@@ -2427,7 +2427,7 @@ cxQuat cxMtx::to_quat() const {
 			}
 		} else if (m[2][2] > m[0][0]) {
 			s = m[2][2] - m[1][1] - m[0][0];
-			s = ::sqrtf(s + 1.0f);
+			s = ::mth_sqrtf(s + 1.0f);
 			z = s * 0.5f;
 			if (s != 0.0f) {
 				s = 0.5f / s;
@@ -2437,7 +2437,7 @@ cxQuat cxMtx::to_quat() const {
 			y = (m[2][1] + m[1][2]) * s;
 		} else {
 			s = m[0][0] - m[1][1] - m[2][2];
-			s = ::sqrtf(s + 1.0f);
+			s = ::mth_sqrtf(s + 1.0f);
 			x = s * 0.5f;
 			if (s != 0.0f) {
 				s = 0.5f / s;
@@ -2700,8 +2700,8 @@ void cxMtx::set_rot_frame(const cxVec& axisX, const cxVec& axisY, const cxVec& a
 
 void cxMtx::set_rot_n(const cxVec& axis, float ang) {
 	cxVec axis2 = axis * axis;
-	float s = ::sinf(ang);
-	float c = ::cosf(ang);
+	float s = ::mth_sinf(ang);
+	float c = ::mth_cosf(ang);
 	float t = 1.0f - c;
 	float x = axis.x;
 	float y = axis.y;
@@ -2781,29 +2781,29 @@ bool cxMtx::is_valid_rot(float tol) const {
 	cxVec r0 = get_row_vec(0);
 	cxVec r1 = get_row_vec(1);
 	cxVec r2 = get_row_vec(2);
-	float v = ::fabsf(nxVec::scalar_triple(r0, r1, r2));
-	if (::fabsf(v - 1.0f) > tol) return false;
+	float v = ::mth_fabsf(nxVec::scalar_triple(r0, r1, r2));
+	if (::mth_fabsf(v - 1.0f) > tol) return false;
 
 	v = r0.dot(r0);
-	if (::fabsf(v - 1.0f) > tol) return false;
+	if (::mth_fabsf(v - 1.0f) > tol) return false;
 	v = r1.dot(r1);
-	if (::fabsf(v - 1.0f) > tol) return false;
+	if (::mth_fabsf(v - 1.0f) > tol) return false;
 	v = r2.dot(r2);
-	if (::fabsf(v - 1.0f) > tol) return false;
+	if (::mth_fabsf(v - 1.0f) > tol) return false;
 
 	v = r0.dot(r1);
-	if (::fabsf(v) > tol) return false;
+	if (::mth_fabsf(v) > tol) return false;
 	v = r1.dot(r2);
-	if (::fabsf(v) > tol) return false;
+	if (::mth_fabsf(v) > tol) return false;
 	v = r0.dot(r2);
-	if (::fabsf(v) > tol) return false;
+	if (::mth_fabsf(v) > tol) return false;
 
 	return true;
 }
 
 static inline float limit_pi(float rad) {
-	rad = ::fmodf(rad, XD_PI*2);
-	if (::fabsf(rad) > XD_PI) {
+	rad = ::mth_fmodf(rad, XD_PI*2);
+	if (::mth_fabsf(rad) > XD_PI) {
 		if (rad < 0.0f) {
 			rad = XD_PI*2 + rad;
 		} else {
@@ -2828,7 +2828,7 @@ cxVec cxMtx::get_rot(exRotOrd ord) const {
 	const float eps = 1.0e-6f;
 	int axisMask = 0;
 	for (int i = 0; i < 4; ++i) {
-		if (::fabsf(q[i]) < eps) {
+		if (::mth_fabsf(q[i]) < eps) {
 			axisMask |= 1 << i;
 		}
 	}
@@ -2836,19 +2836,19 @@ cxVec cxMtx::get_rot(exRotOrd ord) const {
 	float qw = nxCalc::clamp(q.w, -1.0f, 1.0f);
 	switch (axisMask) {
 		case 6: /* 0110 -> X */
-			rv.x = ::acosf(qw) * 2.0f;
+			rv.x = ::mth_acosf(qw) * 2.0f;
 			if (q.x < 0.0f) rv.x = -rv.x;
 			rv.x = limit_pi(rv.x);
 			singleAxis = true;
 			break;
 		case 5: /* 0101 -> Y */
-			rv.y = ::acosf(qw) * 2.0f;
+			rv.y = ::mth_acosf(qw) * 2.0f;
 			if (q.y < 0.0f) rv.y = -rv.y;
 			rv.y = limit_pi(rv.y);
 			singleAxis = true;
 			break;
 		case 3: /* 0011 -> Z */
-			rv.z = ::acosf(qw) * 2.0f;
+			rv.z = ::mth_acosf(qw) * 2.0f;
 			if (q.z < 0.0f) rv.z = -rv.z;
 			rv.z = limit_pi(rv.z);
 			singleAxis = true;
@@ -2872,11 +2872,11 @@ cxVec cxMtx::get_rot(exRotOrd ord) const {
 	rm[1].set(m[i1][i0], m[i1][i1], m[i1][i2]);
 	rm[2].set(m[i2][i0], m[i2][i1], m[i2][i2]);
 	float r[3] = { 0, 0, 0 };
-	r[i0] = ::atan2f(rm[1][2], rm[2][2]);
-	r[i1] = ::atan2f(-rm[0][2], ::sqrtf(nxCalc::sq(rm[0][0]) + nxCalc::sq(rm[0][1])));
-	float s = ::sinf(r[i0]);
-	float c = ::cosf(r[i0]);
-	r[i2] = ::atan2f(s*rm[2][0] - c*rm[1][0], c*rm[1][1] - s*rm[2][1]);
+	r[i0] = ::mth_atan2f(rm[1][2], rm[2][2]);
+	r[i1] = ::mth_atan2f(-rm[0][2], ::mth_sqrtf(nxCalc::sq(rm[0][0]) + nxCalc::sq(rm[0][1])));
+	float s = ::mth_sinf(r[i0]);
+	float c = ::mth_cosf(r[i0]);
+	r[i2] = ::mth_atan2f(s*rm[2][0] - c*rm[1][0], c*rm[1][1] - s*rm[2][1]);
 	for (int i = 0; i < 3; ++i) {
 		r[i] *= sgn;
 	}
@@ -2986,8 +2986,8 @@ void cxMtx::mk_view(const cxVec& pos, const cxVec& tgt, const cxVec& upvec, cxMt
 
 void cxMtx::mk_proj(float fovy, float aspect, float znear, float zfar) {
 	float h = fovy*0.5f;
-	float s = ::sinf(h);
-	float c = ::cosf(h);
+	float s = ::mth_sinf(h);
+	float c = ::mth_cosf(h);
 	float cot = c / s;
 	float q = zfar / (zfar - znear);
 	::memset(this, 0, sizeof(cxMtx));
@@ -3112,9 +3112,9 @@ cxMtx cxQuat::to_mtx() const {
 }
 
 float cxQuat::get_axis_ang(cxVec* pAxis) const {
-	float ang = ::acosf(w) * 2.0f;
+	float ang = ::mth_acosf(w) * 2.0f;
 	if (pAxis) {
-		float s = nxCalc::rcp0(::sqrtf(1.0f - w*w));
+		float s = nxCalc::rcp0(::mth_sqrtf(1.0f - w*w));
 		pAxis->set(x, y, z);
 		pAxis->scl(s);
 		pAxis->normalize();
@@ -3124,7 +3124,7 @@ float cxQuat::get_axis_ang(cxVec* pAxis) const {
 
 cxVec cxQuat::get_log_vec() const {
 	float cosh = w;
-	float hang = ::acosf(cosh);
+	float hang = ::mth_acosf(cosh);
 	cxVec axis(x, y, z);
 	axis.normalize();
 	axis.scl(hang);
@@ -3133,7 +3133,7 @@ cxVec cxQuat::get_log_vec() const {
 
 void cxQuat::from_log_vec(const cxVec& lvec, bool nrmFlg) {
 	float hang = lvec.mag();
-	float cosh = ::cosf(hang);
+	float cosh = ::mth_cosf(hang);
 	cxVec axis = lvec * nxCalc::sinc(hang);
 	x = axis.x;
 	y = axis.y;
@@ -3155,9 +3155,9 @@ void cxQuat::from_vecs(const cxVec& vfrom, const cxVec& vto) {
 			identity();
 		} else {
 			d = nxCalc::clamp(d, -1.0f, 1.0f);
-			float c = ::sqrtf((1.0f + d) * 0.5f);
-			float s = ::sqrtf((1.0f - d) * 0.5f);
-			axis.scl(nxCalc::rcp0(::sqrtf(sqm)) * s);
+			float c = ::mth_sqrtf((1.0f + d) * 0.5f);
+			float s = ::mth_sqrtf((1.0f - d) * 0.5f);
+			axis.scl(nxCalc::rcp0(::mth_sqrtf(sqm)) * s);
 			x = axis.x;
 			y = axis.y;
 			z = axis.z;
@@ -3192,30 +3192,30 @@ cxMtx cxQuat::get_row_mtx() const {
 
 void cxQuat::set_rot(const cxVec& axis, float ang) {
 	float hang = ang * 0.5f;
-	float s = ::sinf(hang);
-	float c = ::cosf(hang);
+	float s = ::mth_sinf(hang);
+	float c = ::mth_cosf(hang);
 	cxVec v = axis.get_normalized() * s;
 	set(v.x, v.y, v.z, c);
 }
 
 void cxQuat::set_rot_x(float rx) {
 	float h = rx * 0.5f;
-	float s = ::sinf(h);
-	float c = ::cosf(h);
+	float s = ::mth_sinf(h);
+	float c = ::mth_cosf(h);
 	set(s, 0.0f, 0.0f, c);
 }
 
 void cxQuat::set_rot_y(float ry) {
 	float h = ry * 0.5f;
-	float s = ::sinf(h);
-	float c = ::cosf(h);
+	float s = ::mth_sinf(h);
+	float c = ::mth_cosf(h);
 	set(0.0f, s, 0.0f, c);
 }
 
 void cxQuat::set_rot_z(float rz) {
 	float h = rz * 0.5f;
-	float s = ::sinf(h);
-	float c = ::cosf(h);
+	float s = ::mth_sinf(h);
+	float c = ::mth_cosf(h);
 	set(0.0f, 0.0f, s, c);
 }
 
@@ -3258,27 +3258,27 @@ cxVec cxQuat::get_rot(exRotOrd ord) const {
 	cxVec rv(0.0f);
 	int axisMask = 0;
 	const float eps = 1.0e-6f;
-	if (::fabsf(x) < eps) axisMask |= 1;
-	if (::fabsf(y) < eps) axisMask |= 2;
-	if (::fabsf(z) < eps) axisMask |= 4;
-	if (::fabsf(w) < eps) axisMask |= 8;
+	if (::mth_fabsf(x) < eps) axisMask |= 1;
+	if (::mth_fabsf(y) < eps) axisMask |= 2;
+	if (::mth_fabsf(z) < eps) axisMask |= 4;
+	if (::mth_fabsf(w) < eps) axisMask |= 8;
 	bool singleAxis = false;
 	float qw = nxCalc::clamp(w, -1.0f, 1.0f);
 	switch (axisMask) {
 		case 6: /* 0110 -> X */
-			rv.x = ::acosf(qw) * 2.0f;
+			rv.x = ::mth_acosf(qw) * 2.0f;
 			if (x < 0.0f) rv.x = -rv.x;
 			rv.x = limit_pi(rv.x);
 			singleAxis = true;
 			break;
 		case 5: /* 0101 -> Y */
-			rv.y = ::acosf(qw) * 2.0f;
+			rv.y = ::mth_acosf(qw) * 2.0f;
 			if (y < 0.0f) rv.y = -rv.y;
 			rv.y = limit_pi(rv.y);
 			singleAxis = true;
 			break;
 		case 3: /* 0011 -> Z */
-			rv.z = ::acosf(qw) * 2.0f;
+			rv.z = ::mth_acosf(qw) * 2.0f;
 			if (z < 0.0f) rv.z = -rv.z;
 			rv.z = limit_pi(rv.z);
 			singleAxis = true;
@@ -3306,11 +3306,11 @@ cxVec cxQuat::get_rot(exRotOrd ord) const {
 	rm[1].set(m[i1][i0], m[i1][i1], m[i1][i2]);
 	rm[2].set(m[i2][i0], m[i2][i1], m[i2][i2]);
 	float r[3] = { 0, 0, 0 };
-	r[i0] = ::atan2f(rm[1][2], rm[2][2]);
-	r[i1] = ::atan2f(-rm[0][2], ::sqrtf(nxCalc::sq(rm[0][0]) + nxCalc::sq(rm[0][1])));
-	float s = ::sinf(r[i0]);
-	float c = ::cosf(r[i0]);
-	r[i2] = ::atan2f(s*rm[2][0] - c*rm[1][0], c*rm[1][1] - s*rm[2][1]);
+	r[i0] = ::mth_atan2f(rm[1][2], rm[2][2]);
+	r[i1] = ::mth_atan2f(-rm[0][2], ::mth_sqrtf(nxCalc::sq(rm[0][0]) + nxCalc::sq(rm[0][1])));
+	float s = ::mth_sinf(r[i0]);
+	float c = ::mth_cosf(r[i0]);
+	r[i2] = ::mth_atan2f(s*rm[2][0] - c*rm[1][0], c*rm[1][1] - s*rm[2][1]);
 	for (int i = 0; i < 3; ++i) {
 		r[i] *= sgn;
 	}
@@ -3333,7 +3333,7 @@ void cxQuat::slerp(const cxQuat& q1, const cxQuat& q2, float t) {
 		u += nxCalc::sq(v1[i] - v2[i]);
 		v += nxCalc::sq(v1[i] + v2[i]);
 	}
-	float ang = 2.0f * ::atan2f(::sqrtf(u), ::sqrtf(v));
+	float ang = 2.0f * ::mth_atan2f(::mth_sqrtf(u), ::mth_sqrtf(v));
 	float s = 1.0f - t;
 	float d = 1.0f / nxCalc::sinc(ang);
 	s = nxCalc::sinc(ang*s) * d * s;
@@ -3360,7 +3360,7 @@ static inline cxQuat closest_quat_by_axis(const cxQuat& qsrc, int axis) {
 	float w = qsrc.w;
 	float sqmag = nxCalc::sq(e) + nxCalc::sq(w);
 	if (sqmag > 0.0f) {
-		float s = nxCalc::rcp0(::sqrtf(sqmag));
+		float s = nxCalc::rcp0(::mth_sqrtf(sqmag));
 		qres.set_at(axis, e*s);
 		qres.w = w*s;
 	}
@@ -3375,10 +3375,10 @@ cxQuat cxQuat::get_closest_z() const { return closest_quat_by_axis(*this, 2); }
 
 cxQuat cxQuat::get_closest_xy() const {
 	cxQuat q;
-	float det = ::fabsf(-x*y - z*w);
+	float det = ::mth_fabsf(-x*y - z*w);
 	float s;
 	if (det < 0.5f) {
-		float d = ::sqrtf(::fabsf(1.0f - 4.0f*nxCalc::sq(det)));
+		float d = ::mth_sqrtf(::mth_fabsf(1.0f - 4.0f*nxCalc::sq(det)));
 		float a = x*w - y*z;
 		float b = nxCalc::sq(w) - nxCalc::sq(x) + nxCalc::sq(y) - nxCalc::sq(z);
 		float s0, c0;
@@ -3401,7 +3401,7 @@ cxQuat cxQuat::get_closest_xy() const {
 
 		q.set(s0*c1, c0*s1, -s0*s1, c0*c1);
 	} else {
-		s = nxCalc::rcp0(::sqrtf(det));
+		s = nxCalc::rcp0(::mth_sqrtf(det));
 		q.set(x*s, 0.0f, 0.0f, w*s);
 	}
 	return q;
@@ -3444,20 +3444,20 @@ namespace nxQuat {
 
 cxQuat log(const cxQuat& q) {
 	float m = q.mag();
-	float w = ::logf(m);
+	float w = ::mth_logf(m);
 	cxVec v = q.get_imag_part();
 	float s = v.mag();
-	s = s < 1.0e-5f ? 1.0f : ::atan2f(s, q.get_real_part()) / s;
+	s = s < 1.0e-5f ? 1.0f : ::mth_atan2f(s, q.get_real_part()) / s;
 	v.scl(s);
 	return cxQuat(v.x, v.y, v.z, w);
 }
 
 cxQuat exp(const cxQuat& q) {
 	cxVec v = q.get_imag_part();
-	float e = ::expf(q.get_real_part());
+	float e = ::mth_expf(q.get_real_part());
 	float h = v.mag();
-	float c = ::cosf(h);
-	float s = ::sinf(h);
+	float c = ::mth_cosf(h);
+	float s = ::mth_sinf(h);
 	v.normalize();
 	v.scl(s);
 	return cxQuat(v.x, v.y, v.z, c).get_scaled(e);
@@ -3477,9 +3477,9 @@ float arc_dist(const cxQuat& a, const cxQuat& b) {
 	double by = b.y;
 	double bz = b.z;
 	double bw = b.w;
-	double d = ::fabs(ax*bx + ay*by + az*bz + aw*bw);
+	double d = ::mth_fabs(ax*bx + ay*by + az*bz + aw*bw);
 	if (d > 1.0) d = 1.0;
-	d = ::acos(d) / (XD_PI / 2.0);
+	d = ::mth_acos(d) / (XD_PI / 2.0);
 	return float(d);
 }
 
@@ -3551,7 +3551,7 @@ void cxDualQuat::interpolate(const cxDualQuat& dqA, const cxDualQuat& dqB, float
 	cxVec vr = d.mReal.get_vector_part();
 	cxVec vd = d.mDual.get_vector_part();
 	float ir = nxCalc::rcp0(vr.mag());
-	float ang = 2.0f * ::acosf(d.mReal.w);
+	float ang = 2.0f * ::mth_acosf(d.mReal.w);
 	float tns = -2.0f * d.mDual.w * ir;
 	cxVec dir = vr * ir;
 	cxVec mom = (vd - dir*tns*d.mReal.w*0.5f) * ir;
@@ -3559,8 +3559,8 @@ void cxDualQuat::interpolate(const cxDualQuat& dqA, const cxDualQuat& dqB, float
 	ang *= t;
 	tns *= t;
 	float ha = ang * 0.5f;
-	float sh = ::sinf(ha);
-	float ch = ::cosf(ha);
+	float sh = ::mth_sinf(ha);
+	float ch = ::mth_cosf(ha);
 
 	cxDualQuat r;
 	r.mReal.from_parts(dir * sh, ch);
@@ -3623,7 +3623,7 @@ bool seg_sph_intersect(const cxVec& p0, const cxVec& p1, const cxVec& c, const f
 			float ds = b*b - c;
 			res = ds >= 0.0f;
 			if (res) {
-				t = (-b - ::sqrtf(ds)) / len;
+				t = (-b - ::mth_sqrtf(ds)) / len;
 				if (t < 0.0f) {
 					t = 0.0f;
 					hitPos = p0;
@@ -3898,7 +3898,7 @@ float quad_dist2(const cxVec& pos, const cxVec vtx[4]) {
 	if (mask == 0xF) {
 		return nxCalc::sq(v[0].dot(n));
 	}
-	if (::fabsf(d[3]) < 1e-6f) {
+	if (::mth_fabsf(d[3]) < 1e-6f) {
 		edge[3] = edge[2];
 	}
 	for (i = 0; i < 4; ++i) {
@@ -3906,7 +3906,7 @@ float quad_dist2(const cxVec& pos, const cxVec vtx[4]) {
 	}
 	float len[4];
 	for (i = 0; i < 4; ++i) {
-		len[i] = ::sqrtf(d[i]);
+		len[i] = ::mth_sqrtf(d[i]);
 	}
 	for (i = 0; i < 4; ++i) {
 		edge[i].scl(nxCalc::rcp0(len[i]));
@@ -4073,14 +4073,14 @@ bool cap_aabb_overlap(const cxVec& cp0, const cxVec& cp1, const float cr, const 
 	cxVec h = (cp1 - cp0) * 0.5f;
 	cxVec v = ccen - bcen;
 	for (int i = 0; i < 3; ++i) {
-		float d0 = ::fabsf(v[i]);
-		float d1 = ::fabsf(h[i]) + brad[i] + cr;
+		float d0 = ::mth_fabsf(v[i]);
+		float d1 = ::mth_fabsf(h[i]) + brad[i] + cr;
 		if (d0 > d1) return false;
 	}
 	cxVec tpos;
 	line_pnt_closest(cp0, cp1, bcen, &tpos);
 	cxVec a = (tpos - bcen).get_normalized();
-	if (::fabsf(v.dot(a)) > ::fabsf(brad.dot(a)) + cr) return false;
+	if (::mth_fabsf(v.dot(a)) > ::mth_fabsf(brad.dot(a)) + cr) return false;
 	return true;
 }
 
@@ -4115,7 +4115,7 @@ bool tri_aabb_overlap(const cxVec vtx[3], const cxVec& bmin, const cxVec& bmax) 
 		cxVec a = nxVec::cross(u[aidx], f[fidx]);
 		float r = 0.0f;
 		for (int j = 0; j < 3; ++j) {
-			r += ::fabsf(a.dot(u[j])) * e[j];
+			r += ::mth_fabsf(a.dot(u[j])) * e[j];
 		}
 		cxVec p;
 		for (int j = 0; j < 3; ++j) {
@@ -4142,7 +4142,7 @@ bool tri_aabb_overlap(const cxVec vtx[3], const cxVec& bmin, const cxVec& bmax) 
 	float s = pn.dot(c) - pd;
 	pn.abs();
 	float r = e.dot(pn);
-	return ::fabsf(s) <= r;
+	return ::mth_fabsf(s) <= r;
 }
 
 float sph_region_weight(const cxVec& pos, const cxVec& center, const float attnStart, const float attnEnd) {
@@ -4295,7 +4295,7 @@ float sph_convex_dist(
 	}
 	if (minSqDist >= 0.0f) {
 		if (minSqDist > 1e-5f) {
-			dist = ::sqrtf(minSqDist) - radius;
+			dist = ::mth_sqrtf(minSqDist) - radius;
 			sepVec = minPos - ckPos;
 			sepVec.normalize();
 		} else {
@@ -4469,7 +4469,7 @@ void cxFrustum::calc_planes() {
 void cxFrustum::init(const cxMtx& mtx, float fovy, float aspect, float znear, float zfar) {
 	int i;
 	float x, y, z;
-	float t = ::tanf(fovy * 0.5f);
+	float t = ::mth_tanf(fovy * 0.5f);
 	z = znear;
 	y = t * z;
 	x = y * aspect;
@@ -4759,7 +4759,7 @@ cxVec Lab_to_Lch(const cxVec& lab) {
 	float a = lab.y;
 	float b = lab.z;
 	float c = nxCalc::hypot(a, b);
-	float h = ::atan2f(b, a);
+	float h = ::mth_atan2f(b, a);
 	return cxVec(L, c, h);
 }
 
@@ -4767,8 +4767,8 @@ cxVec Lch_to_Lab(const cxVec& lch) {
 	float L = lch.x;
 	float c = lch.y;
 	float h = lch.z;
-	float hs = ::sinf(h);
-	float hc = ::cosf(h);
+	float hs = ::mth_sinf(h);
+	float hc = ::mth_cosf(h);
 	return cxVec(L, c*hc, c*hs);
 }
 
@@ -4776,7 +4776,7 @@ float Lch_perceived_lightness(const cxVec& lch) {
 	float L = lch.x;
 	float c = lch.y;
 	float h = lch.z;
-	float fh = ::fabsf(::sinf((h - (XD_PI*0.5f)) * 0.5f))*0.116f + 0.085f;
+	float fh = ::mth_fabsf(::mth_sinf((h - (XD_PI*0.5f)) * 0.5f))*0.116f + 0.085f;
 	float fL = 2.5f - (2.5f/100)*L; // 1 at 60, 0 at 100 (white)
 	return L + fh*fL*c;
 }
@@ -4785,27 +4785,27 @@ float Lch_perceived_lightness(const cxVec& lch) {
 // Single-Lobe CMF fits from Wyman et al. "Simple Analytic Approximations to the CIE XYZ Color Matching Functions"
 
 float approx_CMF_x31(float w) {
-	return 1.065f*::expf(-0.5f * nxCalc::sq((w - 595.8f) / 33.33f)) + 0.366f*::expf(-0.5f * nxCalc::sq((w - 446.8f) / 19.44f));
+	return 1.065f*::mth_expf(-0.5f * nxCalc::sq((w - 595.8f) / 33.33f)) + 0.366f*::mth_expf(-0.5f * nxCalc::sq((w - 446.8f) / 19.44f));
 }
 
 float approx_CMF_y31(float w) {
-	return 1.014f*::expf(-0.5f * nxCalc::sq((::logf(w) - 6.32130766f) / 0.075f));
+	return 1.014f*::mth_expf(-0.5f * nxCalc::sq((::mth_logf(w) - 6.32130766f) / 0.075f));
 }
 
 float approx_CMF_z31(float w) {
-	return 1.839f*::expf(-0.5f * nxCalc::sq((::logf(w) - 6.1088028f) / 0.051f));
+	return 1.839f*::mth_expf(-0.5f * nxCalc::sq((::mth_logf(w) - 6.1088028f) / 0.051f));
 }
 
 float approx_CMF_x64(float w) {
-	return 0.398f*::expf(-1250.0f * nxCalc::sq(::logf((w + 570.1f) / 1014.0f))) + 1.132f*::expf(-234.0f * nxCalc::sq(::logf((1338.0f - w) / 743.5f)));
+	return 0.398f*::mth_expf(-1250.0f * nxCalc::sq(::mth_logf((w + 570.1f) / 1014.0f))) + 1.132f*::mth_expf(-234.0f * nxCalc::sq(::mth_logf((1338.0f - w) / 743.5f)));
 }
 
 float approx_CMF_y64(float w) {
-	return 1.011f*::expf(-0.5f * nxCalc::sq((w - 556.1f) / 46.14f));
+	return 1.011f*::mth_expf(-0.5f * nxCalc::sq((w - 556.1f) / 46.14f));
 }
 
 float approx_CMF_z64(float w) {
-	return 2.06f*::expf(-32.0f * nxCalc::sq(::logf((w - 265.8f) / 180.4f)));
+	return 2.06f*::mth_expf(-32.0f * nxCalc::sq(::mth_logf((w - 265.8f) / 180.4f)));
 }
 
 } // nxColor
@@ -4902,7 +4902,7 @@ uint32_t cxColor::encode_rgbe() const {
 	if (m < 1.0e-32f) return 0;
 	float t[3];
 	int e;
-	float s = nxCalc::div0(::frexpf(m, &e) * 256.0f, m);
+	float s = nxCalc::div0(::mth_frexpf(m, &e) * 256.0f, m);
 	for (int i = 0; i < 3; ++i) {
 		t[i] = ch[i] * s;
 	}
@@ -4919,7 +4919,7 @@ void cxColor::decode_rgbe(uint32_t rgbe) {
 		uxVal32 v;
 		v.u = rgbe;
 		int e = v.b[3];
-		float s = ::ldexpf(1.0f, e - (128 + 8));
+		float s = ::mth_ldexpf(1.0f, e - (128 + 8));
 		float t[3];
 		for (int i = 0; i < 3; ++i) {
 			t[i] = (float)v.b[i];
@@ -4957,7 +4957,7 @@ uint32_t cxColor::encode_rgbi() const {
 	}
 	e[3] = 1.0f;
 	for (int i = 0; i < 4; ++i) {
-		e[i] = ::sqrtf(e[i]); /* gamma 2.0 encoding */
+		e[i] = ::mth_sqrtf(e[i]); /* gamma 2.0 encoding */
 	}
 	float m = nxCalc::max(e[0], e[1], e[2]);
 	if (m > 1.0f) {
@@ -5029,9 +5029,9 @@ void cxColor::decode_bgra8(uint32_t bgra) {
 }
 
 uint16_t cxColor::encode_bgr565() const {
-	uint16_t ir = (uint16_t)::roundf(nxCalc::saturate(r) * float(0x1F));
-	uint16_t ig = (uint16_t)::roundf(nxCalc::saturate(g) * float(0x3F));
-	uint16_t ib = (uint16_t)::roundf(nxCalc::saturate(b) * float(0x1F));
+	uint16_t ir = (uint16_t)::mth_roundf(nxCalc::saturate(r) * float(0x1F));
+	uint16_t ig = (uint16_t)::mth_roundf(nxCalc::saturate(g) * float(0x3F));
+	uint16_t ib = (uint16_t)::mth_roundf(nxCalc::saturate(b) * float(0x1F));
 	uint16_t ic = ib;
 	ic |= ig << 5;
 	ic |= ir << (5 + 6);
@@ -5085,7 +5085,7 @@ XD_NOINLINE float sxView::get_aspect() const {
 }
 
 XD_NOINLINE float sxView::calc_fovx() const {
-	return 2.0f * ::atanf(::tanf(XD_DEG2RAD(mDegFOVY) * 0.5f) * get_aspect());
+	return 2.0f * ::mth_atanf(::mth_tanf(XD_DEG2RAD(mDegFOVY) * 0.5f) * get_aspect());
 }
 
 XD_NOINLINE cxVec sxView::get_uv_dir(const float u, const float v) const {
@@ -5164,7 +5164,7 @@ XD_NOINLINE bool sxView::ck_box_visibility(const cxAABB& box, const bool exact) 
 
 XD_NOINLINE cxColor sxHemisphereLight::eval(const cxVec& v) const {
 	float val = (v.dot(cxVec(mUp.x, mUp.y, mUp.z)) + 1.0f) * 0.5f;
-	val = nxCalc::saturate(::powf(val, mExp) * mGain);
+	val = nxCalc::saturate(::mth_powf(val, mExp) * mGain);
 	cxColor clr(
 		nxCalc::lerp(mLower.x, mUpper.x, val),
 		nxCalc::lerp(mLower.y, mUpper.y, val),
@@ -5186,7 +5186,7 @@ namespace nxSH {
 void calc_weights(float* pWgt, int order, float s, float scl) {
 	if (!pWgt) return;
 	for (int i = 0; i < order; ++i) {
-		pWgt[i] = ::expf(float(-i*i) / (2.0f*s)) * scl;
+		pWgt[i] = ::mth_expf(float(-i*i) / (2.0f*s)) * scl;
 	}
 }
 
@@ -5219,7 +5219,7 @@ double calc_K(int l, int m) {
 	for (int k = l + am; k > l - am; --k) {
 		v *= k;
 	}
-	return ::sqrt((2.0*l + 1.0) / (4.0*M_PI*v));
+	return ::mth_sqrt((2.0*l + 1.0) / (4.0*M_PI*v));
 }
 
 double calc_Pmm(int m) {
@@ -5231,7 +5231,7 @@ double calc_Pmm(int m) {
 }
 
 double calc_constA(int m) {
-	return calc_Pmm(m) * calc_K(m, m) * ::sqrt(2.0);
+	return calc_Pmm(m) * calc_K(m, m) * ::mth_sqrt(2.0);
 }
 
 double calc_constB(int m) {
@@ -5241,7 +5241,7 @@ double calc_constB(int m) {
 double calc_constC1(int l, int m) {
 	double c = calc_K(l, m) / calc_K(l-1, m) * double(2*l-1) / double(l-m);
 	if (l > 80) {
-		if (isnan(c)) c = 0.0;
+		if (mth_isnan(c)) c = 0.0;
 	}
 	return c;
 }
@@ -5249,7 +5249,7 @@ double calc_constC1(int l, int m) {
 double calc_constC2(int l, int m) {
 	double c = -calc_K(l, m) / calc_K(l-2, m) * double(l+m-1) / double(l-m);
 	if (l > 80) {
-		if (isnan(c)) c = 0.0;
+		if (mth_isnan(c)) c = 0.0;
 	}
 	return c;
 }
@@ -5294,7 +5294,7 @@ void calc_consts_t(int order, CONST_T* pConsts) {
 		pConsts[idx++] = (CONST_T)calc_constC1(l, 0);
 		pConsts[idx++] = (CONST_T)calc_constC2(l, 0);
 	}
-	const double scl = ::sqrt(2.0);
+	const double scl = ::mth_sqrt(2.0);
 	for (int m = 1; m < order-1; ++m) {
 		pConsts[idx++] = (CONST_T)calc_constA(m);
 		if (m + 1 < order) {
@@ -7093,8 +7093,8 @@ static xt_float2 ik_cos_law(float a, float b, float c) {
 		float c1 = (aa + bb - cc) / (2.0f*a*b);
 		c0 = nxCalc::clamp(c0, -1.0f, 1.0f);
 		c1 = nxCalc::clamp(c1, -1.0f, 1.0f);
-		ang[0] = -::acosf(c0);
-		ang[1] = XD_PI - ::acosf(c1);
+		ang[0] = -::mth_acosf(c0);
+		ang[1] = XD_PI - ::mth_acosf(c1);
 	} else {
 		ang.fill(0.0f);
 	}
@@ -9032,7 +9032,7 @@ void save_dds32_rgba8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 					cxColor cc = pClr[i];
 					for (int j = 0; j < 3; ++j) {
 						if (cc.ch[j] > 0.0f) {
-							cc.ch[j] = ::powf(cc.ch[j], invg);
+							cc.ch[j] = ::mth_powf(cc.ch[j], invg);
 						} else {
 							cc.ch[j] = 0.0f;
 						}
@@ -9070,7 +9070,7 @@ void save_dds32_bgra8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 					cxColor cc = pClr[i];
 					for (int j = 0; j < 3; ++j) {
 						if (cc.ch[j] > 0.0f) {
-							cc.ch[j] = ::powf(cc.ch[j], invg);
+							cc.ch[j] = ::mth_powf(cc.ch[j], invg);
 						} else {
 							cc.ch[j] = 0.0f;
 						}
@@ -9170,7 +9170,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 					for (int i = 0; i < n; ++i) {
 						float* pDst = pClr[i].ch;
 						for (int j = 0; j < 4; ++j) {
-							pDst[j] = ::powf(pDst[j], wg);
+							pDst[j] = ::mth_powf(pDst[j], wg);
 						}
 					}
 				}
@@ -9218,7 +9218,7 @@ void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 				if (gflg) {
 					for (int i = 0; i < 3; ++i) {
 						if (c.ch[i] > 0.0f) {
-							c.ch[i] = ::powf(c.ch[i], invg);
+							c.ch[i] = ::mth_powf(c.ch[i], invg);
 						} else {
 							c.ch[i] = 0.0f;
 						}
@@ -9254,7 +9254,7 @@ void save_hdr(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 		if (gflg) {
 			for (int j = 0; j < 3; ++j) {
 				if (c.ch[j] > 0.0f) {
-					c.ch[j] = ::powf(c.ch[j], invg);
+					c.ch[j] = ::mth_powf(c.ch[j], invg);
 				} else {
 					c.ch[j] = 0.0f;
 				}
@@ -9274,13 +9274,13 @@ void calc_resample_wgts(int oldRes, int newRes, xt_float4* pWgt, int16_t* pOrg) 
 	float fw = 2.0f;
 	for (int i = 0; i < newRes; ++i) {
 		float c = (float(i) + 0.5f) * rt;
-		float org = ::floorf((c - fw) + 0.5f);
+		float org = ::mth_floorf((c - fw) + 0.5f);
 		pOrg[i] = (int16_t)org;
 		float* pW = pWgt[i];
 		float s = 0.0f;
 		for (int j = 0; j < 4; ++j) {
 			float pos = org + float(j) + 0.5f;
-			float x = ::fabsf((pos - c) / fw);
+			float x = ::mth_fabsf((pos - c) / fw);
 			float w;
 			if (x < 1.0e-5f) {
 				w = 1.0f;
@@ -9600,7 +9600,7 @@ void sxImageData::DDS::save(const char* pOutPath) const {
 
 static float pmd_log2f(float x) {
 #if 1
-	return ::logf(x) / ::logf(2.0f);
+	return ::mth_logf(x) / ::mth_logf(2.0f);
 #else
 	return ::log2f(x);
 #endif
@@ -10531,19 +10531,19 @@ sxCompiledExpression::String sxCompiledExpression::get_str(int idx) const {
 }
 
 static inline float expr_acos(float val) {
-	return XD_RAD2DEG(::acosf(nxCalc::clamp(val, -1.0f, 1.0f)));
+	return XD_RAD2DEG(::mth_acosf(nxCalc::clamp(val, -1.0f, 1.0f)));
 }
 
 static inline float expr_asin(float val) {
-	return XD_RAD2DEG(::asinf(nxCalc::clamp(val, -1.0f, 1.0f)));
+	return XD_RAD2DEG(::mth_asinf(nxCalc::clamp(val, -1.0f, 1.0f)));
 }
 
 static inline float expr_atan(float val) {
-	return XD_RAD2DEG(::atanf(val));
+	return XD_RAD2DEG(::mth_atanf(val));
 }
 
 static inline float expr_atan2(float y, float x) {
-	return XD_RAD2DEG(::atan2f(y, x));
+	return XD_RAD2DEG(::mth_atan2f(y, x));
 }
 
 static inline float expr_dist(sxCompiledExpression::Stack* pStk) {
@@ -10675,7 +10675,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 		case eOp::MOD:
 			valB = pStk->pop_num();
 			valA = pStk->pop_num();
-			pStk->push_num(valB != 0.0f ? ::fmodf(valA, valB) : 0.0f);
+			pStk->push_num(valB != 0.0f ? ::mth_fmodf(valA, valB) : 0.0f);
 			break;
 		case eOp::NEG:
 			valA = pStk->pop_num();
@@ -10686,7 +10686,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 			switch ((exExprFunc)funcId) {
 			case exExprFunc::_abs:
 				valA = pStk->pop_num();
-				pStk->push_num(::fabsf(valA));
+				pStk->push_num(::mth_fabsf(valA));
 				break;
 			case exExprFunc::_acos:
 				valA = pStk->pop_num();
@@ -10707,7 +10707,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_ceil:
 				valA = pStk->pop_num();
-				pStk->push_num(::ceilf(valA));
+				pStk->push_num(::mth_ceilf(valA));
 				break;
 			case exExprFunc::_ch:
 				get_str(pStk->pop_str(), &str1);
@@ -10721,7 +10721,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_cos:
 				valA = pStk->pop_num();
-				pStk->push_num(::cosf(XD_DEG2RAD(valA)));
+				pStk->push_num(::mth_cosf(XD_DEG2RAD(valA)));
 				break;
 			case exExprFunc::_deg:
 				valA = pStk->pop_num();
@@ -10738,7 +10738,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_exp:
 				valA = pStk->pop_num();
-				pStk->push_num(::expf(valA));
+				pStk->push_num(::mth_expf(valA));
 				break;
 			case exExprFunc::_fit:
 				pStk->push_num(expr_fit(pStk));
@@ -10754,11 +10754,11 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_floor:
 				valA = pStk->pop_num();
-				pStk->push_num(::floorf(valA));
+				pStk->push_num(::mth_floorf(valA));
 				break;
 			case exExprFunc::_frac:
 				valA = pStk->pop_num();
-				pStk->push_num(valA - ::floorf(valA)); // Houdini-compatible: frac(-2.7) = 0.3
+				pStk->push_num(valA - ::mth_floorf(valA)); // Houdini-compatible: frac(-2.7) = 0.3
 				break;
 			case exExprFunc::_if:
 				valC = pStk->pop_num();
@@ -10768,18 +10768,18 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_int:
 				valA = pStk->pop_num();
-				pStk->push_num(::truncf(valA));
+				pStk->push_num(::mth_truncf(valA));
 				break;
 			case exExprFunc::_length:
 				pStk->push_num(expr_len(pStk));
 				break;
 			case exExprFunc::_log:
 				valA = pStk->pop_num();
-				pStk->push_num(::logf(valA));
+				pStk->push_num(::mth_logf(valA));
 				break;
 			case exExprFunc::_log10:
 				valA = pStk->pop_num();
-				pStk->push_num(::log10f(valA));
+				pStk->push_num(::mth_log10f(valA));
 				break;
 			case exExprFunc::_max:
 				valB = pStk->pop_num();
@@ -10794,7 +10794,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 			case exExprFunc::_pow:
 				valB = pStk->pop_num();
 				valA = pStk->pop_num();
-				pStk->push_num(::powf(valA, valB));
+				pStk->push_num(::mth_powf(valA, valB));
 				break;
 			case exExprFunc::_rad:
 				valA = pStk->pop_num();
@@ -10803,7 +10803,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 			case exExprFunc::_rint:
 			case exExprFunc::_round:
 				valA = pStk->pop_num();
-				pStk->push_num(::roundf(valA));
+				pStk->push_num(::mth_roundf(valA));
 				break;
 			case exExprFunc::_sign:
 				valA = pStk->pop_num();
@@ -10811,15 +10811,15 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 				break;
 			case exExprFunc::_sin:
 				valA = pStk->pop_num();
-				pStk->push_num(::sinf(XD_DEG2RAD(valA)));
+				pStk->push_num(::mth_sinf(XD_DEG2RAD(valA)));
 				break;
 			case exExprFunc::_sqrt:
 				valA = pStk->pop_num();
-				pStk->push_num(::sqrtf(valA));
+				pStk->push_num(::mth_sqrtf(valA));
 				break;
 			case exExprFunc::_tan:
 				valA = pStk->pop_num();
-				pStk->push_num(::tanf(XD_DEG2RAD(valA)));
+				pStk->push_num(::mth_tanf(XD_DEG2RAD(valA)));
 				break;
 			default:
 				break;
@@ -11990,8 +11990,8 @@ struct XMOTFrameInfo {
 	int i1;
 
 	void calc(float frm, int nfrm) {
-		f = ::fmodf(::fabsf(frm), float(nfrm));
-		i0 = int(::floorf(f));
+		f = ::mth_fmodf(::mth_fabsf(frm), float(nfrm));
+		i0 = int(::mth_floorf(f));
 		t = f - float(i0);
 		if (frm < 0.0f) t = 1.0f - t;
 		i1 = i0 < nfrm - 1 ? i0 + 1 : 0;
@@ -12070,7 +12070,7 @@ void sxMotionData::dump_clip(FILE* pOut, const float fstep) const {
 	int nfrm = mFrameNum;
 	int len = 0;
 	float frm = 0.0f;
-	float add = ::fabsf(fstep);
+	float add = ::mth_fabsf(fstep);
 	while (int(frm) < nfrm) {
 		frm += add;
 		++len;
@@ -12651,9 +12651,9 @@ void cxMotionWork::apply_motion(const sxMotionData* pMotData, const float frameA
 	mFrame += frameAdd;
 	bool loop = mPlayLastFrame ? mFrame > maxFrame : mFrame >= maxFrame;
 	if (loop) {
-		mFrame = ::fmodf(mFrame, maxFrame);
+		mFrame = ::mth_fmodf(mFrame, maxFrame);
 	} else if (mFrame < 0.0f) {
-		mFrame = maxFrame - ::fmodf(-mFrame, maxFrame);
+		mFrame = maxFrame - ::mth_fmodf(-mFrame, maxFrame);
 	}
 	if (pLoopFlg) {
 		*pLoopFlg = loop;

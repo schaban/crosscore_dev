@@ -67,7 +67,7 @@ static bool pony_node_adj(Ponytail* pPony, const int inode, const cxVec npos, co
 					} else {
 						float c = (rr - nxCalc::sq(dist) - nxCalc::sq(len)) / (-2.0f * dist * len);
 						c = nxCalc::clamp(c, -0.9999f, 0.9999f);
-						float ang = ::acosf(c);
+						float ang = ::mth_acosf(c);
 						cxVec v1 = pos - opos;
 						cxVec axis = nxVec::cross(v0, v1);
 						mtx.set_rot(axis, ang);
@@ -139,7 +139,7 @@ static void pony_node_move(Ponytail* pPony, const int inode, bool objFlg = !true
 	v0.normalize();
 	v1.normalize();
 	float c = nxCalc::clamp(v0.dot(v1), -1.0f, 1.0f);
-	float th = ::acosf(c);
+	float th = ::mth_acosf(c);
 	if (th > pNode->mLimitTheta) {
 		if (th < eps || th >= (XD_PI - eps)) {
 			axis.set(v1.z, v1.y, -v1.x);
@@ -160,7 +160,7 @@ static void pony_node_move(Ponytail* pPony, const int inode, bool objFlg = !true
 	v1 = pNode->mWMtx.calc_vec(cxVec(0.0f, -1.0f, 0.0f));
 	v1.normalize();
 	c = nxCalc::clamp(v0.dot(v1), -1.0f, 1.0f);
-	float ph = ::acosf(c);
+	float ph = ::mth_acosf(c);
 	if (ph > pNode->mLimitPhi) {
 		ph = pNode->mLimitPhi;
 	}

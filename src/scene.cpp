@@ -1182,7 +1182,7 @@ static void update_shadow_persp() {
 	float vdist = s_smapViewDist;
 	vdist *= mtxProj.m[1][1];
 	float cosVL = mtxInvView.get_row_vec(2).dot(dir);
-	float reduce = ::fabsf(cosVL);
+	float reduce = ::mth_fabsf(cosVL);
 	if (reduce > 0.7f) {
 		vdist *= 0.5f;
 	}
@@ -1235,8 +1235,8 @@ static void update_shadow_persp() {
 		ymax = nxCalc::max(ymax, ty);
 	}
 
-	float sy = nxCalc::max(1e-8f, ::sqrtf(1.0f - nxCalc::sq(-vdir.dot(dir))));
-	float t = (dnear + ::sqrtf(dnear*dfar)) / sy;
+	float sy = nxCalc::max(1e-8f, ::mth_sqrtf(1.0f - nxCalc::sq(-vdir.dot(dir))));
+	float t = (dnear + ::mth_sqrtf(dnear*dfar)) / sy;
 	float y = (ymax - ymin) + t;
 
 	cxMtx cm;
@@ -1946,7 +1946,7 @@ static bool wall_adj_tri_func(const sxCollisionData& col, const sxCollisionData:
 	WallAdjWk* pWk = (WallAdjWk*)pWkMem;
 	bool flg = true;
 	if (pWk->slopeLim > 0.0f) {
-		flg = ::fabsf(tri.nrm.y) < pWk->slopeLim;
+		flg = ::mth_fabsf(tri.nrm.y) < pWk->slopeLim;
 	}
 	if (flg) {
 		WallAdjTriInfo* pTriInfo = &pWk->pTris[pWk->triCount];
@@ -2055,7 +2055,7 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 							triNrm = nxGeom::tri_normal_ccw(triVtx[0], triVtx[1], triVtx[2]);
 							triPlane.calc(triVtx[0], triNrm);
 							float sdist = triPlane.signed_dist(npos);
-							float adist = ::fabsf(sdist);
+							float adist = ::mth_fabsf(sdist);
 							if (sdist > 0.0f && adist > radius) {
 								if (adist > maxRange) {
 									XD_BIT_ARY_ST(uint32_t, wk.pStamps, i);
@@ -2101,7 +2101,7 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 												dist2 = vv.mag2();
 												if (dist2 <= rr && dist2 < adist) {
 													vec = vv.get_normalized();
-													mov = ::sqrtf(dist2);
+													mov = ::mth_sqrtf(dist2);
 													if (vec.dot(opos - vtx) < 0.0f) {
 														vec.neg();
 													} else {
@@ -2118,7 +2118,7 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 														cxVec av = npos - isect;
 														dist2 = av.mag2();
 														if (dist2 <= rr && dist2 < adist) {
-															mov = ::sqrtf(dist2);
+															mov = ::mth_sqrtf(dist2);
 															vec = av.get_normalized();
 															if (vec.dot(opos - isect) < 0.0f) {
 																vec.neg();

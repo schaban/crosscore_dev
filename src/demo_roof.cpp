@@ -393,7 +393,7 @@ struct LookAt {
 			cxVec lv = dw.get_inverted().calc_vec(wv);
 			rx = lv.elevation() * 0.25f;
 			ry = lv.azimuth();
-			if (::fabsf(lv.y) > limRX) {
+			if (::mth_fabsf(lv.y) > limRX) {
 				rx = 0.0f;
 			}
 			if (lv.z < limRY) {
@@ -1137,7 +1137,7 @@ static void Zoe_init(ScnObj* pObj) {
 static int adj_hit_count_to_speed(const int count) {
 	int res = count;
 	if (count > 0) {
-		res = int(::roundf(nxCalc::div0(float(count), s_motSpeed * Scene::speed() * 2.0f)));
+		res = int(::mth_roundf(nxCalc::div0(float(count), s_motSpeed * Scene::speed() * 2.0f)));
 	}
 	return res;
 }
@@ -1943,7 +1943,7 @@ static bool scenario_actr_talk_ck(ScnObj* pObj, void* pWkMem) {
 			float tcos = wdirPlyr.dot(wdirActr);
 			if (tcos < 0.0f) {
 				tcos = nxCalc::clamp(tcos, -1.0f, 1.0f);
-				float talkAng = XD_RAD2DEG(::acosf(tcos));
+				float talkAng = XD_RAD2DEG(::mth_acosf(tcos));
 				if (talkAng > 100.0f) {
 					pWk->mCanTalk = true;
 					if (pWk->mTalkTgtDist < 0.0f || dist < pWk->mTalkTgtDist) {
@@ -2286,7 +2286,7 @@ static void loop(void* pLoopCtx) {
 #endif
 		} else {
 			if (frameMillis < refMillis) {
-				double sleepMillis = ::round(refMillis - frameMillis);
+				double sleepMillis = ::mth_round(refMillis - frameMillis);
 				if (sleepMillis > 0.0) {
 					nxSys::sleep_millis((uint32_t)sleepMillis);
 				}
