@@ -713,15 +713,15 @@ template<typename FN> float panorama_scan(FN& fn, int w, int h) {
 	float sum = 0.0f;
 	for (int y = 0; y < h; ++y) {
 		float v = 1.0f - (y + 0.5f)*ih;
-		float dw = da * ::sinf(XD_PI * v);
+		float dw = da * ::mth_sinf(XD_PI * v);
 		float ay = (v - 1.0f) * XD_PI;
-		float sy = ::sinf(ay);
-		float cy = ::cosf(ay);
+		float sy = ::mth_sinf(ay);
+		float cy = ::mth_cosf(ay);
 		float ax0 = iw * XD_PI;
-		float rsx = ::sinf(ax0);
-		float rcx = ::cosf(ax0);
+		float rsx = ::mth_sinf(ax0);
+		float rcx = ::mth_cosf(ax0);
 		float rax = 2.0f * sq(rsx);
-		float rbx = ::sinf(ax0 * 2.0f);
+		float rbx = ::mth_sinf(ax0 * 2.0f);
 		for (int x = 0; x < w; ++x) {
 			float sx = rsx;
 			float cx = rcx;
@@ -1275,7 +1275,7 @@ template<typename T>
 inline
 bool symm_ldlt_decomp(T* pMtx, const int N, T* pDet /* [N] */, int* pIdx /* [N] */) {
 	const T zthr = T(1.0e-16);
-	const T aprm = T((1.0 + ::sqrt(17.0)) / 8.0);
+	const T aprm = T((1.0 + ::mth_sqrt(17.0)) / 8.0);
 	int eposi = 0;
 	int enega = 0;
 	pIdx[N - 1] = N - 1;
