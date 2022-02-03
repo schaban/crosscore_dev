@@ -9,6 +9,20 @@ make --jobs=$(nproc)
 
 ***
 
+Raspberry Pi OS:
+```
+(sudo apt install build-essential)
+(sudo apt install libx11-dev)
+git clone --depth 1 https://github.com/schaban/crosscore_dev.git
+cd crosscore_dev
+./get_data.sh
+./get_headers.sh
+./mk_lib_links.sh
+./make_gles.sh
+```
+
+***
+
 OpenBSD/X11:
 ```
 (pkg_add git wget gmake)
