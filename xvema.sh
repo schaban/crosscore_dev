@@ -41,6 +41,9 @@ case `uname -m` in
 	aarch64)
 		VEMA_ARCH="-DVEMA_GCC_AARCH64_ASM -DVEMA_ARM_VSQRT"
 	;;
+	armv7l)
+		VEMA_ARCH="-DVEMA_GCC_BUILTINS -mfpu=neon"
+	;;
 esac
 
 OPTI_FLGS="-march=native -O3 -ffast-math -ftree-vectorize -flto"
