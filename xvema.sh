@@ -20,8 +20,19 @@ if [ ! -d "$OUT_DIR" ]; then
 fi
 X_EXE=$OUT_DIR/crosscore_demo
 rm -f $X_EXE
+
+COMPILER_MODE=0
+while getopts "c:" opt;
+do
+	case $opt in
+		c)
+			COMPILER_MODE=$OPTARG
+		;;
+	esac
+done
+
 # gcc|clang
-case 0 in
+case $COMPILER_MODE in
 	0)
 		_CC_=gcc
 		_CXX_=g++
