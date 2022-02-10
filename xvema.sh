@@ -41,8 +41,12 @@ case $COMPILER_MODE in
 		_CC_=clang
 		_CXX_=clang++
 	;;
+	2)
+		_CC_=gcc-11
+		_CXX_=g++-11
+	;;
 esac
-echo "Compiling with "$_CC_"/"$_CXX_
+echo "Compiling with \e[1m"$_CC_"/"$_CXX_"\e[m"
 
 VEMA_ARCH=""
 case `uname -m` in
