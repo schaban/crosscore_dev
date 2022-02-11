@@ -2600,7 +2600,9 @@ void cxMtx::mul(const cxMtx& mtx) {
 }
 
 void cxMtx::mul(const cxMtx& m1, const cxMtx& m2) {
-#if XD_USE_LA
+#if defined(XD_USE_VEMA) && defined(XD_USE_VEMA_MTX)
+	VEMA_FN(MulMtx4x4F)(*((VemaMtx4x4F*)this), *((const VemaMtx4x4F*)&m1), *((const VemaMtx4x4F*)&m2));
+#elif XD_USE_LA
 	float res[4 * 4];
 	nxLA::mul_mm(res, (const float*)m1, (const float*)m2, 4, 4, 4);
 	from_mem(res);
