@@ -22,11 +22,15 @@ X_EXE=$OUT_DIR/crosscore_demo
 rm -f $X_EXE
 
 COMPILER_MODE=0
-while getopts "c:" opt;
+VEMA_MTX_MODE=""
+while getopts "c:m" opt;
 do
 	case $opt in
 		c)
 			COMPILER_MODE=$OPTARG
+		;;
+		m)
+			VEMA_MTX_MODE="-DXD_USE_VEMA_MTX"
 		;;
 	esac
 done
@@ -51,7 +55,7 @@ echo "Compiling with \e[1m"$_CC_"/"$_CXX_"\e[m"
 VEMA_ARCH=""
 case `uname -m` in
 	x86_64)
-		VEMA_ARCH="-DVEMA_GCC_SSE"
+		VEMA_ARCH="-DVEMA_GCC_SSE -DVEMA_AVX"
 	;;
 	aarch64)
 		VEMA_ARCH="-DVEMA_GCC_AARCH64_ASM -DVEMA_ARM_VSQRT"
@@ -62,7 +66,7 @@ case `uname -m` in
 esac
 
 OPTI_FLGS="-march=native -O3 -ffast-math -ftree-vectorize -flto"
-VEMA_FLGS="-DXD_USE_VEMA -DVEMA_NO_CLIB $VEMA_ARCH"
+VEMA_FLGS="-DXD_USE_VEMA -DVEMA_NO_CLIB $VEMA_ARCH $VEMA_MTX_MODE"
 $_CC_ -std=c99 $OPTI_FLGS $VEMA_FLGS $VEMA_DIR/vema.c -g -c -o $VEMA_DIR/vema.o
 $_CXX_ -std=c++11 $OPTI_FLGS $VEMA_FLGS -DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1 -g -I src -I inc -I $VEMA_DIR -DX11 `ls src/*.cpp` $VEMA_DIR/vema.o -o $X_EXE -ldl -lX11 -lpthread
 objdump -d $X_EXE > $X_EXE.txt
