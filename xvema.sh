@@ -61,7 +61,7 @@ case `uname -m` in
 		VEMA_ARCH="-DVEMA_GCC_AARCH64_ASM -DVEMA_ARM_VSQRT"
 	;;
 	armv7l)
-		VEMA_ARCH="-DVEMA_GCC_BUILTINS -mfpu=neon"
+		VEMA_ARCH="-DVEMA_GCC_BUILTINS -DVEMA_NEON -mfpu=neon"
 	;;
 esac
 
