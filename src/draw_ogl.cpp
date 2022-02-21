@@ -55,6 +55,7 @@ static const char* s_pGLSLBinLoadPath = nullptr;
 
 static bool s_glslNoBaseTex = false;
 static bool s_glslNoFog = false;
+static bool s_glslNoCC = false;
 
 
 static void def_tex_lod_bias() {
@@ -108,16 +109,30 @@ static GLuint load_shader(const char* pName) {
 			GLenum kind = nxCore::str_ends_with(pName, ".vert") ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 #if OGLSYS_ES
 			const char* pPreStr = nullptr;
-			if ((s_glslNoBaseTex || s_glslNoFog) && (kind == GL_FRAGMENT_SHADER)) {
+			if ((s_glslNoBaseTex || s_glslNoFog || s_glslNoCC) && (kind == GL_FRAGMENT_SHADER)) {
 				if (!nxCore::str_starts_with(pName, "quad")) {
 					if (s_glslNoBaseTex) {
-						if (s_glslNoFog) {
-							pPreStr = "#define DRW_NOBASETEX\n#define DRW_NOFOG\n";
+						if (s_glslNoCC) {
+							if (s_glslNoFog) {
+								pPreStr = "#define DRW_NOBASETEX\n#define DRW_NOFOG\n#define DRW_NOCC\n";
+							} else {
+								pPreStr = "#define DRW_NOBASETEX\n#define DRW_NOCC\n";
+							}
 						} else {
-							pPreStr = "#define DRW_NOBASETEX\n";
+							if (s_glslNoFog) {
+								pPreStr = "#define DRW_NOBASETEX\n#define DRW_NOFOG\n";
+							} else {
+								pPreStr = "#define DRW_NOBASETEX\n";
+							}
 						}
 					} else if (s_glslNoFog) {
-						pPreStr = "#define DRW_NOFOG\n";
+						if (s_glslNoCC) {
+							pPreStr = "#define DRW_NOFOG\n#define DRW_NOCC\n";
+						} else {
+							pPreStr = "#define DRW_NOFOG\n";
+						}
+					} else if (s_glslNoCC) {
+						pPreStr = "#define DRW_NOCC\n";
 					}
 				}
 			}
@@ -144,16 +159,30 @@ static GLuint load_shader(const char* pName) {
 			}
 #	else
 			pPreStr = "#version 120\n";
-			if ((s_glslNoBaseTex || s_glslNoFog) && (kind == GL_FRAGMENT_SHADER)) {
+			if ((s_glslNoBaseTex || s_glslNoFog || s_glslNoCC) && (kind == GL_FRAGMENT_SHADER)) {
 				if (!nxCore::str_starts_with(pName, "quad")) {
 					if (s_glslNoBaseTex) {
-						if (s_glslNoFog) {
-							pPreStr = "#version 120\n#define DRW_NOBASETEX\n#define DRW_NOFOG\n";
+						if (s_glslNoCC) {
+							if (s_glslNoFog) {
+								pPreStr = "#version 120\n#define DRW_NOBASETEX\n#define DRW_NOFOG\n#define DRW_NOCC\n";
+							} else {
+								pPreStr = "#version 120\n#define DRW_NOBASETEX\n#define DRW_NOCC\n";
+							}
 						} else {
-							pPreStr = "#version 120\n#define DRW_NOBASETEX\n";
+							if (s_glslNoFog) {
+								pPreStr = "#version 120\n#define DRW_NOBASETEX\n#define DRW_NOFOG\n";
+							} else {
+								pPreStr = "#version 120\n#define DRW_NOBASETEX\n";
+							}
 						}
 					} else if (s_glslNoFog) {
-						pPreStr = "#version 120\n#define DRW_NOFOG\n";
+						if (s_glslNoCC) {
+							pPreStr = "#version 120\n#define DRW_NOFOG\n#define DRW_NOCC\n";
+						} else {
+							pPreStr = "#version 120\n#define DRW_NOFOG\n";
+						}
+					} else if (s_glslNoCC) {
+						pPreStr = "#version 120\n#define DRW_NOCC\n";
 					}
 				}
 			}
@@ -1300,6 +1329,7 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 
 	s_glslNoBaseTex = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nobasetex", false);
 	s_glslNoFog = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nofog", false);
+	s_glslNoCC = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nocc", false);
 
 	s_useVtxLighting = nxApp::get_bool_opt("vl", false);
 

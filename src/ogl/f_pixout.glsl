@@ -42,12 +42,17 @@ HALF vec4 applyCC(HALF vec4 clr) {
 	c.rgb = mix(c.rgb, cfog.rgb, fog() * cfog.a);
 #endif
 
+#ifndef DRW_NOCC
 	c.rgb = toneMap(c.rgb);
 
 	c = exposure(c);
 	c = max(c, 0.0);
 	HALF vec3 invg = gpInvGamma;
 	c.rgb = pow(c.rgb, invg);
+#else
+	c = max(c, 0.0);
+	c.rgb = sqrt(c.rgb);
+#endif
 	return c;
 }
 
