@@ -1,4 +1,7 @@
 @echo off
+
+if not x%1==x set PATH=%1
+
 set XDATA_ARC=xcore_web.tar.xz
 set XDATA_URL=https://schaban.github.io/crosscore_web_demo/%XDATA_ARC%
 set XDATA_TMP=xcore_web
