@@ -8,6 +8,6 @@ if not exist %XDATA_TMP% mkdir %XDATA_TMP%
 
 curl %XDATA_URL% -o %XDATA_TMP%/%XDATA_ARC%
 tar -xvJf %XDATA_TMP%/%XDATA_ARC% %XDATA_TMP%/bin/data
-move /Y %XDATA_TMP%/bin/data bin
+move /Y %XDATA_TMP%\bin\data bin
 rmdir /Q /S %XDATA_TMP%
 
