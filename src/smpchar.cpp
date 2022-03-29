@@ -117,7 +117,7 @@ void SmpChar::wall_adj() {
 	npos.y += yoffs;
 	opos.y += yoffs;
 	float radius = mpObj->mObjAdjRadius * 1.1f;
-	bool touchFlg = Scene::wall_adj(mpObj->mpJobCtx, pCol, npos, opos, radius * 1.025f, nullptr);
+	bool touchFlg = Scene::wall_touch(mpObj->mpJobCtx, pCol, npos, opos, radius * 1.025f);
 	if (touchFlg) {
 		++mWallTouchCount;
 	} else {

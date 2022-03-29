@@ -2225,6 +2225,10 @@ bool wall_adj(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxVec& n
 	return res;
 }
 
+bool wall_touch(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxVec& newPos, const cxVec& oldPos, const float radius, const float wallSlopeLim) {
+	return wall_adj_base(pJobCtx, pCol, newPos, oldPos, radius, nullptr, wallSlopeLim);
+}
+
 static bool sph_sph_sub(const cxSphere& movSph, const cxVec& vel, const cxSphere& staticSph, cxVec* pSepVec, float margin) {
 	cxVec sepVec(0.0f);
 	bool flg = movSph.overlaps(staticSph);
