@@ -2172,6 +2172,7 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 					npos = apos;
 					++adjCount;
 				}
+				if (!pAdjPos && adjCount > 0) break;
 			} while (state && itrCnt < itrMax);
 			res = adjCount > 0;
 			if (res) {
