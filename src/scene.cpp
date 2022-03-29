@@ -3027,6 +3027,7 @@ void ScnObj::set_world_quat_pos(const cxQuat& quat, const cxVec& pos) {
 	if (mpMotWk) {
 		if (mpMotWk->mRootId >= 0) {
 			mpMotWk->mpXformsL[mpMotWk->mRootId] = nxMtx::xmtx_from_quat_pos(quat, pos);
+			mpMotWk->calc_root_world();
 		}
 	} else if (mpMdlWk) {
 		if (mpMdlWk->mpWorldXform) {
