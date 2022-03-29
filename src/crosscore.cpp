@@ -12777,6 +12777,17 @@ void cxMotionWork::calc_world() {
 	}
 }
 
+void cxMotionWork::calc_root_world() {
+	if (mRootId >= 0) {
+		mpXformsW[mRootId] = mpXformsL[mRootId];
+		if (mUniformScale != 1.0f) {
+			cxMtx sm;
+			sm.mk_scl(mUniformScale);
+			mpXformsW[mRootId] = nxMtx::xmtx_from_mtx(sm * nxMtx::mtx_from_xmtx(mpXformsW[mRootId]));
+		}
+	}
+}
+
 xt_xmtx cxMotionWork::get_node_local_xform(const int inode) const {
 	xt_xmtx lm;
 	if (ck_node_id(inode) && mpXformsL) {

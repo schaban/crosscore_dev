@@ -6334,6 +6334,7 @@ public:
 
 	void copy_prev_world();
 	void calc_world();
+	void calc_root_world();
 
 	xt_xmtx get_node_local_xform(const int inode) const;
 	xt_xmtx get_node_prev_world_xform(const int inode) const;
