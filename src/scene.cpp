@@ -1973,32 +1973,34 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 	if (!pCol) return false;
 	bool res = false;
 	int ntri = pCol->mTriNum;
+	const uint32_t wkTag = XD_FOURCC('W', 'c', 'W', 'k');
 	size_t numStampBytes = XD_BIT_ARY_SIZE(uint32_t, ntri) * sizeof(uint32_t);
-	size_t numTriBytes = ntri * sizeof(WallAdjTriInfo);
+	size_t numTriBytes = XD_ALIGN(ntri * sizeof(WallAdjTriInfo), 0x10);
+	size_t wkBytes = numTriBytes + numStampBytes;
+	void* pWkMem = nullptr;
 	uint32_t* pStamps = nullptr;
 	WallAdjTriInfo* pTris = nullptr;
-	const uint32_t stampsTag = XD_FOURCC('W', 'F', 'l', 'g');
-	const uint32_t trisTag = XD_FOURCC('W', 'T', 'r', 'i');
 	cxHeap* pHeap = get_job_local_heap(pJobCtx);
 	if (pHeap) {
 #ifdef XD_USE_OMP
 		glb_mem_lock_acq();
 #endif
-		pStamps = (uint32_t*)pHeap->alloc(numStampBytes, stampsTag);
-		pTris = (WallAdjTriInfo*)pHeap->alloc(numTriBytes, trisTag);
+		pWkMem = pHeap->alloc(wkBytes, wkTag);
 #ifdef XD_USE_OMP
 		glb_mem_lock_rel();
 #endif
 	} else {
 #if SCN_GLB_MEM_CMN_LOCK
 		glb_mem_lock_acq();
-		pStamps = (uint32_t*)glb_mem_alloc_impl(numStampBytes, stampsTag);
-		pTris = (WallAdjTriInfo*)glb_mem_alloc_impl(numTriBytes, trisTag);
+		pWkMem = glb_mem_alloc_impl(wkBytes, wkTag);
 		glb_mem_lock_rel();
 #else
-		pStamps = (uint32_t*)glb_mem_alloc(numStampBytes, stampsTag);
-		pTris = (WallAdjTriInfo*)glb_mem_alloc(numTriBytes, trisTag);
+		pWkMem = glb_mem_alloc(wkBytes, wkTag);
 #endif
+	}
+	if (pWkMem) {
+		pTris = (WallAdjTriInfo*)pWkMem;
+		pStamps = (uint32_t*)XD_INCR_PTR(pTris, numTriBytes);
 	}
 	if (pStamps && pTris) {
 		WallAdjWk wk;
@@ -2186,20 +2188,17 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 #ifdef XD_USE_OMP
 		glb_mem_lock_acq();
 #endif
-		pHeap->free(pTris);
-		pHeap->free(pStamps);
+		pHeap->free(pWkMem);
 #ifdef XD_USE_OMP
 		glb_mem_lock_rel();
 #endif
 	} else {
 #if SCN_GLB_MEM_CMN_LOCK
 		glb_mem_lock_acq();
-		glb_mem_free_impl(pTris);
-		glb_mem_free_impl(pStamps);
+		glb_mem_free_impl(pWkMem);
 		glb_mem_lock_rel();
 #else
-		glb_mem_free(pTris);
-		glb_mem_free(pStamps);
+		glb_mem_free(pWkMem);
 #endif
 	}
 	return res;
