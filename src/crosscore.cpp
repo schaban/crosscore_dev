@@ -13647,7 +13647,7 @@ cxResourceManager::Pkg* cxResourceManager::load_pkg(const char* pName) {
 		if (pPath != path) {
 			nxCore::mem_free(pPath);
 		}
-		nxCore::dbg_msg("Pkg \"%s\": already loaded.", pPkgName);
+		nxCore::dbg_msg("Pkg \"%s\": already loaded.\n", pPkgName);
 		return pPkg;
 	}
 	if (pCat) {
