@@ -7,7 +7,8 @@
 
 void SmpRig::LegInfo::init(const ScnObj* pObj, const char side) {
 	char jname[64];
-	if (pObj) {
+	bool disableIK = nxApp::get_bool_opt("ik_off", false);
+	if (!disableIK && pObj) {
 		XD_SPRINTF(XD_SPRINTF_BUF(jname, sizeof(jname)), "j_Hip_%c", side);
 		inodeTop = pObj->find_skel_node_id(jname);
 		XD_SPRINTF(XD_SPRINTF_BUF(jname, sizeof(jname)), "j_Knee_%c", side);
