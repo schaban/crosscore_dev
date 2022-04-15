@@ -110,8 +110,8 @@ static void init_scn(const char* pAppPath) {
 	scnCfg.numWorkers = nxApp::get_int_opt("nwrk", 4);
 	scnCfg.useBump = nxApp::get_bool_opt("bump", c_defBump);
 	scnCfg.useSpec = nxApp::get_bool_opt("spec", c_defSpec);
-	::printf("#workers: %d\n", scnCfg.numWorkers);
-	::printf("shadow size: %d\n", scnCfg.shadowMapSize);
+	nxCore::dbg_msg("#workers: %d\n", scnCfg.numWorkers);
+	nxCore::dbg_msg("shadow size: %d\n", scnCfg.shadowMapSize);
 	Scene::init(scnCfg);
 
 	if (nxApp::get_int_opt("spersp", 0) != 0) {
