@@ -82,14 +82,19 @@ static void char_roam_ctrl(SmpChar* pChar) {
 static void init_chars() {
 	SmpChar::Descr descr;
 	descr.reset();
+	bool disableSl = nxApp::get_bool_opt("scl_off", false);
 
 	float x = -5.57f;
 	for (int i = 0; i < 10; ++i) {
 		descr.variation = i;
-		if (!(i & 1)) {
-			descr.scale = 0.95f;
-		} else {
+		if (disableSl) {
 			descr.scale = 1.0f;
+		} else {
+			if (!(i & 1)) {
+				descr.scale = 0.95f;
+			} else {
+				descr.scale = 1.0f;
+			}
 		}
 		ScnObj* pObj = SmpCharSys::add_f(descr, char_roam_ctrl);
 		pObj->set_world_quat_pos(nxQuat::from_degrees(0.0f, 0.0f, 0.0f), cxVec(x, 0.0f, 0.0f));
@@ -101,10 +106,14 @@ static void init_chars() {
 	cxVec add = q.apply(cxVec(0.7f, 0.0f, 0.0f));
 	for (int i = 0; i < 10; ++i) {
 		descr.variation = i;
-		if (!(i & 1)) {
+		if (disableSl) {
 			descr.scale = 1.0f;
 		} else {
-			descr.scale = 1.04f;
+			if (!(i & 1)) {
+				descr.scale = 1.0f;
+			} else {
+				descr.scale = 1.04f;
+			}
 		}
 		ScnObj* pObj = SmpCharSys::add_m(descr, char_roam_ctrl);
 		if (pObj) {
