@@ -2237,7 +2237,7 @@ void clean_rotations(cxMtx* pMtx, const int n) {
 
 cxMtx mtx_from_xmtx(const xt_xmtx& xm) {
 	cxMtx m;
-	::memcpy(&m, &xm, sizeof(xm));
+	::memcpy((void*)&m, &xm, sizeof(xm));
 	m.set_translation(0.0f, 0.0f, 0.0f);
 	m.transpose();
 	return m;
@@ -5635,7 +5635,7 @@ exAnimChan anim_chan_from_str(const char* pStr) {
 		{ "sz", exAnimChan::SZ },
 	};
 	if (pStr) {
-		for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+		for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 			if (nxCore::str_eq(pStr, tbl[i].pName)) {
 				res = tbl[i].id;
 				break;
@@ -5676,7 +5676,7 @@ exRotOrd rot_ord_from_str(const char* pStr) {
 		{ "zyx", exRotOrd::ZYX }
 	};
 	if (pStr) {
-		for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+		for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 			if (nxCore::str_eq(pStr, tbl[i].pName)) {
 				rord = tbl[i].ord;
 				break;
@@ -5714,7 +5714,7 @@ exTransformOrd xform_ord_from_str(const char* pStr) {
 		{ "trs", exTransformOrd::TRS }
 	};
 	if (pStr) {
-		for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+		for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 			if (nxCore::str_eq(pStr, tbl[i].pName)) {
 				xord = tbl[i].ord;
 				break;
@@ -5809,7 +5809,7 @@ static uint32_t pk_mk_dict(uint8_t* pDict, uint8_t* pXlat, const uint8_t* pSrc, 
 			dictCnt[i] = c;
 		} else {
 			int idx = pk_find_dict_idx(dictCnt, i, c);
-			if (idx == i - 1) {
+			if (idx == int(i - 1)) {
 				if (c > dictCnt[idx]) {
 					pDict[i] = pDict[i - 1];
 					dictCnt[i] = dictCnt[i - 1];
@@ -8096,7 +8096,7 @@ cxAABB sxGeometryData::calc_world_bbox(cxMtx* pMtxW, int* pIdxMap) const {
 void sxGeometryData::calc_tangents(cxVec* pTng, bool flip, const char* pAttrName) const {
 	if (!pTng) return;
 	int npnt = get_pnt_num();
-	::memset(pTng, 0, npnt * sizeof(cxVec));
+	::memset((void*)pTng, 0, npnt * sizeof(cxVec));
 	if (!is_all_tris()) return;
 	int nrmAttrIdx = find_pnt_attr("N");
 	if (nrmAttrIdx < 0) return;
@@ -8388,7 +8388,7 @@ int sxGeometryData::Polygon::triangulate(int* pTris, void* pWk) const {
 		int next;
 	} lnk[4];
 	Lnk* pLnk = lnk;
-	if (nvtx > XD_ARY_LEN(lnk)) {
+	if (nvtx > (int)XD_ARY_LEN(lnk)) {
 		if (pWk) {
 			pLnk = (Lnk*)pWk;
 		} else {
@@ -9106,7 +9106,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 	cxColor* pClr = (cxColor*)nxCore::mem_alloc(size, "xDDS:Clr");
 	if (pClr) {
 		if (pDDS->is_dds128()) {
-			::memcpy(pClr, pDDS + 1, size);
+			::memcpy((void*)pClr, pDDS + 1, size);
 		} else if (pDDS->is_dds64()) {
 			xt_half4* pHalf = (xt_half4*)(pDDS + 1);
 			xt_float4* pFloat = (xt_float4*)pClr;
@@ -9188,7 +9188,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 }
 
 void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, float gamma) {
-	if (!pPath || !pClr || !(w*h)) return;
+	if (!pPath || !pClr || (w*h == 0)) return;
 	FILE* pOut = nxSys::fopen_w_bin(pPath);
 	if (!pOut) return;
 	size_t size = w * h * 4;
@@ -12928,7 +12928,7 @@ cxMotionWork* cxMotionWork::create(sxModelData* pMdlData) {
 		size += XD_BIT_ARY_SIZE(uint8_t, nskel);
 		pWk = (cxMotionWork*)nxCore::mem_alloc(size, "xMotWk");
 		if (pWk) {
-			::memset(pWk, 0, size);
+			::memset((void*)pWk, 0, size);
 			pWk->mpMdlData = pMdlData;
 			pWk->set_base_node_ids();
 			pWk->mpXformsL = (xt_xmtx*)XD_INCR_PTR(pWk, xformOffsL);
@@ -13171,7 +13171,7 @@ cxModelWork* cxModelWork::create(sxModelData* pMdl, const size_t paramMemSize, c
 	}
 	pWk = (cxModelWork*)nxCore::mem_alloc(size, "xMdlWk");
 	if (pWk) {
-		::memset(pWk, 0, size);
+		::memset((void*)pWk, 0, size);
 		pWk->mpData = pMdl;
 		pWk->mpWorldXform = offsWM ? (xt_xmtx*)XD_INCR_PTR(pWk, offsWM) : nullptr;
 		if (pWk->mpWorldXform) {
