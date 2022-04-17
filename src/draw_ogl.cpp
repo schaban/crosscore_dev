@@ -1059,13 +1059,6 @@ static void release_texture(sxTextureData* pTex) {
 	}
 }
 
-static bool is_tex_prepared(sxTextureData* pTex) {
-	if (!pTex) return false;
-	GLuint* pHandle = pTex->get_gpu_wk<GLuint>();
-	if (!pHandle) return false;
-	return *pHandle != 0;
-}
-
 static GLuint get_tex_handle(sxTextureData* pTex) {
 	if (!pTex) return 0;
 	prepare_texture(pTex);
@@ -1141,15 +1134,6 @@ static void release_model(sxModelData* pMdl) {
 		*pBufIB32 = 0;
 	}
 	pMdl->clear_tex_wk();
-}
-
-bool is_mdl_prepared(sxModelData* pMdl) {
-	if (!pMdl) return false;
-	GLuint* pBufIds = pMdl->get_gpu_wk<GLuint>();
-	GLuint bufVB = pBufIds[0];
-	GLuint bufIB16 = pBufIds[1];
-	GLuint bufIB32 = pBufIds[2];
-	return bufVB && (bufIB16 || bufIB32);
 }
 
 static void batch_draw_exec(const sxModelData* pMdl, int ibat, int baseVtx = 0) {
