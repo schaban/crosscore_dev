@@ -1705,6 +1705,17 @@ void OGLSysGlb::reset_ogl() {
 #endif
 }
 
+
+#if defined(_MSC_VER)
+	__declspec(noinline)
+#elif defined(__GNUC__)
+	__attribute__((noinline))
+#endif
+void OGLSysCfg::clear() {
+	::memset((void*)this, 0, sizeof(OGLSysCfg));
+}
+
+
 static bool str_eq(const char* pStr1, const char* pStr2) {
 	return ::strcmp(pStr1, pStr2) == 0;
 }

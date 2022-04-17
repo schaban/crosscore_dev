@@ -63,7 +63,7 @@ static const char* oglsys_get_opt(const char* pName) {
 
 static void init_ogl(const int x, const int y, const int w, const int h, const int msaa) {
 	OGLSysCfg cfg;
-	::memset(&cfg, 0, sizeof(cfg));
+	cfg.clear();
 	cfg.x = x;
 	cfg.y = y;
 	cfg.width = w;

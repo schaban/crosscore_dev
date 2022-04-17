@@ -199,6 +199,8 @@ struct OGLSysCfg {
 	bool reduceRes;
 	bool hideSysIcons;
 	bool withoutCtx;
+
+	void clear();
 };
 
 struct OGLSysMouseState {
