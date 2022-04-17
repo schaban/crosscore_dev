@@ -3441,9 +3441,10 @@ namespace OGLSys {
 #endif
 
 		void init() {
+#if OGLSYS_CL
 			int allCnt = 0;
 			int okCnt = 0;
-#if OGLSYS_CL
+
 			GLG.mpfnTIAllocDDR = nullptr;
 			GLG.mpfnTIFreeDDR = nullptr;
 			GLG.mpfnTIAllocMSMC = nullptr;
