@@ -122,6 +122,11 @@ struct VIEW_WK {
 	cxVec tgt;
 	int viewMode;
 	int tgtMode;
+
+	void init() {
+		::memset((void*)this, 0, sizeof(VIEW_WK));
+		tgtMode = nxApp::get_int_opt("tgt_mode", 0) != 0 ? 1 : 0;
+	}
 };
 
 static VIEW_WK* s_pViewWk = nullptr;
@@ -1303,8 +1308,7 @@ static void Nic_del(ScnObj* pObj) {
 
 static void init_view(VIEW_WK* pView) {
 	if (!pView) return;
-	::memset(pView, 0, sizeof(VIEW_WK));
-	pView->tgtMode = nxApp::get_int_opt("tgt_mode", 0) != 0 ? 1 : 0;
+	pView->init();
 }
 
 static void init_scenario(SCENARIO_WK* pWk) {
