@@ -266,6 +266,10 @@ namespace Draw {
 		sxTextureData* pTex;
 		cxColor* pClrs;
 
+		void clear() {
+			::memset((void*)this, 0, sizeof(Quad));
+		}
+
 		void set_gamma(const float gval) {
 			gamma.fill(clip_gamma(gval));
 		}

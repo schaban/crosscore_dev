@@ -111,9 +111,9 @@ public:
 	void clear_int_wk();
 	void clear_flt_wk();
 	void clear_ptr_wk();
-	bool ck_int_wk_idx(const int idx) { return idx >= 0 && idx < XD_ARY_LEN(mIntWk); }
-	bool ck_flt_wk_idx(const int idx) { return idx >= 0 && idx < XD_ARY_LEN(mFltWk); }
-	bool ck_ptr_wk_idx(const int idx) { return idx >= 0 && idx < XD_ARY_LEN(mPtrWk); }
+	bool ck_int_wk_idx(const int idx) { return idx >= 0 && (size_t)idx < XD_ARY_LEN(mIntWk); }
+	bool ck_flt_wk_idx(const int idx) { return idx >= 0 && (size_t)idx < XD_ARY_LEN(mFltWk); }
+	bool ck_ptr_wk_idx(const int idx) { return idx >= 0 && (size_t)idx < XD_ARY_LEN(mPtrWk); }
 
 	void set_vptr_wk(const int idx, void* p) {
 		if (ck_ptr_wk_idx(idx)) {

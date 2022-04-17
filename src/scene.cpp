@@ -267,7 +267,7 @@ void init(const ScnCfg& cfg) {
 
 	s_printMemInfo = nxApp::get_bool_opt("meminfo");
 	s_printBatteryInfo = nxApp::get_bool_opt("battery");
-	for (int i = 0; i < XD_ARY_LEN(s_thermalZones); ++i) {
+	for (int i = 0; i < (int)XD_ARY_LEN(s_thermalZones); ++i) {
 		char tbuf[32];
 		XD_SPRINTF(XD_SPRINTF_BUF(tbuf, sizeof(tbuf)), "thermal%d", i);
 		s_thermalZones[i] = nxApp::get_int_opt(tbuf, -1);
@@ -662,7 +662,7 @@ uint64_t get_frame_count() {
 }
 
 void push_ctx() {
-	if (s_drwCtxSP < XD_ARY_LEN(s_drwCtxStk)) {
+	if ((size_t)s_drwCtxSP < XD_ARY_LEN(s_drwCtxStk)) {
 		s_drwCtxStk[s_drwCtxSP] = s_drwCtx;
 		++s_drwCtxSP;
 		s_viewUpdateFlg = true;
@@ -875,7 +875,7 @@ void thermal_info() {
 #ifdef XD_SYS_LINUX
 	char buf[512];
 	static const char* pPath = "/sys/class/thermal/thermal_zone";
-	for (int i = 0; i < XD_ARY_LEN(s_thermalZones); ++i) {
+	for (size_t i = 0; i < XD_ARY_LEN(s_thermalZones); ++i) {
 		int id = s_thermalZones[i];
 		if (id >= 0) {
 			XD_SPRINTF(XD_SPRINTF_BUF(buf, sizeof(buf)),
@@ -1449,7 +1449,7 @@ ScnObj* add_obj(sxModelData* pMdl, const char* pName) {
 		if (!pObj) {
 			pObj = s_pObjList->new_item();
 			if (pObj) {
-				::memset(pObj, 0, sizeof(ScnObj));
+				::memset((void*)pObj, 0, sizeof(ScnObj));
 				char name[32];
 				const char* pObjName = pName;
 				if (!pObjName) {
@@ -1757,7 +1757,7 @@ void set_quad_gamma_rgb(const float r, const float g, const float b) {
 
 void set_quad_defaults(Draw::Quad* pQuad) {
 	if (!pQuad) return;
-	::memset(pQuad, 0, sizeof(Draw::Quad));
+	pQuad->clear();
 	if (s_refScrW < 0.0f || s_refScrH < 0.0f) {
 		if (s_pDraw) {
 			pQuad->refWidth = float(s_pDraw->get_screen_width());
