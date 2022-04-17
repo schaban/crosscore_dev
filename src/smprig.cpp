@@ -46,14 +46,14 @@ void SmpRig::init(ScnObj* pObj, sxValuesData* pVals) {
 		{ &mKneeL, "Knee_L", "s_Knee_L", "j_Knee_L", 'x' },
 		{ &mKneeR, "Knee_R", "s_Knee_R", "j_Knee_R", 'x' }
 	};
-	for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+	for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 		tbl[i].pJnt->reset();
 	}
 	mAnkleHeight = 0.01f;
 	if (pVals) {
 		sxValuesData::Group rigGrp = pVals->find_grp("rig");
 		if (rigGrp.is_valid()) {
-			for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+			for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 				int idst = pObj->find_skel_node_id(tbl[i].pDstName);
 				int isrc = pObj->find_skel_node_id(tbl[i].pSrcName);
 				int ival = rigGrp.find_val_idx(tbl[i].pName);
@@ -122,7 +122,7 @@ void SmpRig::exec(sxCollisionData* pCol) {
 		&mKneeL,
 		&mKneeR
 	};
-	for (int i = 0; i < XD_ARY_LEN(jnts); ++i) {
+	for (size_t i = 0; i < XD_ARY_LEN(jnts); ++i) {
 		SupJnt* pJnt = jnts[i];
 		if (pJnt->enabled) {
 			cxQuat q = pObj->get_skel_local_quat(pJnt->isrc);
