@@ -37,7 +37,7 @@ void SmpChar::MotLib::init(const Pkg* pPkg) {
 		{ &pRetreat, "retreat" },
 		{ &pRun, "run" }
 	};
-	for (int i = 0; i < XD_ARY_LEN(tbl); ++i) {
+	for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
 		*tbl[i].ppMot = pPkg ? pPkg->find_motion(tbl[i].pName) : nullptr;
 	}
 }
