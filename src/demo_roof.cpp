@@ -36,6 +36,8 @@ static int s_adapt = 0;
 
 static float s_viewDist = 0.0f;
 
+static int s_primTestMode = 0;
+
 #if 0
 #define KEY_GET(_name) if (OGLSys::get_key_state(#_name)) mask |= 1ULL << _name
 #else
@@ -1358,6 +1360,7 @@ static void init() {
 	s_stdqPerspSdw = nxApp::get_bool_opt("spersp", false);
 	s_adapt = nxApp::get_int_opt("adapt", 0);
 	s_viewDist = nxApp::get_float_opt("view_dist", 0.0f);
+	s_primTestMode = nxApp::get_int_opt("prim_test", 0);
 	Scene::alloc_local_heaps(1024 * 1024 * 2);
 	Scene::init_prims(1000, 1000);
 
@@ -1406,13 +1409,6 @@ static void init() {
 	nxCore::dbg_msg("Scene::split_move: %s\n", Scene::is_split_move_enabled() ? "Yes" : "No");
 
 	s_kbdCtrl.init();
-}
-
-static void set_fog0() {
-	Scene::set_fog_rgb(0.748f, 0.74f, 1.2965f);
-	Scene::set_fog_density(1.0f);
-	Scene::set_fog_range(1.0f, 2000.0f);
-	Scene::set_fog_curve(0.1f, 0.1f);
 }
 
 static void set_fog() {
@@ -2210,7 +2206,20 @@ static void prim_test_quad() {
 }
 
 static void prim_test() {
-	prim_test_tri();
+	switch (s_primTestMode) {
+		case 0:
+		default:
+			break;
+		case 1:
+			prim_test_tri();
+			break;
+		case 2:
+			prim_test_spr();
+			break;
+		case 3:
+			prim_test_quad();
+			break;
+	}
 }
 
 static void loop(void* pLoopCtx) {
@@ -2239,7 +2248,7 @@ static void loop(void* pLoopCtx) {
 	}
 	Scene::frame_begin(cxColor(0.7f, 0.72f, 0.73f));
 	Scene::draw();
-	//prim_test();////////////
+	prim_test();////////////
 	draw_2d();
 	Scene::frame_end();
 	if (s_adapt == 3) {
