@@ -1045,16 +1045,24 @@ uint64_t mem_peak_bytes() {
 	return s_allocPeakBytes;
 }
 
-void dbg_msg(const char* fmt, ...) {
+void dbg_break(const char* pMsg) {
+}
+
+void dbg_msg(const char* pFmt, ...) {
 	char msg[1024 * 2];
 	va_list mrk;
-	va_start(mrk, fmt);
+	va_start(mrk, pFmt);
 #if defined(_MSC_VER)
-	::vsprintf_s(msg, sizeof(msg), fmt, mrk);
+	::vsprintf_s(msg, sizeof(msg), pFmt, mrk);
 #else
-	::vsprintf(msg, fmt, mrk);
+	::vsprintf(msg, pFmt, mrk);
 #endif
 	va_end(mrk);
+	if (msg[0] == '[') {
+		if (nxCore::str_starts_with(msg, "[BREAK]")) {
+			dbg_break(msg);
+		}
+	}
 	nxSys::dbgmsg(msg);
 }
 
