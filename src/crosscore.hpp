@@ -2893,6 +2893,16 @@ float arc_dist(const cxQuat& a, const cxQuat& b);
 
 } // nxQuat
 
+struct sxQuatTrackball {
+	cxQuat mSpin;
+	cxQuat mQuat;
+
+	void init();
+	void update(const float x0, const float y0, const float x1, const float y1, const float radius = 0.5f);
+	cxVec calc_dir(const float dist) const;
+	cxVec calc_up() const;
+};
+
 
 class cxDualQuat {
 protected:

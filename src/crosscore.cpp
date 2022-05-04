@@ -3496,6 +3496,44 @@ float arc_dist(const cxQuat& a, const cxQuat& b) {
 } // nxQuat
 
 
+XD_NOINLINE void sxQuatTrackball::init() {
+	mSpin.identity();
+	mQuat.identity();
+}
+
+static cxVec tball_proj(float x, float y, float r) {
+	float d = nxCalc::hypot(x, y);
+	float t = r / ::mth_sqrtf(2.0f);
+	float z;
+	if (d < t) {
+		z = ::mth_sqrtf(r*r - d*d);
+	} else {
+		z = (t*t) / d;
+	}
+	return cxVec(x, y, z);
+}
+
+XD_NOINLINE void sxQuatTrackball::update(const float x0, const float y0, const float x1, const float y1, const float radius) {
+	cxVec tp0 = tball_proj(x0, y0, radius);
+	cxVec tp1 = tball_proj(x1, y1, radius);
+	cxVec dir = tp0 - tp1;
+	cxVec axis = nxVec::cross(tp1, tp0);
+	float t = nxCalc::clamp(dir.mag() / (2.0f*radius), -1.0f, 1.0f);
+	float ang = 2.0f * ::mth_asinf(t);
+	mSpin.set_rot(axis, ang);
+	mQuat.mul(mSpin);
+	mQuat.normalize();
+}
+
+XD_NOINLINE cxVec sxQuatTrackball::calc_dir(const float dist) const {
+	return mQuat.apply(nxVec::get_axis(exAxis::PLUS_Z) * dist);
+}
+
+XD_NOINLINE cxVec sxQuatTrackball::calc_up() const {
+	return mQuat.apply(nxVec::get_axis(exAxis::PLUS_Y));
+}
+
+
 void cxDualQuat::mul(const cxDualQuat& dq1, const cxDualQuat& dq2) {
 	cxQuat r0 = dq1.mReal;
 	cxQuat d0 = dq1.mDual;
