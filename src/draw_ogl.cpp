@@ -141,8 +141,8 @@ static GLuint load_shader(const char* pName) {
 				size_t altSize = preSize + srcSize;
 				char* pAltSrc = (char*)nxCore::mem_alloc(altSize, "glsl:pre+src");
 				if (pAltSrc) {
-					::memcpy(pAltSrc, pPreStr, preSize);
-					::memcpy(pAltSrc + preSize, pSrc, srcSize);
+					nxCore::mem_copy(pAltSrc, pPreStr, preSize);
+					nxCore::mem_copy(pAltSrc + preSize, pSrc, srcSize);
 					sid = OGLSys::compile_shader_str(pAltSrc, altSize, kind);
 					nxCore::mem_free(pAltSrc);
 				}
@@ -191,8 +191,8 @@ static GLuint load_shader(const char* pName) {
 			size_t altSize = preSize + srcSize;
 			char* pAltSrc = (char*)nxCore::mem_alloc(altSize, "glsl:pre+src");
 			if (pAltSrc) {
-				::memcpy(pAltSrc, pPreStr, preSize);
-				::memcpy(pAltSrc + preSize, pSrc, srcSize);
+				nxCore::mem_copy(pAltSrc, pPreStr, preSize);
+				nxCore::mem_copy(pAltSrc + preSize, pSrc, srcSize);
 				sid = OGLSys::compile_shader_str(pAltSrc, altSize, kind);
 				nxCore::mem_free(pAltSrc);
 			}
@@ -223,7 +223,7 @@ struct VtxLink {
 		return int(sizeof(VtxLink) / sizeof(GLint));
 	}
 
-	void reset() { ::memset(this, 0xFF, sizeof(*this)); }
+	void reset() { nxCore::mem_fill(this, 0xFF, sizeof(*this)); }
 
 	void disable_all() const {
 		int n = num_attrs();
@@ -294,7 +294,7 @@ struct ParamLink {
 	GLint FontXform;
 	GLint FontRot;
 
-	void reset() { ::memset(this, 0xFF, sizeof(*this)); }
+	void reset() { nxCore::mem_fill(this, 0xFF, sizeof(*this)); }
 };
 
 struct SmpLink {
@@ -305,7 +305,7 @@ struct SmpLink {
 	GLint BumpPat;
 	GLint Shadow;
 
-	void reset() { ::memset(this, 0xFF, sizeof(*this)); }
+	void reset() { nxCore::mem_fill(this, 0xFF, sizeof(*this)); }
 };
 
 #define VTX_LINK(_name) mVtxLink._name = glGetAttribLocation(mProgId, "vtx" #_name)
@@ -370,7 +370,7 @@ static void save_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 	pMem[0] = DRW_GBIN_SIG;
 	pMem[1] = uint32_t(size);
 	pMem[2] = uint32_t(fmt);
-	::memcpy(pMem + 3, pBin, size);
+	nxCore::mem_copy(pMem + 3, pBin, size);
 	OGLSys::free_prog_bin(pBin);
 	static const char* pExt = DRW_GBIN_EXT;
 	char path[128];
@@ -1973,7 +1973,7 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	if (HAS_PARAM(SkinMap)) {
 		const int32_t* pJntLst = pMdl->get_batch_jnt_list(ibat);
 		if (pJntLst) {
-			::memset(ftmp, 0, NFLT_JMAP * sizeof(float));
+			nxCore::mem_zero(ftmp, NFLT_JMAP * sizeof(float));
 			int njnt = pBat->mJntNum;
 			for (int i = 0; i < njnt; ++i) {
 				ftmp[pJntLst[i]] = float(i);
@@ -2013,7 +2013,7 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	pProg->set_spec_light_dir(pCtx->spec.mDir);
 	if (HAS_PARAM(SpecLightColor)) {
 		xt_float4 sclr;
-		::memcpy(sclr, pCtx->spec.mClr, sizeof(xt_float3));
+		nxCore::mem_copy(sclr, pCtx->spec.mClr, sizeof(xt_float3));
 		sclr.w = pCtx->spec.mShadowing;
 		pProg->set_spec_light_color(sclr);
 	}
@@ -2385,7 +2385,7 @@ static void prim_geom_vtx(const uint32_t org, const uint32_t num, const sxPrimVt
 #else
 	void* pDst = glMapBufferRange(GL_ARRAY_BUFFER, offs, len, GL_MAP_WRITE_BIT);
 	if (pDst) {
-		::memcpy(pDst, pSrc, (size_t)len);
+		nxCore::mem_copy(pDst, pSrc, (size_t)len);
 	}
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 #endif
@@ -2517,7 +2517,7 @@ static Draw::Ifc s_ifc;
 
 struct DrwInit {
 	DrwInit() {
-		::memset(&s_ifc, 0, sizeof(s_ifc));
+		nxCore::mem_zero(&s_ifc, sizeof(s_ifc));
 		s_ifc.info.pName = "ogl";
 		s_ifc.info.needOGLContext = true;
 		s_ifc.init = init;
