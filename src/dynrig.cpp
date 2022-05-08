@@ -265,7 +265,7 @@ void SupportJntInfo::init(const ScnObj* pObj, Params* pParams) {
 		jnts.kneeJntR = pObj->find_skel_node_id("j_Knee_R");
 		jnts.kneeSupR = pObj->find_skel_node_id("s_Knee_R");
 	} else {
-		::memset(&jnts, 0xFF, sizeof(jnts));
+		nxCore::mem_fill(&jnts, 0xFF, sizeof(jnts));
 	}
 }
 
