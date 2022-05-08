@@ -126,7 +126,7 @@ struct VIEW_WK {
 	int tgtMode;
 
 	void init() {
-		::memset((void*)this, 0, sizeof(VIEW_WK));
+		nxCore::mem_zero((void*)this, sizeof(VIEW_WK));
 		tgtMode = nxApp::get_int_opt("tgt_mode", 0) != 0 ? 1 : 0;
 	}
 };
@@ -628,7 +628,7 @@ static ChrWk* chr_init(ScnObj* pObj) {
 	pObj->set_ptr_wk(0, nxCore::mem_alloc(sizeof(ChrWk), "ChrWk"));
 	ChrWk* pWk = pObj->get_ptr_wk<ChrWk>(CHR_WK_IDX);
 	if (pWk) {
-		::memset(pWk, 0, sizeof(ChrWk));
+		nxCore::mem_zero(pWk, sizeof(ChrWk));
 		pWk->lookAt.pSelf = pObj;
 		pWk->lookAt.limDist = 2.0f;
 		pWk->lookAt.limRX = 0.3f;
@@ -1315,7 +1315,7 @@ static void init_view(VIEW_WK* pView) {
 
 static void init_scenario(SCENARIO_WK* pWk) {
 	if (!pWk) return;
-	::memset(pWk, 0, sizeof(SCENARIO_WK));
+	nxCore::mem_zero(pWk, sizeof(SCENARIO_WK));
 	pWk->mpVarVals = Scene::load_vals("etc/vars.xval");
 	pWk->mpExmVals = Scene::load_vals("etc/exm_roof.xval");
 	pWk->mpExprLib = Scene::load_expr_lib("etc/expr_roof.xcel");
