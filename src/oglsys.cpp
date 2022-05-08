@@ -1770,6 +1770,18 @@ static bool xbtn_xlat(const XEvent& evt, OGLSysMouseState::BTN* pBtn) {
 	}
 	return res;
 }
+
+static int32_t xbtn_wheel(const XEvent& evt) {
+	int32_t res = 0;
+	if (evt.type == ButtonPress) {
+		switch (evt.xbutton.button) {
+			case 4: res = 1; break;
+			case 5: res = -1; break;
+			default: break;
+		}
+	}
+	return res;
+}
 #endif
 
 void OGLSysParamsBuf::init(GLuint progId, const GLchar* pName, GLuint binding, const GLchar** ppFieldNames, const int numFields) {
@@ -2387,6 +2399,7 @@ namespace OGLSys {
 			OGLSysMouseState::BTN btn;
 			while (XPending(GLG.mpXDisplay)) {
 				XNextEvent(GLG.mpXDisplay, &evt);
+				GLG.mMouseState.mWheel = xbtn_wheel(evt);
 				switch (evt.type) {
 					case ButtonPress:
 						if (xbtn_xlat(evt, &btn)) {
