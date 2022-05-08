@@ -827,7 +827,7 @@ static void* glb_mem_alloc_impl(const size_t size, const uint32_t tag) {
 		pMem = s_pGlobalHeap->alloc(size, tag);
 	} else {
 		char tagStr[5];
-		::memcpy(tagStr, &tag, 4);
+		nxCore::mem_copy(tagStr, &tag, 4);
 		tagStr[4] = 0;
 		pMem = nxCore::mem_alloc(size, tagStr);
 	}
