@@ -184,7 +184,7 @@ void create_global_locks() {
 
 static void init_font(sxGeometryData* pFontGeo) {
 	Draw::Font* pFont = &s_font;
-	::memset(pFont, 0, sizeof(Draw::Font));
+	nxCore::mem_zero(pFont, sizeof(Draw::Font));
 	if (!pFontGeo) return;
 	int npnt = pFontGeo->get_pnt_num();
 	if (!pFontGeo->is_all_tris() || npnt > 0xFFFF) {
@@ -294,7 +294,7 @@ void init(const ScnCfg& cfg) {
 		size_t jcntsMemSize = s_numBgdJobCnts*sizeof(int);
 		s_pBgdJobCnts = (int*)nxCore::mem_alloc(jcntsMemSize, "Scn:job_cnts");
 		if (s_pBgdJobCnts) {
-			::memset(s_pBgdJobCnts, 0, jcntsMemSize);
+			nxCore::mem_zero(s_pBgdJobCnts, jcntsMemSize);
 		}
 		if (nxApp::get_int_opt("static_sched", 0)) {
 			nxCore::dbg_msg("using static scene scheduler\n");
@@ -1449,7 +1449,7 @@ ScnObj* add_obj(sxModelData* pMdl, const char* pName) {
 		if (!pObj) {
 			pObj = s_pObjList->new_item();
 			if (pObj) {
-				::memset((void*)pObj, 0, sizeof(ScnObj));
+				nxCore::mem_zero((void*)pObj, sizeof(ScnObj));
 				char name[32];
 				const char* pObjName = pName;
 				if (!pObjName) {
@@ -2004,7 +2004,7 @@ bool wall_adj_base(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxV
 	}
 	if (pStamps && pTris) {
 		WallAdjWk wk;
-		::memset(pStamps, 0, numStampBytes);
+		nxCore::mem_zero(pStamps, numStampBytes);
 		wk.pStamps = pStamps;
 		wk.pTris = pTris;
 		wk.triCount = 0;
@@ -2811,9 +2811,9 @@ void ScnObj::update_visibility() {
 			size_t bitMemSize = XD_BIT_ARY_SIZE(uint8_t, nbat);
 			uint32_t* pCastBits = (uint32_t*)mpMdlWk->mpExtMem;
 			if (mDisableShadowCast) {
-				::memset(pCastBits, 0xFF, bitMemSize);
+				nxCore::mem_fill(pCastBits, 0xFF, bitMemSize);
 			} else {
-				::memset(pCastBits, 0, bitMemSize);
+				nxCore::mem_fill(pCastBits, 0, bitMemSize);
 				if (s_useShadowCastCull) {
 					for (int i = 0; i < nbat; ++i) {
 						bool vis = ck_bat_shadow_cast_vis(mpMdlWk, i);
