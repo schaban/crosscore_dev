@@ -44,7 +44,7 @@ static void tst_dbgmsg(const char* pMsg) {
 
 static void init_sys() {
 	sxSysIfc sysIfc;
-	::memset(&sysIfc, 0, sizeof(sysIfc));
+	nxCore::mem_zero(&sysIfc, sizeof(sysIfc));
 	sysIfc.fn_dbgmsg = tst_dbgmsg;
 	nxSys::init(&sysIfc);
 }
