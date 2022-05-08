@@ -1773,12 +1773,10 @@ static bool xbtn_xlat(const XEvent& evt, OGLSysMouseState::BTN* pBtn) {
 
 static int32_t xbtn_wheel(const XEvent& evt) {
 	int32_t res = 0;
-	if (evt.type == ButtonPress) {
-		switch (evt.xbutton.button) {
-			case 4: res = 1; break;
-			case 5: res = -1; break;
-			default: break;
-		}
+	switch (evt.xbutton.button) {
+		case 4: res = 1; break;
+		case 5: res = -1; break;
+		default: break;
 	}
 	return res;
 }
