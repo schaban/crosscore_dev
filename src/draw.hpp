@@ -267,7 +267,7 @@ namespace Draw {
 		cxColor* pClrs;
 
 		void clear() {
-			::memset((void*)this, 0, sizeof(Quad));
+			nxCore::mem_zero((void*)this, sizeof(Quad));
 		}
 
 		void set_gamma(const float gval) {
