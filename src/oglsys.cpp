@@ -165,6 +165,27 @@ struct KBD_STATE {
 	bool ctrl[_KBD_CTRL_NUM_];
 };
 
+static void oglsys_mem_cpy(void* pDst, const void* pSrc, const size_t len) {
+	if (pDst && pSrc) {
+		uint8_t* pd = (uint8_t*)pDst;
+		const uint8_t* ps = (const uint8_t*)pSrc;
+		size_t i;
+		for (i = 0; i < len; ++i) {
+			*pd++ = *ps++;
+		}
+	}
+}
+static void oglsys_mem_set(void* pDst, const int val, const size_t len) {
+	if (pDst) {
+		uint8_t* pd = (uint8_t*)pDst;
+		uint8_t v = (uint8_t)val;
+		size_t i;
+		for (i = 0; i < len; ++i) {
+			*pd++ = v;
+		}
+	}
+}
+
 #if OGLSYS_ES
 typedef GLuint (GL_APIENTRYP OGLSYS_PFNGLGETUNIFORMBLOCKINDEXPROC)(GLuint, const GLchar*);
 typedef void (GL_APIENTRYP OGLSYS_PFNGLGETACTIVEUNIFORMBLOCKIVPROC)(GLuint, GLuint, GLenum, GLint*);
@@ -369,7 +390,7 @@ static struct OGLSysGlb {
 					pCode = (char*)mem_alloc(size, "OGLSys:GLSL");
 					size_t nread = 0;
 					if (pCode) {
-						::memset(pCode, 0, size);
+						oglsys_mem_set(pCode, 0, size);
 						nread = ::fread(pCode, 1, size, pFile);
 						if (nread != size) {
 							mem_free(pCode);
@@ -838,12 +859,12 @@ static void glg_dbg_info(const char* pInfo, const size_t infoLen) {
 	infoBlk[infoBlkSize] = 0;
 	size_t nblk = infoLen / infoBlkSize;
 	for (size_t i = 0; i < nblk; ++i) {
-		::memcpy(infoBlk, &pInfo[infoBlkSize * i], infoBlkSize);
+		oglsys_mem_cpy(infoBlk, &pInfo[infoBlkSize * i], infoBlkSize);
 		GLG.dbg_msg("%s", infoBlk);
 	}
 	int endSize = infoLen % infoBlkSize;
 	if (endSize) {
-		::memcpy(infoBlk, &pInfo[infoBlkSize * nblk], endSize);
+		oglsys_mem_cpy(infoBlk, &pInfo[infoBlkSize * nblk], endSize);
 		infoBlk[endSize] = 0;
 		GLG.dbg_msg("%s", infoBlk);
 	}
@@ -1712,7 +1733,7 @@ void OGLSysGlb::reset_ogl() {
 	__attribute__((noinline))
 #endif
 void OGLSysCfg::clear() {
-	::memset((void*)this, 0, sizeof(OGLSysCfg));
+		oglsys_mem_set((void*)this, 0, sizeof(OGLSysCfg));
 }
 
 
@@ -1723,8 +1744,8 @@ static bool str_eq(const char* pStr1, const char* pStr2) {
 void OGLSysGlb::handle_ogl_ext(const GLubyte* pStr, const int lenStr) {
 	char buf[128];
 	if ((size_t)lenStr < sizeof(buf) - 1) {
-		::memset(buf, 0, sizeof(buf));
-		::memcpy(buf, pStr, lenStr);
+		oglsys_mem_set(buf, 0, sizeof(buf));
+		oglsys_mem_cpy(buf, pStr, lenStr);
 		if (str_eq(buf, "GL_KHR_texture_compression_astc_ldr")) {
 			mExts.ASTC_LDR = true;
 		} else if (str_eq(buf, "GL_EXT_texture_compression_dxt1")) {
@@ -1809,7 +1830,7 @@ void OGLSysParamsBuf::init(GLuint progId, const GLchar* pName, GLuint binding, c
 #endif
 	mpStorage = GLG.mem_alloc(mSize, "OGLSys:PrmsBuf:storage");
 	if (mpStorage) {
-		::memset(mpStorage, 0, mSize);
+		oglsys_mem_set(mpStorage, 0, mSize);
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufHandle);
 	glBufferData(GL_UNIFORM_BUFFER, mSize, nullptr, GL_DYNAMIC_DRAW);
@@ -2020,7 +2041,7 @@ void OGLSysParamsBuf::send() {
 		void* pDst = glMapBufferRange(GL_UNIFORM_BUFFER, 0, mSize, GL_MAP_WRITE_BIT);
 #endif
 		if (pDst) {
-			::memcpy(pDst, mpStorage, mSize);
+			oglsys_mem_cpy(pDst, mpStorage, mSize);
 #if OGLSYS_ES
 			GLG.mExts.pfnUnmapBuffer(GL_UNIFORM_BUFFER);
 #else
@@ -2213,7 +2234,7 @@ namespace OGLSys {
 	void init(const OGLSysCfg& cfg) {
 		if (s_initFlg) return;
 		void* pGLG = &GLG;
-		::memset(pGLG, 0, sizeof(GLG));
+		oglsys_mem_set(pGLG, 0, sizeof(GLG));
 #ifdef OGLSYS_WINDOWS
 		::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCSTR)wnd_proc, &GLG.mhInstance);
 #endif
@@ -2731,12 +2752,12 @@ namespace OGLSys {
 						infoBlk[infoBlkSize] = 0;
 						int nblk = infoLen / infoBlkSize;
 						for (int i = 0; i < nblk; ++i) {
-							::memcpy(infoBlk, &pInfo[infoBlkSize * i], infoBlkSize);
+							oglsys_mem_cpy(infoBlk, &pInfo[infoBlkSize * i], infoBlkSize);
 							GLG.dbg_msg("%s", infoBlk);
 						}
 						int endSize = infoLen % infoBlkSize;
 						if (endSize) {
-							::memcpy(infoBlk, &pInfo[infoBlkSize * nblk], endSize);
+							oglsys_mem_cpy(infoBlk, &pInfo[infoBlkSize * nblk], endSize);
 							infoBlk[endSize] = 0;
 							GLG.dbg_msg("%s", infoBlk);
 						}
@@ -3618,7 +3639,7 @@ namespace OGLSys {
 				size_t memSize = lstSize + strSize;
 				pLst = (PlatformList*)OGLSys::mem_alloc(memSize, "OGLSys:CL:PlatList");
 				if (pLst) {
-					::memset(pLst, 0, memSize);
+					oglsys_mem_set(pLst, 0, memSize);
 					pLst->num = num;
 					char* pStrs = (char*)pLst + lstSize;
 					char profileBuf[32];
