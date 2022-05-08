@@ -323,6 +323,7 @@ const char* mem_tag(void* pMem);
 void mem_dbg();
 uint64_t mem_allocated_bytes();
 uint64_t mem_peak_bytes();
+void mem_zero(void* pDst, size_t dstSize);
 void dbg_break(const char* pMsg);
 void dbg_msg(const char* pFmt, ...);
 void* bin_load(const char* pPath, size_t* pSize = nullptr, bool appendPath = false, bool unpack = false);
@@ -334,6 +335,7 @@ bool str_eq(const char* pStrA, const char* pStrB);
 bool str_starts_with(const char* pStr, const char* pPrefix);
 bool str_ends_with(const char* pStr, const char* pPostfix);
 char* str_dup(const char* pSrc, const char* pTag = "xStr");
+size_t str_len(const char* pStr);
 
 template <typename T> struct tMem {
 	static void ctor(T* pTop, int n = 1) {

@@ -1045,6 +1045,12 @@ uint64_t mem_peak_bytes() {
 	return s_allocPeakBytes;
 }
 
+void mem_zero(void* pDst, size_t dstSize) {
+	if (pDst && dstSize > 0) {
+		::memset(pDst, 0, dstSize);
+	}
+}
+
 void dbg_break(const char* pMsg) {
 }
 
@@ -1206,6 +1212,14 @@ char* str_dup(const char* pSrc, const char* pTag) {
 		::memcpy(pDst, pSrc, len);
 	}
 	return pDst;
+}
+
+size_t str_len(const char* pStr) {
+	size_t len = 0;
+	if (pStr) {
+		len = ::strlen(pStr);
+	}
+	return len;
 }
 
 uint16_t float_to_half(const float x) {
