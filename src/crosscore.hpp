@@ -324,6 +324,7 @@ void mem_dbg();
 uint64_t mem_allocated_bytes();
 uint64_t mem_peak_bytes();
 void mem_zero(void* pDst, size_t dstSize);
+void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize);
 void dbg_break(const char* pMsg);
 void dbg_msg(const char* pFmt, ...);
 void* bin_load(const char* pPath, size_t* pSize = nullptr, bool appendPath = false, bool unpack = false);

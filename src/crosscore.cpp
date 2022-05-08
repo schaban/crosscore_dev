@@ -1051,6 +1051,12 @@ void mem_zero(void* pDst, size_t dstSize) {
 	}
 }
 
+void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize) {
+	if (pDst && dstSize > 0) {
+		::memset(pDst, (int)fillVal, dstSize);
+	}
+}
+
 void dbg_break(const char* pMsg) {
 }
 
