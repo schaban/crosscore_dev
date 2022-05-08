@@ -5,7 +5,7 @@
 static Demo::Ifc s_ifc; \
 struct DemoReg { \
 	DemoReg() { \
-		::memset(&s_ifc, 0, sizeof(s_ifc)); \
+		nxCore::mem_zero(&s_ifc, sizeof(s_ifc)); \
 		s_ifc.info.pName = #_name; \
 		s_ifc.init = init; \
 		s_ifc.loop = loop; \
