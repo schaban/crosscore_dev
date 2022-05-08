@@ -2066,11 +2066,11 @@ static bool scenario_eval_exec(SCENARIO_WK* pWk, const char* pExec) {
 					}
 					if (execSrcLen > 0) {
 						char* pBuf = pWk->mTxtBuf;
-						::memcpy(pBuf, &pExec[execDstOrg], execDstLen);
+						nxCore::mem_copy(pBuf, &pExec[execDstOrg], execDstLen);
 						pBuf[execDstLen] = 0;
 						int dstIdx = -1;
 						if (pWk->mpVarsMap->get(pBuf, &dstIdx) && dstIdx >= 0 && dstIdx < SCENARIO_MAX_VARS) {
-							::memcpy(pBuf, &pExec[execSrcOrg], execSrcLen);
+							nxCore::mem_copy(pBuf, &pExec[execSrcOrg], execSrcLen);
 							pBuf[execSrcLen] = 0;
 							int srcIdx = pWk->mpExprLib->find_expr_idx("expr_roof", pBuf);
 							if (srcIdx >= 0) {
