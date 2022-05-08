@@ -325,6 +325,7 @@ uint64_t mem_allocated_bytes();
 uint64_t mem_peak_bytes();
 void mem_zero(void* pDst, size_t dstSize);
 void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize);
+void mem_copy(void* pDst, const void* pSrc, size_t cpySize);
 void dbg_break(const char* pMsg);
 void dbg_msg(const char* pFmt, ...);
 void* bin_load(const char* pPath, size_t* pSize = nullptr, bool appendPath = false, bool unpack = false);
@@ -2369,8 +2370,8 @@ public:
 
 	void identity_sr();
 
-	void from_mem(const float* pSrc) { ::memcpy(this, pSrc, sizeof(cxMtx)); }
-	void to_mem(float* pDst) const { ::memcpy(pDst, this, sizeof(cxMtx)); }
+	void from_mem(const float* pSrc) { nxCore::mem_copy(this, pSrc, sizeof(cxMtx)); }
+	void to_mem(float* pDst) const { nxCore::mem_copy(pDst, this, sizeof(cxMtx)); }
 
 	void from_quat(const cxQuat& q);
 	void from_quat_and_pos(const cxQuat& qrot, const cxVec& vtrans);

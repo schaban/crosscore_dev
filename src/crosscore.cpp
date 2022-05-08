@@ -233,7 +233,7 @@ static sxSysIfc s_ifc {
 
 void init(sxSysIfc* pIfc) {
 	if (pIfc) {
-		::memcpy(&s_ifc, pIfc, sizeof(sxSysIfc));
+		nxCore::mem_copy(&s_ifc, pIfc, sizeof(sxSysIfc));
 	}
 }
 
@@ -939,7 +939,7 @@ void* mem_realloc(void* pMem, size_t newSize, int alignment) {
 			void* p = mem_alloc(newSize, pTag, alignment);
 			if (p) {
 				pNewMem = p;
-				::memcpy(pNewMem, pMem, cpySize);
+				mem_copy(pNewMem, pMem, cpySize);
 				mem_free(pMem);
 			}
 		} else {
@@ -962,7 +962,7 @@ void* mem_resize(void* pMem, float factor, int alignment) {
 			void* p = mem_alloc(newSize, pTag, alignment);
 			if (p) {
 				pNewMem = p;
-				::memcpy(pNewMem, pMem, cpySize);
+				mem_copy(pNewMem, pMem, cpySize);
 				mem_free(pMem);
 			}
 		} else {
@@ -1030,7 +1030,7 @@ void mem_dbg() {
 		dbg_msg("%p: %s, size=0x%X (0x%X, 0x%X)\n", pMem, pTag, pInfo->mSize, pInfo->mRawSize, pInfo->mAlgn);
 		if (nxCore::str_eq(pTag, s_pXDataMemTag)) {
 			sxData* pData = (sxData*)pMem;
-			::memcpy(xdataKind, &pData->mKind, 4);
+			mem_copy(xdataKind, &pData->mKind, 4);
 			dbg_msg("  %s: %s\n", xdataKind, pData->get_file_path());
 		}
 		pInfo = pInfo->mpNext;
@@ -1054,6 +1054,12 @@ void mem_zero(void* pDst, size_t dstSize) {
 void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize) {
 	if (pDst && dstSize > 0) {
 		::memset(pDst, (int)fillVal, dstSize);
+	}
+}
+
+void mem_copy(void* pDst, const void* pSrc, size_t cpySize) {
+	if (pDst && pSrc && cpySize > 0) {
+		::memcpy(pDst, pSrc, cpySize);
 	}
 }
 
@@ -1108,7 +1114,7 @@ static void* bin_load_impl(const char* pPath, size_t* pSize, bool appendPath, bo
 						if (appendPath) {
 							memsize += pathLen + 1;
 							pData = mem_alloc(memsize, pTag);
-							::memcpy(pData, pUnpkd, size);
+							mem_copy(pData, pUnpkd, size);
 							mem_free(pUnpkd);
 						}
 					} else {
@@ -1215,7 +1221,7 @@ char* str_dup(const char* pSrc, const char* pTag) {
 	if (pSrc) {
 		size_t len = ::strlen(pSrc) + 1;
 		pDst = reinterpret_cast<char*>(mem_alloc(len, pTag ? pTag : "xStr"));
-		::memcpy(pDst, pSrc, len);
+		mem_copy(pDst, pSrc, len);
 	}
 	return pDst;
 }
@@ -1292,7 +1298,7 @@ bool f32_almost_eq(const float x, const float y, const float tol) {
 uint32_t fetch_bits32(const uint8_t* pTop, const uint32_t org, const uint32_t len) {
 	uint64_t res = 0;
 	uint32_t idx = org >> 3;
-	::memcpy(&res, &pTop[idx], 5);
+	mem_copy(&res, &pTop[idx], 5);
 	res >>= org & 7;
 	res &= (1ULL << len) - 1;
 	return (uint32_t)res;
@@ -1998,7 +2004,7 @@ void xt_texcoord::encode_half(uint16_t* pDst) const {
 
 
 void xt_mtx::identity() {
-	::memcpy(this, nxCalc::s_identityMtx, sizeof(*this));
+	nxCore::mem_copy(this, nxCalc::s_identityMtx, sizeof(*this));
 }
 
 void xt_mtx::zero() {
@@ -2007,7 +2013,7 @@ void xt_mtx::zero() {
 
 
 void xt_xmtx::identity() {
-	::memcpy(this, nxCalc::s_identityMtx, sizeof(*this));
+	nxCore::mem_copy(this, nxCalc::s_identityMtx, sizeof(*this));
 }
 
 void xt_xmtx::zero() {
@@ -2217,7 +2223,7 @@ void cxVec::decode_octa(const xt_float2& oct) {
 
 
 void cxMtx::identity_sr() {
-	::memcpy(this, nxCalc::s_identityMtx, sizeof(float)*3*4);
+	nxCore::mem_copy(this, nxCalc::s_identityMtx, sizeof(float)*3*4);
 }
 
 void cxMtx::from_quat(const cxQuat& q) {
@@ -2265,7 +2271,7 @@ void clean_rotations(cxMtx* pMtx, const int n) {
 
 cxMtx mtx_from_xmtx(const xt_xmtx& xm) {
 	cxMtx m;
-	::memcpy((void*)&m, &xm, sizeof(xm));
+	nxCore::mem_copy((void*)&m, &xm, sizeof(xm));
 	m.set_translation(0.0f, 0.0f, 0.0f);
 	m.transpose();
 	return m;
@@ -2274,7 +2280,7 @@ cxMtx mtx_from_xmtx(const xt_xmtx& xm) {
 xt_xmtx xmtx_from_mtx(const cxMtx& m) {
 	xt_xmtx xm;
 	cxMtx tm = m.get_transposed();
-	::memcpy(&xm, &tm, sizeof(xm));
+	nxCore::mem_copy(&xm, &tm, sizeof(xm));
 	return xm;
 }
 
@@ -2511,7 +2517,7 @@ void cxMtx::transpose_sr() {
 }
 
 void cxMtx::transpose_sr(const cxMtx& mtx) {
-	::memcpy(this, mtx, sizeof(cxMtx));
+	nxCore::mem_copy(this, mtx, sizeof(cxMtx));
 	transpose_sr();
 }
 
@@ -2528,7 +2534,7 @@ void cxMtx::invert() {
 }
 
 void cxMtx::invert(const cxMtx& mtx) {
-	::memcpy(this, mtx, sizeof(cxMtx));
+	nxCore::mem_copy(this, mtx, sizeof(cxMtx));
 	invert();
 }
 
@@ -6148,9 +6154,9 @@ static sxPackedData* pkd0(const sxPkdWork& wk) {
 			uint8_t* pDict = (uint8_t*)(pPkd + 1);
 			uint8_t* pCnt = pDict + wk.mDictSize;
 			uint8_t* pCode = pCnt + wk.mBitCntBytes;
-			::memcpy(pDict, wk.mDict, wk.mDictSize);
-			::memcpy(pCnt, wk.mpBitCnt, wk.mBitCntBytes);
-			::memcpy(pCode, wk.mpBitCode, wk.mBitCodeBytes);
+			nxCore::mem_copy(pDict, wk.mDict, wk.mDictSize);
+			nxCore::mem_copy(pCnt, wk.mpBitCnt, wk.mBitCntBytes);
+			nxCore::mem_copy(pCode, wk.mpBitCode, wk.mBitCodeBytes);
 		}
 	}
 	return pPkd;
@@ -6173,11 +6179,11 @@ static sxPackedData* pkd1(const sxPkdWork& wk, const sxPkdWork& wk2) {
 			uint8_t* pCode2 = pCnt2 + wk2.mBitCntBytes;
 			uint8_t* pCode = pCode2 + wk2.mBitCodeBytes;
 			*pCntSize = wk2.mBitCodeBytes;
-			::memcpy(pDict, wk.mDict, wk.mDictSize);
-			::memcpy(pDict2, wk2.mDict, wk2.mDictSize);
-			::memcpy(pCnt2, wk2.mpBitCnt, wk2.mBitCntBytes);
-			::memcpy(pCode2, wk2.mpBitCode, wk2.mBitCodeBytes);
-			::memcpy(pCode, wk.mpBitCode, wk.mBitCodeBytes);
+			nxCore::mem_copy(pDict, wk.mDict, wk.mDictSize);
+			nxCore::mem_copy(pDict2, wk2.mDict, wk2.mDictSize);
+			nxCore::mem_copy(pCnt2, wk2.mpBitCnt, wk2.mBitCntBytes);
+			nxCore::mem_copy(pCode2, wk2.mpBitCode, wk2.mBitCodeBytes);
+			nxCore::mem_copy(pCode, wk.mpBitCode, wk.mBitCodeBytes);
 		}
 	}
 	return pPkd;
@@ -6219,9 +6225,9 @@ sxPackedData* pack(const uint8_t* pSrc, const uint32_t srcSize, const uint32_t m
 					if (pTmpPkd) {
 						pPkd = (sxPackedData*)nxCore::mem_alloc(pTmpPkd->mPackSize + sizeof(uint32_t), "xPkd:BackPack");
 						if (pPkd) {
-							::memcpy(pPkd, pTmpPkd, sizeof(sxPackedData));
+							nxCore::mem_copy(pPkd, pTmpPkd, sizeof(sxPackedData));
 							*((uint32_t*)(pPkd + 1)) = brefSize;
-							::memcpy(XD_INCR_PTR((pPkd + 1), sizeof(uint32_t)), pTmpPkd + 1, size_t(pTmpPkd->mPackSize) - sizeof(sxPackedData));
+							nxCore::mem_copy(XD_INCR_PTR((pPkd + 1), sizeof(uint32_t)), pTmpPkd + 1, size_t(pTmpPkd->mPackSize) - sizeof(sxPackedData));
 							pPkd->mAttr &= 0xFFFFFF00;
 							pPkd->mAttr |= 2;
 							pPkd->mPackSize += uint32_t(sizeof(uint32_t));
@@ -9172,7 +9178,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 	cxColor* pClr = (cxColor*)nxCore::mem_alloc(size, "xDDS:Clr");
 	if (pClr) {
 		if (pDDS->is_dds128()) {
-			::memcpy((void*)pClr, pDDS + 1, size);
+			nxCore::mem_copy((void*)pClr, pDDS + 1, size);
 		} else if (pDDS->is_dds64()) {
 			xt_half4* pHalf = (xt_half4*)(pDDS + 1);
 			xt_float4* pFloat = (xt_float4*)pClr;
@@ -9714,7 +9720,7 @@ sxImageData::Pyramid* sxImageData::get_pyramid() const {
 	cxColor* pBase = get_rgba();
 	cxColor* pLvl = pPmd->get_lvl(0);
 	if (flgW && flgH) {
-		::memcpy(pLvl, pBase, baseW*baseH*sizeof(cxColor));
+		nxCore::mem_copy(pLvl, pBase, baseW*baseH*sizeof(cxColor));
 	} else {
 		xt_float4* pWgt = reinterpret_cast<xt_float4*>(nxCore::mem_alloc(wgtNum*sizeof(xt_float4), "xImg:PmdTmpW"));
 		int16_t* pOrg = reinterpret_cast<int16_t*>(nxCore::mem_alloc(wgtNum*sizeof(int16_t), "xImg:PmdTmpO"));
@@ -9817,7 +9823,7 @@ sxImageData::DDS sxImageData::Pyramid::get_lvl_dds(int idx) const {
 		cxColor* pLvl = get_lvl(idx);
 		if (pLvl) {
 			cxColor* pDst = reinterpret_cast<cxColor*>(dds.mpHead + 1);
-			::memcpy(pDst, pLvl, w*h*sizeof(cxColor));
+			nxCore::mem_copy(pDst, pLvl, w*h*sizeof(cxColor));
 		}
 	}
 	return dds;
@@ -12821,7 +12827,7 @@ void cxMotionWork::adjust_leg(const cxVec& effPos, const int inodeTop, const int
 
 void cxMotionWork::copy_prev_world() {
 	if (!mpMdlData) return;
-	::memcpy(mpPrevXformsW, mpXformsW, mpMdlData->mSklNum * sizeof(xt_xmtx));
+	nxCore::mem_copy(mpPrevXformsW, mpXformsW, mpMdlData->mSklNum * sizeof(xt_xmtx));
 }
 
 void cxMotionWork::calc_world() {
@@ -12936,7 +12942,7 @@ void cxMotionWork::disable_node_blending(const int inode, const float disable) {
 void cxMotionWork::blend_init(const int duration) {
 	if (mpMdlData && mpXformsL && mpBlendXformsL) {
 		int nskel = mpMdlData->mSklNum;
-		::memcpy(mpBlendXformsL, mpXformsL, nskel * sizeof(xt_xmtx));
+		nxCore::mem_copy(mpBlendXformsL, mpXformsL, nskel * sizeof(xt_xmtx));
 	}
 	mBlendDuration = float(duration);
 	mBlendCount = mBlendDuration;
@@ -13314,7 +13320,7 @@ char* cxStrStore::add(const char* pStr) {
 			size_t free = pStore->mSize - pStore->mPtr;
 			if (free >= len) {
 				pRes = reinterpret_cast<char*>(pStore + 1) + pStore->mPtr;
-				::memcpy(pRes, pStr, len);
+				nxCore::mem_copy(pRes, pStr, len);
 				pStore->mPtr += len;
 			} else {
 				cxStrStore* pNext = pStore->mpNext;
@@ -14039,9 +14045,9 @@ cxResourceManager* cxResourceManager::create(const char* pAppPath, const char* p
 		if (pMgr->mpDataPath) {
 			nxCore::mem_zero(pMgr->mpDataPath, pathSize);
 			if (pathLen) {
-				::memcpy(pMgr->mpDataPath, pMgr->mpAppPath, pathLen);
+				nxCore::mem_copy(pMgr->mpDataPath, pMgr->mpAppPath, pathLen);
 			}
-			::memcpy(pMgr->mpDataPath + pathLen, pMgr->mpRelDataDir, ::strlen(pMgr->mpRelDataDir));
+			nxCore::mem_copy(pMgr->mpDataPath + pathLen, pMgr->mpRelDataDir, ::strlen(pMgr->mpRelDataDir));
 		}
 		pMgr->mpPkgList = PkgList::create("xRsrcMgr:PkgList");
 		pMgr->mpPkgMap = PkgMap::create("xRsrcMgr:PkgMap");
