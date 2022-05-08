@@ -5404,7 +5404,7 @@ protected:
 		};
 
 		void reset() {
-			::memset(mMask, 0, sizeof(mMask));
+			nxCore::mem_zero(mMask, sizeof(mMask));
 			mCount = 0;
 		}
 
@@ -5808,7 +5808,7 @@ protected:
 		size_t size = (newSize <= 0 ? mSize : newSize) * sizeof(Slot);
 		Slot* pSlots = reinterpret_cast<Slot*>(nxCore::mem_alloc(size, "xStrMap:Slots"));
 		if (pSlots) {
-			::memset(pSlots, 0, size);
+			nxCore::mem_zero(pSlots, size);
 		}
 		return pSlots;
 	}
@@ -5970,7 +5970,7 @@ public:
 			} else {
 				mpSlots[idx].pKey = nullptr;
 			}
-			::memset(&mpSlots[idx].val, 0, sizeof(T));
+			nxCore::mem_zero(&mpSlots[idx].val, sizeof(T));
 			--mInUse;
 		}
 	}

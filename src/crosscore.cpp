@@ -1704,7 +1704,7 @@ cxBrigade* cxBrigade::create(int wrkNum) {
 		pBgd->mWrkNum = wrkNum;
 		pBgd->mActiveWrkNum = wrkNum;
 		pBgd->set_dynamic_scheduling();
-		::memset(pBgd->mppWrk, 0, wrkSize);
+		nxCore::mem_zero(pBgd->mppWrk, wrkSize);
 		for (int i = 0; i < wrkNum; ++i) {
 			pBgd->mpJobCtx[i].mpBrigade = pBgd;
 			pBgd->mpJobCtx[i].mWrkId = i;
@@ -2002,7 +2002,7 @@ void xt_mtx::identity() {
 }
 
 void xt_mtx::zero() {
-	::memset(this, 0, sizeof(*this));
+	nxCore::mem_zero(this, sizeof(*this));
 }
 
 
@@ -2011,7 +2011,7 @@ void xt_xmtx::identity() {
 }
 
 void xt_xmtx::zero() {
-	::memset(this, 0, sizeof(*this));
+	nxCore::mem_zero(this, sizeof(*this));
 }
 
 
@@ -2148,7 +2148,7 @@ cxVec rot_deg(const cxVec& v, const float dx, const float dy, const float dz, ex
 
 void cxVec::parse(const char* pStr) {
 	float val[3];
-	::memset(val, 0, sizeof(val));
+	nxCore::mem_zero(val, sizeof(val));
 #if defined(_MSC_VER)
 	::sscanf_s(pStr, "[%f,%f,%f]", &val[0], &val[1], &val[2]);
 #else
@@ -2520,7 +2520,7 @@ void cxMtx::invert() {
 	int idx[4 * 3];
 	bool ok = nxLA::inv_gj((float*)this, 4, idx);
 	if (!ok) {
-		::memset(*this, 0, sizeof(cxMtx));
+		nxCore::mem_zero(*this, sizeof(cxMtx));
 	}
 #else
 	invert_fast();
@@ -2554,7 +2554,7 @@ void cxMtx::invert_fast() {
 	det = a0*b5 - a1*b4 + a2*b3 + a3*b2 - a4*b1 + a5*b0;
 
 	if (det == 0.0f) {
-		::memset(*this, 0, sizeof(cxMtx));
+		nxCore::mem_zero(*this, sizeof(cxMtx));
 	} else {
 		cxMtx im;
 
@@ -2594,7 +2594,7 @@ void cxMtx::invert_lu() {
 	int idx[4];
 	bool ok = nxLA::lu_decomp(lu, 4, wk, idx);
 	if (!ok) {
-		::memset(*this, 0, sizeof(cxMtx));
+		nxCore::mem_zero(*this, sizeof(cxMtx));
 		return;
 	}
 	for (int i = 0; i < 4; ++i) {
@@ -2610,7 +2610,7 @@ void cxMtx::invert_lu_hi() {
 	int idx[4];
 	bool ok = nxLA::lu_decomp(lu, 4, wk, idx);
 	if (!ok) {
-		::memset(*this, 0, sizeof(cxMtx));
+		nxCore::mem_zero(*this, sizeof(cxMtx));
 		return;
 	}
 	double inv[4][4];
@@ -3020,7 +3020,7 @@ void cxMtx::mk_proj(float fovy, float aspect, float znear, float zfar) {
 	float c = ::mth_cosf(h);
 	float cot = c / s;
 	float q = zfar / (zfar - znear);
-	::memset(this, 0, sizeof(cxMtx));
+	nxCore::mem_zero(this, sizeof(cxMtx));
 	m[2][3] = -1.0f;
 	m[0][0] = cot / aspect;
 	m[1][1] = cot;
@@ -5852,7 +5852,7 @@ static uint32_t pk_bit_cnt_to_bytes(uint32_t n) {
 
 static uint32_t pk_mk_dict(uint8_t* pDict, uint8_t* pXlat, const uint8_t* pSrc, uint32_t srcSize) {
 	uint32_t cnt[0x100];
-	::memset(cnt, 0, sizeof(cnt));
+	nxCore::mem_zero(cnt, sizeof(cnt));
 	for (uint32_t i = 0; i < srcSize; ++i) {
 		++cnt[pSrc[i]];
 	}
@@ -5864,7 +5864,7 @@ static uint32_t pk_mk_dict(uint8_t* pDict, uint8_t* pXlat, const uint8_t* pSrc, 
 			++idict;
 		}
 	}
-	::memset(pDict, 0, 0x100);
+	nxCore::mem_zero(pDict, 0x100);
 	uint32_t dictSize = idict;
 	uint32_t dictCnt[0x100];
 	for (uint32_t i = 0; i < dictSize; ++i) {
@@ -5896,7 +5896,7 @@ static uint32_t pk_mk_dict(uint8_t* pDict, uint8_t* pXlat, const uint8_t* pSrc, 
 			}
 		}
 	}
-	::memset(pXlat, 0, 0x100);
+	nxCore::mem_zero(pXlat, 0x100);
 	for (uint32_t i = 0; i < dictSize; ++i) {
 		pXlat[pDict[i]] = i;
 	}
@@ -6115,10 +6115,10 @@ struct sxPkdWork {
 		mBitCntBytes = pk_bit_cnt_to_bytes(srcSize * 3);
 		mpBitCnt = (uint8_t*)nxCore::mem_alloc(mBitCntBytes + 1, "xPkd:EncCnt");
 		if (mpBitCnt) {
-			::memset(mpBitCnt, 0, mBitCntBytes);
+			nxCore::mem_zero(mpBitCnt, mBitCntBytes);
 			mpBitCode = (uint8_t*)nxCore::mem_alloc(srcSize, "xPkd:EncCode");
 			if (mpBitCode) {
-				::memset(mpBitCode, 0, srcSize);
+				nxCore::mem_zero(mpBitCode, srcSize);
 				mBitCodeBits = pk_encode(mpBitCnt, mpBitCode, mXlat, pSrc, srcSize);
 				mBitCodeBytes = pk_bit_cnt_to_bytes(mBitCodeBits);
 				res = true;
@@ -8162,7 +8162,7 @@ cxAABB sxGeometryData::calc_world_bbox(cxMtx* pMtxW, int* pIdxMap) const {
 void sxGeometryData::calc_tangents(cxVec* pTng, bool flip, const char* pAttrName) const {
 	if (!pTng) return;
 	int npnt = get_pnt_num();
-	::memset((void*)pTng, 0, npnt * sizeof(cxVec));
+	nxCore::mem_zero((void*)pTng, npnt * sizeof(cxVec));
 	if (!is_all_tris()) return;
 	int nrmAttrIdx = find_pnt_attr("N");
 	if (nrmAttrIdx < 0) return;
@@ -8715,7 +8715,7 @@ void sxGeometryData::DisplayList::create(const sxGeometryData& geo, const char* 
 	if (!pData) {
 		return;
 	}
-	::memset(pData, 0, size);
+	nxCore::mem_zero(pData, size);
 	pData->mOffsBat = offsBat;
 	pData->mOffsIdx32 = offsIdx32;
 	pData->mOffsIdx16 = offsIdx16;
@@ -8908,7 +8908,7 @@ const char* sxGeometryData::DisplayList::get_bat_mtl_name(int batIdx) const {
 
 
 void sxDDSHead::init(uint32_t w, uint32_t h) {
-	::memset(this, 0, sizeof(sxDDSHead));
+	nxCore::mem_zero(this, sizeof(sxDDSHead));
 	mMagic = XD_FOURCC('D', 'D', 'S', ' ');
 	mSize = sizeof(sxDDSHead) - 4;
 	mHeight = h;
@@ -9261,7 +9261,7 @@ void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 	if (size < 0x200) size = 0x200;
 	void* pMem = nxCore::mem_alloc(size, "xSGI:Tmp");
 	if (pMem) {
-		::memset(pMem, 0, size);
+		nxCore::mem_zero(pMem, size);
 		uint8_t* pHead = (uint8_t*)pMem;
 		pHead[0] = 1;
 		pHead[1] = 0xDA;
@@ -9478,7 +9478,7 @@ void sxImageData::Plane::expand(float* pDst, int pixelStride) const {
 	uint8_t* pBits = reinterpret_cast<uint8_t*>(XD_INCR_PTR(mpImg, pInfo->mDataOffs));
 	const int tblSize = 1 << 8;
 	int32_t tbl[tblSize];
-	::memset(tbl, 0, sizeof(tbl));
+	nxCore::mem_zero(tbl, sizeof(tbl));
 	int bitCnt = pInfo->mBitCount;
 	uxVal32 uval;
 	int bitPtr = 0;
@@ -9620,7 +9620,7 @@ void sxImageData::get_rgba(float* pDst) const {
 	int h = get_height();
 	int npix = w * h;
 	int memsize = npix * sizeof(cxColor);
-	::memset(pDst, 0, memsize);
+	nxCore::mem_zero(pDst, memsize);
 	static const char* plnName[] = { "r", "g", "b", "a" };
 	for (int i = 0; i < 4; ++i) {
 		Plane pln = find_plane(plnName[i]);
@@ -10249,7 +10249,7 @@ sxKeyframesData::RigLink* sxKeyframesData::make_rig_link(const sxRigData& rig) c
 			memsize += rig.get_nodes_num()*sizeof(int16_t);
 			pLink = reinterpret_cast<RigLink*>(nxCore::mem_alloc(memsize, "xKfr:RigLink"));
 			if (pLink) {
-				::memset(pLink, 0, memsize);
+				nxCore::mem_zero(pLink, memsize);
 				pLink->mNodeNum = nodeNum;
 				pLink->mRigNodeNum = rig.get_nodes_num();
 				pLink->mRigMapOffs = (uint32_t)mapTop;
@@ -10522,7 +10522,7 @@ void sxCompiledExpression::Stack::alloc(int n) {
 	size_t memsize = n * sizeof(Val) + Tags::calc_mem_size(n);
 	mpMem = nxCore::mem_alloc(memsize, "xExpr:Stack");
 	if (mpMem) {
-		::memset(mpMem, 0, memsize);
+		nxCore::mem_zero(mpMem, memsize);
 		mpVals = reinterpret_cast<Val*>(mpMem);
 		mTags.init(mpVals + n, n);
 	}
@@ -11164,7 +11164,7 @@ xt_texcoord sxModelData::get_pnt_tex(const int pid) const {
 
 sxModelData::PntSkin sxModelData::get_pnt_skin(const int pid) const {
 	PntSkin skn;
-	::memset(&skn, 0, sizeof(skn));
+	nxCore::mem_zero(&skn, sizeof(skn));
 	if (has_skin() && mPntOffs && ck_pid(pid)) {
 		float wgt[4];
 		uint8_t idx[4];
@@ -11475,7 +11475,7 @@ void sxModelData::clear_tex_wk() {
 	for (uint32_t i = 0; i < mTexNum; ++i) {
 		TexInfo* pTexInfo = get_tex_info(i);
 		if (pTexInfo) {
-			::memset(pTexInfo->mWk, 0, sizeof(pTexInfo->mWk));
+			nxCore::mem_zero(pTexInfo->mWk, sizeof(pTexInfo->mWk));
 		}
 	}
 }
@@ -12994,7 +12994,7 @@ cxMotionWork* cxMotionWork::create(sxModelData* pMdlData) {
 		size += XD_BIT_ARY_SIZE(uint8_t, nskel);
 		pWk = (cxMotionWork*)nxCore::mem_alloc(size, "xMotWk");
 		if (pWk) {
-			::memset((void*)pWk, 0, size);
+			nxCore::mem_zero((void*)pWk, size);
 			pWk->mpMdlData = pMdlData;
 			pWk->set_base_node_ids();
 			pWk->mpXformsL = (xt_xmtx*)XD_INCR_PTR(pWk, xformOffsL);
@@ -13149,7 +13149,7 @@ void cxModelWork::update_bounds() {
 void cxModelWork::frustum_cull(const cxFrustum* pFst, const bool precise) {
 	if (!mpCullBits) return;
 	int nbat = mpData->mBatNum;
-	::memset(mpCullBits, 0, XD_BIT_ARY_SIZE(uint8_t, nbat));
+	nxCore::mem_zero(mpCullBits, XD_BIT_ARY_SIZE(uint8_t, nbat));
 	if (!pFst) return;
 	if (!mBoundsValid) return;
 	for (int i = 0; i < nbat; ++i) {
@@ -13237,7 +13237,7 @@ cxModelWork* cxModelWork::create(sxModelData* pMdl, const size_t paramMemSize, c
 	}
 	pWk = (cxModelWork*)nxCore::mem_alloc(size, "xMdlWk");
 	if (pWk) {
-		::memset((void*)pWk, 0, size);
+		nxCore::mem_zero((void*)pWk, size);
 		pWk->mpData = pMdl;
 		pWk->mpWorldXform = offsWM ? (xt_xmtx*)XD_INCR_PTR(pWk, offsWM) : nullptr;
 		if (pWk->mpWorldXform) {
@@ -13489,7 +13489,7 @@ double cxStopWatch::median() {
 
 static void make_data_addr_key(char addrStr[XD_RSRC_ADDR_KEY_SIZE], sxData* mpData) {
 	static const char* tbl = "0123456789ABCDEF";
-	::memset(addrStr, 0, XD_RSRC_ADDR_KEY_SIZE);
+	nxCore::mem_zero(addrStr, XD_RSRC_ADDR_KEY_SIZE);
 	uintptr_t p = (uintptr_t)mpData;
 	for (size_t i = 0; i < sizeof(p) * 2; ++i) {
 		addrStr[i] = tbl[(p >> (i * 4)) & 0xF];
@@ -14037,7 +14037,7 @@ cxResourceManager* cxResourceManager::create(const char* pAppPath, const char* p
 		size_t pathSize = pathLen + ::strlen(pMgr->mpRelDataDir) + 1;
 		pMgr->mpDataPath = (char*)nxCore::mem_alloc(pathSize, "xRsrcMgr:path");
 		if (pMgr->mpDataPath) {
-			::memset(pMgr->mpDataPath, 0, pathSize);
+			nxCore::mem_zero(pMgr->mpDataPath, pathSize);
 			if (pathLen) {
 				::memcpy(pMgr->mpDataPath, pMgr->mpAppPath, pathLen);
 			}
