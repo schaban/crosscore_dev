@@ -1063,7 +1063,7 @@ void mem_copy(void* pDst, const void* pSrc, size_t cpySize) {
 	}
 }
 
-bool mem_eq(void* pDst, const void* pSrc, size_t memSize) {
+bool mem_eq(const void* pDst, const void* pSrc, size_t memSize) {
 	bool res = false;
 	if (pDst && pSrc && memSize > 0) {
 		res = ::memcmp(pSrc, pDst, memSize) == 0;
