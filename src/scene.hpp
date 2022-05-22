@@ -4,6 +4,14 @@
 #define SCN_EXEC_PRIO_BITS 3
 #define SCN_NUM_EXEC_PRIO (1 << (SCN_EXEC_PRIO_BITS))
 
+#ifndef SCN_CMN_PKG_NAME
+#	define SCN_CMN_PKG_NAME nullptr
+#endif
+
+#ifndef SCN_SCR_CMN_TEX
+#	define SCN_SCR_CMN_TEX "scr_common_BASE"
+#endif
+
 typedef cxResourceManager::Pkg Pkg;
 
 struct ScnCfg {

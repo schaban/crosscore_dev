@@ -8,10 +8,9 @@
 static Draw::Ifc* s_pDraw = nullptr;
 
 static cxResourceManager* s_pRsrcMgr = nullptr;
-
 static sxGeometryData* s_pFontGeo = nullptr;
-
 static sxTextureData* s_pScrCommonTex = nullptr;
+static bool s_unloadScrCommonTex = false;
 
 static cxBrigade* s_pBgd = nullptr;
 static sxJobQueue* s_pJobQue = nullptr;
@@ -65,6 +64,8 @@ static float s_fontH = -1.0f;
 static float s_fontSymSpacing = 0.05f;
 static float s_fontSpaceWidth = 0.25f;
 
+static Draw::Font s_font = {};
+
 static uint64_t s_frameCnt = 0;
 
 static uint32_t s_sleepMillis = 0;
@@ -73,7 +74,6 @@ static bool s_printMemInfo = false;
 static bool s_printBatteryInfo = false;
 static int s_thermalZones[2];
 
-static Draw::Font s_font = {};
 
 void ScnCfg::set_defaults() {
 	pAppPath = "";
@@ -320,18 +320,34 @@ void init(const ScnCfg& cfg) {
 
 	s_speed = nxApp::get_float_opt("speed", 1.0f);
 
-	const char* pStdFontPath = "etc/font.xgeo";
-	const char* pFontPath = nxApp::get_opt("font");
-	if (!pFontPath) {
-		pFontPath = pStdFontPath;
-	}
-	s_pFontGeo = load_geo(pFontPath);
-	if (!s_pFontGeo) {
-		s_pFontGeo = load_geo(pStdFontPath);
-	}
-	init_font(s_pFontGeo);
+	Pkg* pCmnPkg = nullptr;
+#ifdef SCN_CMN_PKG_NAME
+	pCmnPkg = load_pkg(SCN_CMN_PKG_NAME);
+#endif
 
-	s_pScrCommonTex = load_tex("etc/scr_common_BASE.xtex");
+	if (pCmnPkg) {
+		s_pFontGeo = nullptr;
+		init_font(pCmnPkg->find_geometry("font"));
+	} else {
+		const char* pStdFontPath = "etc/font.xgeo";
+		const char* pFontPath = nxApp::get_opt("font");
+		if (!pFontPath) {
+			pFontPath = pStdFontPath;
+		}
+		s_pFontGeo = load_geo(pFontPath);
+		if (!s_pFontGeo) {
+			s_pFontGeo = load_geo(pStdFontPath);
+		}
+		init_font(s_pFontGeo);
+	}
+
+	if (pCmnPkg) {
+		s_pScrCommonTex = pCmnPkg->find_texture(SCN_SCR_CMN_TEX);
+		s_unloadScrCommonTex = false;
+	} else {
+		s_pScrCommonTex = load_tex("etc/" SCN_SCR_CMN_TEX ".xtex");
+		s_unloadScrCommonTex = true;
+	}
 
 	if (s_pDraw) {
 		s_pDraw->init(cfg.shadowMapSize, s_pRsrcMgr, &s_font);
@@ -370,7 +386,7 @@ void reset() {
 		pFont->numSyms = 0;
 	}
 
-	if (s_pScrCommonTex) {
+	if (s_unloadScrCommonTex && s_pScrCommonTex) {
 		release_texture(s_pScrCommonTex);
 		unload_data_file(s_pScrCommonTex);
 		s_pScrCommonTex = nullptr;
