@@ -5,7 +5,7 @@
 #define SCN_NUM_EXEC_PRIO (1 << (SCN_EXEC_PRIO_BITS))
 
 #ifndef SCN_CMN_PKG_NAME
-#	define SCN_CMN_PKG_NAME nullptr
+#	define SCN_CMN_PKG_NAME "common"
 #endif
 
 #ifndef SCN_SCR_CMN_TEX
