@@ -29,3 +29,7 @@ interact with some elements in the scene and talk to NPCs
 (Scaled-down version of this demo is
 [here](https://schaban.github.io/crosscore_web_demo/wgl_test.html?small&lowq),
 it is more suitable for devices such as Raspberry Pi.)
+
+Here is another project
+that is using this library - [Ostinato](https://github.com/glebnovodran/ostinato).
+
