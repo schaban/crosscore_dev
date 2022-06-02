@@ -10,6 +10,16 @@ NSApplication* g_app;
 
 void getKbdName(NSEvent* event, char* pBuf) {
 	pBuf[0] = 0;
+	if ([event type] == NSEventTypeFlagsChanged) {
+		switch ([event keyCode]) {
+			case 0x3B: strcpy(pBuf, "LCTRL"); break;
+			case 0x3E: strcpy(pBuf, "RCTRL"); break;
+			case 0x38: strcpy(pBuf, "LSHIFT"); break;
+			case 0x3C: strcpy(pBuf, "RSHIFT"); break;
+			default: break;
+		}
+		return;
+	}
 	NSString* key = [event charactersIgnoringModifiers];
 	NSUInteger klen = [key length];
 	if (klen > 0) {
