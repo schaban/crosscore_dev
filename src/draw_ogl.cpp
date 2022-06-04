@@ -2445,6 +2445,11 @@ void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 	} else {
 		set_face_cull();
 	}
+	if (pPrim->depthWrite) {
+		glDepthMask(GL_TRUE);
+	} else {
+		glDepthMask(GL_FALSE);
+	}
 	pProg->use();
 
 	pProg->set_view_proj(pCtx->view.mViewProjMtx);
@@ -2510,6 +2515,8 @@ void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 	} else {
 		pProg->disable_attrs();
 	}
+
+	glDepthMask(GL_TRUE);
 }
 
 

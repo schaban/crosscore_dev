@@ -394,10 +394,10 @@ cxVec get_obj_center_pos(const char* pName);
 void init_prims(const uint32_t maxVtx, const uint32_t maxIdx);
 void prim_verts(const uint32_t org, const uint32_t num, const sxPrimVtx* pSrc);
 void prim_geom(const uint32_t vorg, const uint32_t vnum, const sxPrimVtx* pVtxSrc, const uint32_t iorg, const uint32_t inum, const uint16_t* pIdxSrc);
-void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex);
-void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex);
-void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex);
-void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pTex);
+void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
+void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
+void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
+void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pTex, const bool depthWrite = true);
 
 void set_ref_scr_size(const float w, const float h);
 float get_ref_scr_width();

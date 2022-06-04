@@ -253,6 +253,7 @@ namespace Draw {
 		bool indexed;
 		bool dblSided;
 		bool alphaBlend;
+		bool depthWrite;
 	};
 
 	struct Quad {

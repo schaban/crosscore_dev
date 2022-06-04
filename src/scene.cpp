@@ -1691,7 +1691,7 @@ static void prim_draw(Draw::Prim* pPrim) {
 	}
 }
 
-void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex) {
+void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite) {
 	Draw::Prim prim;
 	prim.type = Draw::PRIMTYPE_POLY;
 	prim.pMtx = pMtx;
@@ -1701,10 +1701,11 @@ void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx,
 	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = true;
+	prim.depthWrite = depthWrite;
 	prim_draw(&prim);
 }
 
-void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex) {
+void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite) {
 	Draw::Prim prim;
 	prim.type = Draw::PRIMTYPE_POLY;
 	prim.pMtx = pMtx;
@@ -1714,10 +1715,11 @@ void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxText
 	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = false;
+	prim.depthWrite = depthWrite;
 	prim_draw(&prim);
 }
 
-void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex) {
+void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite) {
 	Draw::Prim prim;
 	prim.type = Draw::PRIMTYPE_POLY;
 	prim.pMtx = pMtx;
@@ -1727,10 +1729,11 @@ void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* p
 	prim.indexed = true;
 	prim.alphaBlend = true;
 	prim.dblSided = true;
+	prim.depthWrite = depthWrite;
 	prim_draw(&prim);
 }
 
-void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pTex) {
+void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pTex, const bool depthWrite) {
 	Draw::Prim prim;
 	prim.type = Draw::PRIMTYPE_SPRITE;
 	prim.pMtx = nullptr;
@@ -1740,6 +1743,7 @@ void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pT
 	prim.indexed = false;
 	prim.alphaBlend = true;
 	prim.dblSided = false;
+	prim.depthWrite = depthWrite;
 	prim_draw(&prim);
 }
 
