@@ -31,5 +31,6 @@ interact with some elements in the scene and talk to NPCs
 it is more suitable for devices such as Raspberry Pi.)
 
 Here is another project
-that is using this library - [Ostinato](https://github.com/glebnovodran/ostinato).
+that is using this library -
+&#x2606; [**Ostinato**](https://github.com/glebnovodran/ostinato) &#x2606;
 
