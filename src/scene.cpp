@@ -2239,6 +2239,7 @@ bool wall_adj(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxVec& n
 			} else {
 				adjPos = errPos;
 			}
+			*pAdjPos = adjPos;
 		}
 	}
 	return res;
