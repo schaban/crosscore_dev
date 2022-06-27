@@ -2,7 +2,6 @@
 #include "oglsys.hpp"
 #include "scene.hpp"
 #include "draw.hpp"
-#include "dynrig.hpp"
 
 #include "demo.hpp"
 
