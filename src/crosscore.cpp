@@ -3739,6 +3739,10 @@ bool seg_quad_intersect_cw_n(const cxVec& p0, const cxVec& p1, const cxVec& v0, 
 	return seg_quad_intersect_ccw_n(p0, p1, v3, v2, v1, v0, nrm, pHitPos);
 }
 
+#ifndef XD_SEG_QUAD_VEC
+#	define XD_SEG_QUAD_VEC 0
+#endif
+
 bool seg_quad_intersect_ccw(const cxVec& p0, const cxVec& p1, const cxVec& v0, const cxVec& v1, const cxVec& v2, const cxVec& v3, cxVec* pHitPos, cxVec* pHitNrm) {
 	cxVec vec[4];
 	cxVec edge[4];
@@ -3755,12 +3759,7 @@ bool seg_quad_intersect_ccw(const cxVec& p0, const cxVec& p1, const cxVec& v0, c
 	vec[2] = p0 - v2;
 	vec[3] = p0 - v3;
 	cxVec dir = p1 - p0;
-#if 1
-	if (nxVec::scalar_triple(edge[0], dir, vec[0]) < 0.0f) return false;
-	if (nxVec::scalar_triple(edge[1], dir, vec[1]) < 0.0f) return false;
-	if (nxVec::scalar_triple(edge[2], dir, vec[2]) < 0.0f) return false;
-	if (nxVec::scalar_triple(edge[3], dir, vec[3]) < 0.0f) return false;
-#else
+#if XD_SEG_QUAD_VEC
 	float tp[4];
 	for (int i = 0; i < 4; ++i) {
 		tp[i] = nxVec::scalar_triple(edge[i], dir, vec[i]);
@@ -3768,6 +3767,11 @@ bool seg_quad_intersect_ccw(const cxVec& p0, const cxVec& p1, const cxVec& v0, c
 	for (int i = 0; i < 4; ++i) {
 		if (tp[i] < 0.0f) return false;
 	}
+#else
+	if (nxVec::scalar_triple(edge[0], dir, vec[0]) < 0.0f) return false;
+	if (nxVec::scalar_triple(edge[1], dir, vec[1]) < 0.0f) return false;
+	if (nxVec::scalar_triple(edge[2], dir, vec[2]) < 0.0f) return false;
+	if (nxVec::scalar_triple(edge[3], dir, vec[3]) < 0.0f) return false;
 #endif
 	float d = dir.dot(n);
 	float t;
