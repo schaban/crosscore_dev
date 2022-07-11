@@ -2314,6 +2314,10 @@ cxVec xmtx_calc_pnt(const xt_xmtx& m, const cxVec& v) {
 	return res;
 }
 
+#ifndef XD_XMTX_CONCAT_VEC
+#	define XD_XMTX_CONCAT_VEC 0
+#endif
+
 xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
 	float a00 = a.m[0][0]; float a01 = a.m[1][0]; float a02 = a.m[2][0];
 	float a10 = a.m[0][1]; float a11 = a.m[1][1]; float a12 = a.m[2][1];
@@ -2324,18 +2328,46 @@ xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
 	float b20 = b.m[0][2]; float b21 = b.m[1][2]; float b22 = b.m[2][2];
 	float b30 = b.m[0][3]; float b31 = b.m[1][3]; float b32 = b.m[2][3];
 	xt_xmtx xm;
+#if XD_XMTX_CONCAT_VEC
+	float* p = xm;
+	float x0[] = { a00, a10, a20, a30,  a00, a10, a20, a30,  a00, a10, a20, a30 };
+	float x1[] = { a01, a11, a21, a31,  a01, a11, a21, a31,  a01, a11, a21, a31 };
+	float x2[] = { a02, a12, a22, a32,  a02, a12, a22, a32,  a02, a12, a22, a32 };
+#	if XD_XMTX_CONCAT_VEC < 2
+	for (int i = 0; i < 0x4; ++i) { p[i] = x0[i]*b00 + x1[i]*b10 + x2[i]*b20; }
+	for (int i = 4; i < 0x8; ++i) { p[i] = x0[i]*b01 + x1[i]*b11 + x2[i]*b21; }
+	for (int i = 8; i < 0xC; ++i) { p[i] = x0[i]*b02 + x1[i]*b12 + x2[i]*b22; }
+#	else
+	for (int i = 0; i < 0x4; ++i) { x0[i] *= b00; }
+	for (int i = 4; i < 0x8; ++i) { x0[i] *= b01; }
+	for (int i = 8; i < 0xC; ++i) { x0[i] *= b02; }
+	for (int i = 0; i < 0x4; ++i) { x1[i] *= b10; }
+	for (int i = 4; i < 0x8; ++i) { x1[i] *= b11; }
+	for (int i = 8; i < 0xC; ++i) { x1[i] *= b12; }
+	for (int i = 0; i < 0x4; ++i) { x2[i] *= b20; }
+	for (int i = 4; i < 0x8; ++i) { x2[i] *= b21; }
+	for (int i = 8; i < 0xC; ++i) { x2[i] *= b22; }
+	for (int i = 0; i < 12; ++i) {
+		p[i] = x0[i] + x1[i] + x2[i];
+	}
+#	endif
+#else
 	xm.m[0][0] = a00*b00 + a01*b10 + a02*b20;
 	xm.m[0][1] = a10*b00 + a11*b10 + a12*b20;
 	xm.m[0][2] = a20*b00 + a21*b10 + a22*b20;
-	xm.m[0][3] = a30*b00 + a31*b10 + a32*b20 + b30;
+	xm.m[0][3] = a30*b00 + a31*b10 + a32*b20;
 	xm.m[1][0] = a00*b01 + a01*b11 + a02*b21;
 	xm.m[1][1] = a10*b01 + a11*b11 + a12*b21;
 	xm.m[1][2] = a20*b01 + a21*b11 + a22*b21;
-	xm.m[1][3] = a30*b01 + a31*b11 + a32*b21 + b31;
+	xm.m[1][3] = a30*b01 + a31*b11 + a32*b21;
 	xm.m[2][0] = a00*b02 + a01*b12 + a02*b22;
 	xm.m[2][1] = a10*b02 + a11*b12 + a12*b22;
 	xm.m[2][2] = a20*b02 + a21*b12 + a22*b22;
-	xm.m[2][3] = a30*b02 + a31*b12 + a32*b22 + b32;
+	xm.m[2][3] = a30*b02 + a31*b12 + a32*b22;
+#endif
+	xm.m[0][3] += b30;
+	xm.m[1][3] += b31;
+	xm.m[2][3] += b32;
 	return xm;
 }
 
