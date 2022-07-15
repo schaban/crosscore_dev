@@ -2314,6 +2314,16 @@ cxVec xmtx_calc_pnt(const xt_xmtx& m, const cxVec& v) {
 	return res;
 }
 
+#if defined(XD_USE_VEMA) && defined(XD_USE_VEMA_MTX)
+
+xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
+	xt_xmtx xm;
+	VEMA_FN(ConcatMtx3x4F)(*((VemaMtx3x4F*)&xm), *((const VemaMtx3x4F*)&a), *((const VemaMtx3x4F*)&b));
+	return xm;
+}
+
+#else
+
 #ifndef XD_XMTX_CONCAT_VEC
 #	define XD_XMTX_CONCAT_VEC 0
 #endif
@@ -2370,6 +2380,8 @@ xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
 	xm.m[2][3] += b32;
 	return xm;
 }
+
+#endif
 
 xt_xmtx xmtx_basis(const cxVec& ax, const cxVec& ay, const cxVec& az, const cxVec& pos) {
 	xt_xmtx xm;
@@ -11622,7 +11634,7 @@ xt_xmtx sxModelData::get_skel_inv_world_xform(const int inode) const {
 	return xm;
 }
 
-xt_xmtx sxModelData::calc_skel_node_world_xform(const int inode, const xt_xmtx* pLocXforms, xt_xmtx* pParentXform) const {
+XD_NOINLINE xt_xmtx sxModelData::calc_skel_node_world_xform(const int inode, const xt_xmtx* pLocXforms, xt_xmtx* pParentXform) const {
 	xt_xmtx xm;
 	xm.identity();
 	xt_xmtx xmp;
@@ -11646,7 +11658,7 @@ xt_xmtx sxModelData::calc_skel_node_world_xform(const int inode, const xt_xmtx* 
 	return xm;
 }
 
-xt_xmtx sxModelData::calc_skel_node_chain_xform(const int inode, const int itop, const xt_xmtx* pLocXforms) const {
+XD_NOINLINE xt_xmtx sxModelData::calc_skel_node_chain_xform(const int inode, const int itop, const xt_xmtx* pLocXforms) const {
 	xt_xmtx xm;
 	xm.identity();
 	if (has_skel() && ck_skel_id(inode)) {
