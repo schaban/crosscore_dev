@@ -1,5 +1,5 @@
-var req = new ActiveXObject("WinHttp.WinHttpRequest.5.1");
-var url = "http://www.khronos.org/registry/" + WScript.Arguments(0);
+var req = new ActiveXObject("MSXML2.XMLHTTP.6.0");
+var url = "https://registry.khronos.org/" + WScript.Arguments(0);
 var res = null;
 WScript.StdErr.WriteLine("Downloading " + url + "...");
 try {
