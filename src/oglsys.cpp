@@ -779,6 +779,15 @@ static struct OGLSysGlb {
 		return pOpt;
 	}
 
+	int get_int_opt(const char* pName, const int defVal) {
+		int res = defVal;
+		const char* pOpt = get_opt(pName);
+		if (pOpt) {
+			res = ::atoi(pOpt);
+		}
+		return res;
+	}
+
 } GLG = {};
 
 #if defined(OGLSYS_WEB)
@@ -1298,6 +1307,13 @@ void OGLSysGlb::init_wnd() {
 				break;
 			}
 			drmModeFreeEncoder(pEnc);
+		}
+		if (GLG.get_int_opt("ogl_list_video_modes", 0)) {
+			dbg_msg("DRM modes:\n");
+			for (int i = 0; i < mpDrmConn->count_modes; ++i) {
+				drmModeModeInfo* pModeInfo = &mpDrmConn->modes[i];
+				dbg_msg(" %d) %d x %d, %dHz\n", i, pModeInfo->hdisplay, pModeInfo->vdisplay, pModeInfo->vrefresh);
+			}
 		}
 		for (int i = 0; i < mpDrmConn->count_modes; ++i) {
 			if (mpDrmConn->modes[i].type & DRM_MODE_TYPE_PREFERRED) {
