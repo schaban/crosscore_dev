@@ -198,6 +198,35 @@ typedef void (GL_APIENTRYP OGLSYS_PFNGLBINDBUFFERBASEPROC)(GLenum, GLuint, GLuin
 #endif
 
 #if defined(OGLSYS_DRM_ES)
+#ifndef OGLSYS_DRM_FBID_DYN
+#	define OGLSYS_DRM_FBID_DYN 0
+#endif
+
+#if !OGLSYS_DRM_FBID_DYN
+static uint32_t s_drm_fbid_mem[8] = {};
+static size_t s_drm_fbid_mem_idx = 0;
+#endif
+
+static uint32_t* alloc_drm_fbid() {
+#if OGLSYS_DRM_FBID_DYN
+	return (uint32_t*)OGLSys::mem_alloc(sizeof(uint32_t), "OGLSys::DRM::fbid");
+#else
+	size_t idx = s_drm_fbid_mem_idx;
+	size_t n = sizeof(s_drm_fbid_mem) / sizeof(uint32_t);
+	++s_drm_fbid_mem_idx;
+	s_drm_fbid_mem_idx &= n - 1;
+	return &s_drm_fbid_mem[idx];
+#endif
+}
+
+static void free_drm_fbid(uint32_t* pFbId) {
+#if OGLSYS_DRM_FBID_DYN
+	if (pFbId) {
+		OGLSys::mem_free(pFbId);
+	}
+#endif
+}
+
 static void cb_drm_fb_destroy(gbm_bo* pBO, void* pData) {
 	uint32_t* pFbId = (uint32_t*)pData;
 	if (pBO && pFbId) {
@@ -210,7 +239,7 @@ static void cb_drm_fb_destroy(gbm_bo* pBO, void* pData) {
 		}
 	}
 	if (pFbId) {
-		OGLSys::mem_free(pFbId);
+		free_drm_fbid(pFbId);
 	}
 }
 
@@ -718,7 +747,7 @@ static struct OGLSysGlb {
 		if (mpGbmBO) {
 			pFbId = (uint32_t*)gbm_bo_get_user_data(mpGbmBO);
 			if (!pFbId) {
-				pFbId = (uint32_t*)mem_alloc(sizeof(uint32_t), "OGLSys::DRM::fbid");
+				pFbId = alloc_drm_fbid();
 				if (pFbId) {
 					*pFbId = 0;
 					uint32_t w = gbm_bo_get_width(mpGbmBO);
@@ -1315,16 +1344,24 @@ void OGLSysGlb::init_wnd() {
 				dbg_msg(" %d) %d x %d, %dHz\n", i, pModeInfo->hdisplay, pModeInfo->vdisplay, pModeInfo->vrefresh);
 			}
 		}
-		for (int i = 0; i < mpDrmConn->count_modes; ++i) {
-			if (mpDrmConn->modes[i].type & DRM_MODE_TYPE_PREFERRED) {
-				mWidth = mpDrmConn->modes[i].hdisplay;
-				mHeight = mpDrmConn->modes[i].vdisplay;
-				mWndW = mWidth;
-				mWndH = mHeight;
-				dbg_msg("DRM mode #%d (%d x %d)\n", i, mWidth, mHeight);
-				mDrmModeIdx = i;
-				break;
+		int drmModeIdx = GLG.get_int_opt("ogl_drm_mode", -1);
+		if (drmModeIdx < 0 || drmModeIdx >= mpDrmConn->count_modes) {
+			for (int i = 0; i < mpDrmConn->count_modes; ++i) {
+				if (mpDrmConn->modes[i].type & DRM_MODE_TYPE_PREFERRED) {
+					drmModeIdx = i;
+					break;
+				}
 			}
+		}
+		if (drmModeIdx >= 0 && drmModeIdx < mpDrmConn->count_modes) {
+			mDrmModeIdx = drmModeIdx;
+			mWidth = mpDrmConn->modes[mDrmModeIdx].hdisplay;
+			mHeight = mpDrmConn->modes[mDrmModeIdx].vdisplay;
+			mWndW = mWidth;
+			mWndH = mHeight;
+			dbg_msg("DRM mode #%d (%d x %d)\n", mDrmModeIdx, mWidth, mHeight);
+		} else {
+			dbg_msg("Invalid DRM mode.\n");
 		}
 	}
 	if (mDrmDevFD >= 0) {
@@ -1701,12 +1738,14 @@ void OGLSysGlb::init_ogl() {
 	uint32_t fbId = prepare_drm_fb();
 	uint32_t connId = 0;
 	drmModeModeInfo* pMode = nullptr;
-	if (mpDrmConn) {
+	if (mDrmModeIdx >= 0 && mpDrmConn) {
 		connId = mpDrmConn->connector_id;
 		pMode = &mpDrmConn->modes[mDrmModeIdx];
 	}
-	if (drmModeSetCrtc(mDrmDevFD, mDrmCtrlId, fbId, 0, 0, &connId, 1, pMode) == 0) {
-		dbg_msg("DRM mode set: OK\n");
+	if (pMode) {
+		if (drmModeSetCrtc(mDrmDevFD, mDrmCtrlId, fbId, 0, 0, &connId, 1, pMode) == 0) {
+			dbg_msg("DRM mode set: OK\n");
+		}
 	}
 #endif
 
