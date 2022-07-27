@@ -303,6 +303,8 @@ namespace OGLSys {
 	void* mem_alloc(size_t size, const char* pTag);
 	void mem_free(void* p);
 
+	void set_dummygl_swap_func(void (*swap_func)());
+
 	void set_swap_interval(const int ival);
 	void bind_def_framebuf();
 
