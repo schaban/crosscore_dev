@@ -70,6 +70,8 @@ static uint64_t s_frameCnt = 0;
 
 static uint32_t s_sleepMillis = 0;
 
+static int32_t s_numVisWrks = -1;
+
 static bool s_printMemInfo = false;
 static bool s_printBatteryInfo = false;
 static int s_thermalZones[2];
@@ -359,7 +361,9 @@ void init(const ScnCfg& cfg) {
 
 	s_frameCnt = 0;
 
-	s_sleepMillis = nxApp::get_int_opt("sleep", 0);
+	s_sleepMillis = nxApp::get_int_opt("scn_sleep", 0);
+
+	s_numVisWrks = nxApp::get_int_opt("scn_vis_nwrk", -1);
 
 	s_splitMoveFlg = false;
 
@@ -2455,6 +2459,13 @@ void visibility() {
 	update_view();
 	update_shadow();
 	job_queue_alloc(njob);
+	int numStdWrks = 0;
+	if (s_pBgd) {
+		if (s_numVisWrks > 0) {
+			numStdWrks = s_pBgd->get_active_workers_num();
+			s_pBgd->set_active_workers_num(s_numVisWrks);
+		}
+	}
 	if (s_pJobQue) {
 		nxTask::queue_purge(s_pJobQue);
 		for (ObjList::Itr itr = s_pObjList->get_itr(); !itr.end(); itr.next()) {
@@ -2464,8 +2475,13 @@ void visibility() {
 				nxTask::queue_add(s_pJobQue, &pObj->mJob);
 			}
 		}
-		nxTask::queue_exec(s_pJobQue, s_pBgd);
+		nxTask::queue_exec(s_pJobQue, s_numVisWrks != 0 ? s_pBgd : nullptr);
 		save_job_cnts(get_visibility_job_lvl());
+	}
+	if (s_pBgd) {
+		if (s_numVisWrks > 0) {
+			s_pBgd->set_active_workers_num(numStdWrks);
+		}
 	}
 }
 
