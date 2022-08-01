@@ -107,7 +107,7 @@
 #	endif
 #endif // !OGLSYS_ES
 
-#if !defined(OGLSYS_WINDOWS) && !defined(OGLSYS_DUMMY) && !defined(OGLSYS_APPLE) && !defined(OGLSYS_ANDROID)
+#if (!defined(OGLSYS_WINDOWS) && !defined(OGLSYS_DUMMY) && !defined(OGLSYS_APPLE) && !defined(OGLSYS_ANDROID)) || (defined(OGLSYS_DUMMY) && OGLSYS_CL && defined(OGLSYS_LINUX))
 #include <dlfcn.h>
 namespace OGLSys {
 	void* dlopen_from_list(const char** pLibs, const size_t nlibs) {

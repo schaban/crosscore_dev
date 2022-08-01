@@ -37,6 +37,8 @@
 #elif defined(__FreeBSD__)
 #	define OGLSYS_BSD
 #	define OGLSYS_FREEBSD
+#elif defined(__linux__)
+#	define OGLSYS_LINUX
 #endif
 
 #if defined(ANDROID)
