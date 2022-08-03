@@ -7,12 +7,29 @@
 
 #include "ogl/gpu_defs.h"
 
-#define DRW_CACHE_PARAMS 1
-#define DRW_CACHE_PROGS 1
-#define DRW_CACHE_BLEND 1
-#define DRW_CACHE_DSIDED 1
-#define DRW_LIMIT_JMAP 1
-#define DRW_USE_VAO 1
+#ifndef DRW_CACHE_PARAMS
+#	define DRW_CACHE_PARAMS 1
+#endif
+
+#ifndef DRW_CACHE_PROGS
+#	define DRW_CACHE_PROGS 1
+#endif
+
+#ifndef DRW_CACHE_BLEND
+#	define DRW_CACHE_BLEND 1
+#endif
+
+#ifndef DRW_CACHE_DSIDED
+#	define DRW_CACHE_DSIDED 1
+#endif
+
+#ifndef DRW_LIMIT_JMAP
+#	define DRW_LIMIT_JMAP 1
+#endif
+
+#ifndef DRW_USE_VAO
+#	define DRW_USE_VAO 1
+#endif
 
 #ifndef DRW_USE_MEMCMP
 #	define DRW_USE_MEMCMP 1
