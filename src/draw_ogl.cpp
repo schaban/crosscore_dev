@@ -14,6 +14,10 @@
 #define DRW_LIMIT_JMAP 1
 #define DRW_USE_VAO 1
 
+#ifndef DRW_USE_MEMCMP
+#	define DRW_USE_MEMCMP 1
+#endif
+
 DRW_IMPL_BEGIN
 
 static bool s_drwInitFlg = false;
@@ -458,7 +462,21 @@ struct GPUProg {
 #if DRW_CACHE_PARAMS
 			if (loc >= 0) {
 				if (mFlg) {
-					if (::memcmp(&mVal, &val, sizeof(T)) != 0) {
+					bool updateFlg = false;
+#	if DRW_USE_MEMCMP
+					updateFlg = ::memcmp(&mVal, &val, sizeof(T)) != 0;
+#	else
+					uint32_t* pVal0 = reinterpret_cast<uint32_t*>(&mVal);
+					const uint32_t* pVal1 = reinterpret_cast<const uint32_t*>(&val);
+					size_t nflt = sizeof(T) / sizeof(uint32_t);
+					for (size_t i = 0; i < nflt; ++i) {
+						if (pVal0[i] != pVal1[i]) {
+							updateFlg = true;
+							break;
+						}
+					}
+#	endif
+					if (updateFlg) {
 						gl_param(loc, val);
 						mVal = val;
 					}
