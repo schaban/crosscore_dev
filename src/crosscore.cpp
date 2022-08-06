@@ -1173,6 +1173,28 @@ void bin_save(const char* pPath, const void* pMem, size_t size) {
 	}
 }
 
+void* raw_bin_load(const char* pPath, size_t* pSize) {
+	void* pData = nullptr;
+	size_t size = 0;
+	if (pPath) {
+		xt_fhandle fh = nxSys::def_fopen(pPath);
+		if (fh) {
+			size_t fsize = nxSys::def_fsize(fh);
+			if (fsize > 0) {
+				pData = mem_alloc(fsize, "xRawBin");
+				if (pData) {
+					size = nxSys::def_fread(fh, pData, fsize);
+				}
+			}
+			nxSys::def_fclose(fh);
+		}
+	}
+	if (pSize) {
+		*pSize = size;
+	}
+	return pData;
+}
+
 // http://www.isthe.com/chongo/tech/comp/fnv/index.html
 uint32_t str_hash32(const char* pStr) {
 	if (!pStr) return 0;
