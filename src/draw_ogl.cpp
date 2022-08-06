@@ -436,7 +436,7 @@ static bool load_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 	if (pPath && bufSize > 0) {
 		XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s_%s.%s", s_pGLSLBinLoadPath, pVertName, pFragName, pExt);
 		size_t fsize = 0;
-		void* pBin = nxCore::bin_load(pPath, &fsize);
+		void* pBin = nxCore::raw_bin_load(pPath, &fsize);
 		if (pBin && fsize > 0x10) {
 			uint32_t* pHead = (uint32_t*)pBin;
 			if (pHead[0] == DRW_GBIN_SIG) {
@@ -1364,7 +1364,7 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 		nxCore::dbg_msg("Initializing GPU progs");
 	}
 	double prgT0 = nxSys::time_micros();
-	int linkMode = nxApp::get_int_opt("glsl_link_mode", 0);
+	int linkMode = s_pGLSLBinLoadPath ? 1 : nxApp::get_int_opt("glsl_link_mode", 0);
 	if (linkMode == 1) {
 #		define GPU_PROG(_vert_name, _frag_name) s_prg_##_vert_name##_##_frag_name.init(VtxFmt_##_vert_name, s_sdr_##_vert_name##_vert, s_sdr_##_frag_name##_frag, #_vert_name, #_frag_name); ++prgCnt; if (s_prg_##_vert_name##_##_frag_name.is_valid()) {++prgOK; if (s_glslEcho) { nxCore::dbg_msg("."); } } else { nxCore::dbg_msg("GPUProg init error: %s + %s\n", #_vert_name, #_frag_name); }
 #		include "ogl/progs.inc"
