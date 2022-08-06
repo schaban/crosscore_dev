@@ -175,6 +175,7 @@ static void oglsys_mem_cpy(void* pDst, const void* pSrc, const size_t len) {
 		}
 	}
 }
+
 static void oglsys_mem_set(void* pDst, const int val, const size_t len) {
 	if (pDst) {
 		uint8_t* pd = (uint8_t*)pDst;
@@ -184,6 +185,53 @@ static void oglsys_mem_set(void* pDst, const int val, const size_t len) {
 			*pd++ = v;
 		}
 	}
+}
+
+#ifndef OGLSYS_INTERNAL_STRFN
+#	define OGLSYS_INTERNAL_STRFN 0
+#endif
+
+static bool oglsys_str_eq(const char* pStr1, const char* pStr2) {
+#if OGLSYS_INTERNAL_STRFN
+	bool res = (pStr1 == pStr2);
+	if (pStr1 && pStr2) {
+		const char* p1 = pStr1;
+		const char* p2 = pStr2;
+		res = true;
+		while (true) {
+			char c = *p1;
+			if (c != *p2) {
+				res = false;
+				break;
+			}
+			if (!c) {
+				break;
+			}
+			++p1;
+			++p2;
+		}
+	}
+	return res;
+#else
+	return ::strcmp(pStr1, pStr2) == 0;
+#endif
+}
+
+static size_t oglsys_str_len(const char* pStr) {
+#if OGLSYS_INTERNAL_STRFN
+	size_t len = 0;
+	if (pStr) {
+		const char* p = pStr;
+		while (true) {
+			if (!*p) break;
+			++p;
+		}
+		len = (size_t)(p - pStr);
+	}
+	return len;
+#else
+	return pStr ? ::strlen(pStr) : 0;
+#endif
 }
 
 #if OGLSYS_ES
@@ -1207,7 +1255,7 @@ void OGLSysGlb::init_wnd() {
 	sprintf(tmpTitle,
 #endif
 		"%s: build %s", mWithoutCtx ? "SysWnd" : (OGLSYS_ES ? "OGL(ES)" : "OGL"), __DATE__);
-	size_t tlen = ::strlen(tmpTitle);
+	size_t tlen = oglsys_str_len(tmpTitle);
 	TCHAR title[100];
 	ZeroMemory(title, sizeof(title));
 	for (size_t i = 0; i < tlen; ++i) {
@@ -1803,48 +1851,44 @@ void OGLSysGlb::reset_ogl() {
 	__attribute__((noinline))
 #endif
 void OGLSysCfg::clear() {
-		oglsys_mem_set((void*)this, 0, sizeof(OGLSysCfg));
+	oglsys_mem_set((void*)this, 0, sizeof(OGLSysCfg));
 }
 
-
-static bool str_eq(const char* pStr1, const char* pStr2) {
-	return ::strcmp(pStr1, pStr2) == 0;
-}
 
 void OGLSysGlb::handle_ogl_ext(const GLubyte* pStr, const int lenStr) {
 	char buf[128];
 	if ((size_t)lenStr < sizeof(buf) - 1) {
 		oglsys_mem_set(buf, 0, sizeof(buf));
 		oglsys_mem_cpy(buf, pStr, lenStr);
-		if (str_eq(buf, "GL_KHR_texture_compression_astc_ldr")) {
+		if (oglsys_str_eq(buf, "GL_KHR_texture_compression_astc_ldr")) {
 			mExts.ASTC_LDR = true;
-		} else if (str_eq(buf, "GL_EXT_texture_compression_dxt1")) {
+		} else if (oglsys_str_eq(buf, "GL_EXT_texture_compression_dxt1")) {
 			mExts.DXT1 = true;
-		} else if (str_eq(buf, "GL_EXT_texture_compression_s3tc")) {
+		} else if (oglsys_str_eq(buf, "GL_EXT_texture_compression_s3tc")) {
 			mExts.S3TC = true;
-		} else if (str_eq(buf, "GL_EXT_disjoint_timer_query")) {
+		} else if (oglsys_str_eq(buf, "GL_EXT_disjoint_timer_query")) {
 			mExts.disjointTimer = true;
-		} else if (str_eq(buf, "GL_ARB_bindless_texture")) {
+		} else if (oglsys_str_eq(buf, "GL_ARB_bindless_texture")) {
 			mExts.bindlessTex = true;
-		} else if (str_eq(buf, "GL_OES_standard_derivatives")) {
+		} else if (oglsys_str_eq(buf, "GL_OES_standard_derivatives")) {
 			mExts.derivs = true;
-		} else if (str_eq(buf, "GL_OES_vertex_half_float")) {
+		} else if (oglsys_str_eq(buf, "GL_OES_vertex_half_float")) {
 			mExts.vtxHalf = true;
-		} else if (str_eq(buf, "GL_OES_element_index_uint")) {
+		} else if (oglsys_str_eq(buf, "GL_OES_element_index_uint")) {
 			mExts.idxUInt = true;
-		} else if (str_eq(buf, "GL_OES_get_program_binary")) {
+		} else if (oglsys_str_eq(buf, "GL_OES_get_program_binary")) {
 			mExts.progBin = true;
-		} else if (str_eq(buf, "GL_EXT_discard_framebuffer")) {
+		} else if (oglsys_str_eq(buf, "GL_EXT_discard_framebuffer")) {
 			mExts.discardFB = true;
-		} else if (str_eq(buf, "GL_ARB_multi_draw_indirect")) {
+		} else if (oglsys_str_eq(buf, "GL_ARB_multi_draw_indirect")) {
 			mExts.mdi = true;
-		} else if (str_eq(buf, "GL_NV_vertex_buffer_unified_memory")) {
+		} else if (oglsys_str_eq(buf, "GL_NV_vertex_buffer_unified_memory")) {
 			mExts.nvVBUM = true;
-		} else if (str_eq(buf, "GL_NV_uniform_buffer_unified_memory")) {
+		} else if (oglsys_str_eq(buf, "GL_NV_uniform_buffer_unified_memory")) {
 			mExts.nvUBUM = true;
-		} else if (str_eq(buf, "GL_NV_bindless_multi_draw_indirect")) {
+		} else if (oglsys_str_eq(buf, "GL_NV_bindless_multi_draw_indirect")) {
 			mExts.nvBindlessMDI = true;
-		} else if (str_eq(buf, "GL_NV_command_list")) {
+		} else if (oglsys_str_eq(buf, "GL_NV_command_list")) {
 			mExts.nvCmdLst = true;
 		}
 	}
@@ -1958,7 +2002,7 @@ int OGLSysParamsBuf::find_field(const char* pName) {
 	int idx = -1;
 	if (pName && mpFieldNames) {
 		for (int i = 0; i < mNumFields; ++i) {
-			if (::strcmp(mpFieldNames[i], pName) == 0) {
+			if (oglsys_str_eq(mpFieldNames[i], pName)) {
 				idx = i;
 				break;
 			}
@@ -2327,8 +2371,8 @@ namespace OGLSys {
 			GLG.mRawKbdFD = ::open(pKbdDevName, O_RDONLY | O_NONBLOCK);
 			if (GLG.mRawKbdFD >= 0) {
 				const char* pOdJoyCkStr = "-odroidgo2-joypad-";
-				size_t lenOdJoyCkStr = ::strlen(pOdJoyCkStr);
-				size_t lenKbdDevName = ::strlen(pKbdDevName);
+				size_t lenOdJoyCkStr = oglsys_str_len(pOdJoyCkStr);
+				size_t lenKbdDevName = oglsys_str_len(pKbdDevName);
 				if (lenKbdDevName >= lenOdJoyCkStr) {
 					bool foundOdJoy = false;
 					size_t nck = lenKbdDevName - lenOdJoyCkStr + 1;
@@ -3366,37 +3410,37 @@ namespace OGLSys {
 			}
 		}
 		if (!pState) {
-			if (strcmp(pName, "UP") == 0) {
+			if (oglsys_str_eq(pName, "UP")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_UP;
-			} else if (strcmp(pName, "DOWN") == 0) {
+			} else if (oglsys_str_eq(pName, "DOWN")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_DOWN;
-			} else if (strcmp(pName, "LEFT") == 0) {
+			} else if (oglsys_str_eq(pName, "LEFT")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_LEFT;
-			} else if (strcmp(pName, "RIGHT") == 0) {
+			} else if (oglsys_str_eq(pName, "RIGHT")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_RIGHT;
-			} else if (strcmp(pName, "TAB") == 0) {
+			} else if (oglsys_str_eq(pName, "TAB")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_TAB;
-			} else if (strcmp(pName, "BACK") == 0) {
+			} else if (oglsys_str_eq(pName, "BACK")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_BACK;
-			} else if (strcmp(pName, "LSHIFT") == 0) {
+			} else if (oglsys_str_eq(pName, "LSHIFT")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_LSHIFT;
-			} else if (strcmp(pName, "LCTRL") == 0) {
+			} else if (oglsys_str_eq(pName, "LCTRL")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_LCTRL;
-			} else if (strcmp(pName, "RSHIFT") == 0) {
+			} else if (oglsys_str_eq(pName, "RSHIFT")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_RSHIFT;
-			} else if (strcmp(pName, "RCTRL") == 0) {
+			} else if (oglsys_str_eq(pName, "RCTRL")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_RCTRL;
-			} else if (strcmp(pName, "ENTER") == 0) {
+			} else if (oglsys_str_eq(pName, "ENTER")) {
 				pState = GLG.mKbdState.ctrl;
 				idx = KBD_CTRL_ENTER;
 			}
@@ -3411,7 +3455,7 @@ namespace OGLSys {
 
 	bool get_key_state(const char* pName) {
 		bool res = false;
-		size_t nameLen = pName ? strlen(pName) : 0;
+		size_t nameLen = oglsys_str_len(pName);
 		if (nameLen == 1) {
 			res = get_key_state(pName[0]);
 		} else if (nameLen > 0) {
@@ -3428,7 +3472,7 @@ namespace OGLSys {
 	void set_key_state(const char* pName, const bool state) {
 		bool* pState = nullptr;
 		int idx = -1;
-		size_t nameLen = pName ? strlen(pName) : 0;
+		size_t nameLen = oglsys_str_len(pName);
 		if (nameLen > 0) {
 			if (nameLen == 1) {
 				int code = int(pName[0]);
@@ -4055,7 +4099,7 @@ namespace OGLSys {
 			int iext = 0;
 			int iwk = 0;
 			bool done = false;
-			size_t nameLen = ::strlen(pExtName);
+			size_t nameLen = oglsys_str_len(pExtName);
 			while (!done) {
 				char extc = pExts[iwk];
 				done = extc == 0;
@@ -4142,7 +4186,7 @@ namespace OGLSys {
 					char* pStrs = (char*)pLst + lstSize;
 					char profileBuf[32];
 					static const char* pFullPrf = "FULL_PROFILE";
-					size_t fullPrfSize = ::strlen(pFullPrf) + 1;
+					size_t fullPrfSize = oglsys_str_len(pFullPrf) + 1;
 					for (size_t i = 0; i < (size_t)num; ++i) {
 						size_t prmSize = 0;
 						GetPlatformInfo(pIds[i], CL_PLATFORM_PROFILE, sizeof(profileBuf), profileBuf, &prmSize);
@@ -4386,7 +4430,7 @@ namespace OGLSys {
 				cl_int res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_VENDOR, sizeof(str), str, &size);
 				if (res == CL_SUCCESS) {
 					static const char* pIntelCk = "Intel(";
-					size_t ckSize = ::strlen(pIntelCk);
+					size_t ckSize = oglsys_str_len(pIntelCk);
 					if (size > ckSize && ::memcmp(str, pIntelCk, ckSize) == 0) {
 						cl_device_type type;
 						res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_TYPE, sizeof(type), &type, NULL);
@@ -4409,7 +4453,7 @@ namespace OGLSys {
 				cl_int res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_VENDOR, sizeof(str), str, &size);
 				if (res == CL_SUCCESS) {
 					static const char* pVivCk = "Vivante ";
-					size_t ckSize = ::strlen(pVivCk);
+					size_t ckSize = oglsys_str_len(pVivCk);
 					if (size > ckSize && ::memcmp(str, pVivCk, ckSize) == 0) {
 						cl_device_type type;
 						res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_TYPE, sizeof(type), &type, NULL);
@@ -4432,7 +4476,7 @@ namespace OGLSys {
 				cl_int res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_VENDOR, sizeof(str), str, &size);
 				if (res == CL_SUCCESS) {
 					static const char* pARMCk = "ARM";
-					size_t ckSize = ::strlen(pARMCk);
+					size_t ckSize = oglsys_str_len(pARMCk);
 					if (size > ckSize && ::memcmp(str, pARMCk, ckSize) == 0) {
 						cl_device_type type;
 						res = GetDeviceInfo((cl_device_id)dev, CL_DEVICE_TYPE, sizeof(type), &type, NULL);
