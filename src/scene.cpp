@@ -298,7 +298,7 @@ void init(const ScnCfg& cfg) {
 		if (s_pBgdJobCnts) {
 			nxCore::mem_zero(s_pBgdJobCnts, jcntsMemSize);
 		}
-		if (nxApp::get_int_opt("static_sched", 0)) {
+		if (nxApp::get_int_opt("scn_static_sched", 0)) {
 			nxCore::dbg_msg("using static scene scheduler\n");
 			s_pBgd->set_static_scheduling();
 		}
@@ -878,6 +878,10 @@ void glb_mem_free(void* pMem) {
 void mem_info() {
 	if (s_printMemInfo) {
 		nxCore::mem_dbg();
+		if (s_pObjList) {
+			int nobjs = s_pObjList->get_count();
+			nxCore::dbg_msg("scene objects: %d\n", nobjs);
+		}
 		uint64_t alloced = nxCore::mem_allocated_bytes();
 		uint64_t peak = nxCore::mem_peak_bytes();
 		const uint64_t lim = 0x7FFFFFFF;
