@@ -15,8 +15,10 @@ static bool s_unloadScrCommonTex = false;
 static cxBrigade* s_pBgd = nullptr;
 static sxJobQueue* s_pJobQue = nullptr;
 static cxHeap* s_pGlobalHeap = nullptr;
+static size_t s_globalHeapSize = 0;
 static cxHeap** s_ppLocalHeaps = nullptr;
 static int s_numLocalHeaps = 0;
+static size_t s_localHeapSize = 0;
 
 static int* s_pBgdJobCnts = nullptr;
 static int s_numBgdJobCnts = 0;
@@ -741,10 +743,11 @@ int get_lvl_jobs_done_cnt(const int lvl) {
 
 void alloc_local_heaps(const size_t localHeapSize) {
 	free_local_heaps();
-	if (localHeapSize) {
+	if (localHeapSize > 0) {
 		s_numLocalHeaps = s_pBgd ? s_pBgd->get_workers_num() : 1;
 		s_ppLocalHeaps = (cxHeap**)nxCore::mem_alloc(s_numLocalHeaps * sizeof(cxHeap*));
 		if (s_ppLocalHeaps) {
+			s_localHeapSize = localHeapSize;
 			for (int i = 0; i < s_numLocalHeaps; ++i) {
 				s_ppLocalHeaps[i] = cxHeap::create(localHeapSize, "ScnLocalHeap");
 			}
@@ -761,6 +764,7 @@ void free_local_heaps() {
 		nxCore::mem_free(s_ppLocalHeaps);
 		s_ppLocalHeaps = nullptr;
 		s_numLocalHeaps = 0;
+		s_localHeapSize = 0;
 	}
 }
 
@@ -809,13 +813,19 @@ bool is_split_move_enabled() {
 
 void alloc_global_heap(const size_t globalHeapSize) {
 	free_global_heap();
-	s_pGlobalHeap = cxHeap::create(globalHeapSize, "ScnGlobalHeap");;
+	if (s_globalHeapSize > 0) {
+		s_pGlobalHeap = cxHeap::create(globalHeapSize, "ScnGlobalHeap");;
+		if (s_pGlobalHeap) {
+			s_globalHeapSize = globalHeapSize;
+		}
+	}
 }
 
 void free_global_heap() {
 	if (s_pGlobalHeap) {
 		cxHeap::destroy(s_pGlobalHeap);
 		s_pGlobalHeap = nullptr;
+		s_globalHeapSize = 0;
 	}
 }
 
@@ -878,6 +888,12 @@ void glb_mem_free(void* pMem) {
 void mem_info() {
 	if (s_printMemInfo) {
 		nxCore::mem_dbg();
+		if (s_pGlobalHeap) {
+			nxCore::dbg_msg("global heap: %d bytes\n", s_globalHeapSize);
+		}
+		if (s_ppLocalHeaps) {
+			nxCore::dbg_msg("local heaps: %d x %d bytes\n", s_numLocalHeaps, s_localHeapSize);
+		}
 		if (s_pObjList) {
 			int nobjs = s_pObjList->get_count();
 			nxCore::dbg_msg("scene objects: %d\n", nobjs);
