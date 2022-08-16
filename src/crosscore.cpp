@@ -1956,6 +1956,18 @@ double median(double* pData, const size_t num) {
 	return med;
 }
 
+double harmonic_mean(double* pData, const size_t num) {
+	double hm = 0.0;
+	if (pData && num) {
+		double s = 0.0;
+		for (size_t i = 0; i < num; ++i) {
+			s += rcp0(pData[i]);
+		}
+		hm = div0(double(num), s);
+	}
+	return hm;
+}
+
 } // nxCalc
 
 
@@ -13566,6 +13578,15 @@ double cxStopWatch::median() {
 	int n = mSmpIdx;
 	if (n > 0 && mpSmps) {
 		val = nxCalc::median(mpSmps, n);
+	}
+	return val;
+}
+
+double cxStopWatch::harmonic_mean() {
+	double val = 0;
+	int n = mSmpIdx;
+	if (n > 0 && mpSmps) {
+		val = nxCalc::harmonic_mean(mpSmps, n);
 	}
 	return val;
 }

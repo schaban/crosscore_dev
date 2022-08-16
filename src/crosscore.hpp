@@ -752,6 +752,7 @@ bool is_prime(const int32_t x);
 int32_t prime(const int32_t x);
 
 double median(double* pData, const size_t num);
+double harmonic_mean(double* pData, const size_t num);
 
 } // nxCalc
 
@@ -6072,6 +6073,7 @@ public:
 	bool end();
 	void reset();
 	double median();
+	double harmonic_mean();
 };
 
 
