@@ -1344,7 +1344,19 @@ static void update_shadow() {
 	}
 	if (s_shadowUpdateFlg) {
 		if (s_pDraw) {
-			s_drwCtx.shadow.mMtx = s_drwCtx.shadow.mViewProjMtx * s_pDraw->get_shadow_bias_mtx();
+			cxMtx sdwBias;
+			if (s_pDraw->get_shadow_bias_mtx) {
+				sdwBias = s_pDraw->get_shadow_bias_mtx();
+			} else {
+				static const float defSdwBias[4 * 4] = {
+					0.5f, 0.0f, 0.0f, 0.0f,
+					0.0f, 0.5f, 0.0f, 0.0f,
+					0.0f, 0.0f, 1.0f, 0.0f,
+					0.5f, 0.5f, 0.0f, 1.0f
+				};
+				sdwBias = nxMtx::from_mem(defSdwBias);
+			}
+			s_drwCtx.shadow.mMtx = s_drwCtx.shadow.mViewProjMtx * sdwBias;
 		}
 	}
 	s_shadowUpdateFlg = false;
