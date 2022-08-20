@@ -2,3 +2,4 @@
 ./get_ogl_headers.sh
 ./get_egl_headers.sh
 ./get_gles_headers.sh
+./get_vk_headers.sh
