@@ -10,11 +10,14 @@ case `uname -m` in
 	;;
 esac
 
-for lib in X11 EGL GLESv2
+for lib in X11 EGL GLESv2 vulkan
 do
 	libBase=$libDir/lib$lib.so
 	libPath=`ls -1 $libBase.[0-9]*.* | head -1`
-	echo $libPath
-	ln -s $libPath ./lib/lib$lib.so
+	if [ -f "$libPath" ]
+	then
+		echo $libPath
+		ln -s $libPath ./lib/lib$lib.so
+	fi
 done
 
