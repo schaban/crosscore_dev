@@ -316,6 +316,8 @@ static struct VK_GLB {
 	VkPipeline mPipeline;
 	GPXform mXformWk;
 	int mCurXformsNum;
+	bool mBeginDrawPassFlg;
+	bool mEndDrawPassFlg;
 
 	struct {
 		PFN_vkGetDeviceProcAddr GetDeviceProcAddr;
@@ -1442,6 +1444,8 @@ void VK_GLB::drawpass_end() {
 
 void VK_GLB::begin(const cxColor& clearColor) {
 	mCurXformsNum = 0;
+	mBeginDrawPassFlg = true;
+	mEndDrawPassFlg = false;
 
 	if (!mpSwapChainCmdBufs) return;
 
@@ -1481,6 +1485,11 @@ void VK_GLB::begin(const cxColor& clearColor) {
 
 void VK_GLB::end() {
 	if (!mpSwapChainCmdBufs) return;
+	
+	if (mEndDrawPassFlg) {
+		drawpass_end();
+		mEndDrawPassFlg = false;
+	}
 
 	VkResult vres;
 	vkEndCommandBuffer(mpSwapChainCmdBufs[mSwapChainIdx]);
@@ -1607,26 +1616,37 @@ void VK_GLB::draw_batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode,
 		}
 	}
 	if (updateFlg) {
+		if (s_batDrawpass) {
+			if (mEndDrawPassFlg) {
+				drawpass_end();
+				mEndDrawPassFlg = false;
+			}
+			mBeginDrawPassFlg = true;
+		}
 		drwvk_mem32_copy(mXformWk.xforms, pSrcXforms, xformsSize);
 		VkDeviceSize bufSize = sizeof(xt_mtx) + xformsSize;
 		vkCmdUpdateBuffer(cmd, mpSwapChainXformBufs[mSwapChainIdx], 0, bufSize, &mXformWk);
 	}
 
 	if (s_batDrawpass) {
-		drawpass_begin();
+		if (mBeginDrawPassFlg) {
+			drawpass_begin();
+			VkViewport viewport;
+			nxCore::mem_zero(&viewport, sizeof(VkViewport));
+			viewport.width = float(mSwapChainExtent.width);
+			viewport.height = float(mSwapChainExtent.height);
+			viewport.maxDepth = 1.0f;
+			vkCmdSetViewport(mpSwapChainCmdBufs[mSwapChainIdx], 0, 1, &viewport);
+			VkRect2D scis;
+			nxCore::mem_zero(&scis, sizeof(VkRect2D));
+			scis.extent = mSwapChainExtent;
+			vkCmdSetScissor(mpSwapChainCmdBufs[mSwapChainIdx], 0, 1, &scis);
+			vkCmdBindPipeline(mpSwapChainCmdBufs[mSwapChainIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
+			vkCmdBindDescriptorSets(mpSwapChainCmdBufs[mSwapChainIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mpSwapChainDescrSets[mSwapChainIdx], 0, nullptr);
+			mBeginDrawPassFlg = false;
+			mEndDrawPassFlg = true;
+		}
 	}
-	VkViewport viewport;
-	nxCore::mem_zero(&viewport, sizeof(VkViewport));
-	viewport.width = float(mSwapChainExtent.width);
-	viewport.height = float(mSwapChainExtent.height);
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(mpSwapChainCmdBufs[mSwapChainIdx], 0, 1, &viewport);
-	VkRect2D scis;
-	nxCore::mem_zero(&scis, sizeof(VkRect2D));
-	scis.extent = mSwapChainExtent;
-	vkCmdSetScissor(mpSwapChainCmdBufs[mSwapChainIdx], 0, 1, &scis);
-	vkCmdBindPipeline(mpSwapChainCmdBufs[mSwapChainIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-	vkCmdBindDescriptorSets(mpSwapChainCmdBufs[mSwapChainIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mpSwapChainDescrSets[mSwapChainIdx], 0, nullptr);
 	VkDeviceSize vbOffs = pBat->mMinIdx * sizeof(GPUVtx);
 	vkCmdBindVertexBuffers(cmd, 0, 1, &pGPUWk->vtxBuf, &vbOffs);
 	if (pBat->is_idx16()) {
@@ -1635,9 +1655,6 @@ void VK_GLB::draw_batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode,
 		vkCmdBindIndexBuffer(cmd, pGPUWk->i32Buf, pBat->mIdxOrg * sizeof(uint32_t), VK_INDEX_TYPE_UINT32);
 	}
 	vkCmdDrawIndexed(cmd, pBat->mTriNum * 3, 1, 0, 0, 0);
-	if (s_batDrawpass) {
-		drawpass_end();
-	}
 }
 
 static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont) {
