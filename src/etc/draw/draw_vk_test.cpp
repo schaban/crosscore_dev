@@ -805,7 +805,9 @@ bool VK_GLB::init_vk() {
 					if (VK_SUCCESS == vres) {
 						VkMemoryRequirements gpMemReqs;
 						vkGetBufferMemoryRequirements(mVkDevice, mpSwapChainXformBufs[i], &gpMemReqs);
-						int gpMemIdx = get_mem_type_idx(gpMemReqs, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+						uint32_t gpMemMask = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+						//gpMemMask = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+						int gpMemIdx = get_mem_type_idx(gpMemReqs, gpMemMask);
 						if (gpMemIdx >= 0) {
 							VkMemoryAllocateInfo gpAllocInfo;
 							nxCore::mem_zero(&gpAllocInfo, sizeof(VkMemoryAllocateInfo));
@@ -1223,6 +1225,23 @@ void VK_GLB::init_gpu_code() {
 	pipeCrInfo.pMultisampleState = &msCrInfo;
 	pipeCrInfo.pColorBlendState = &bsCrInfo;
 	vres = vkCreateGraphicsPipelines(mVkDevice, mPipelineCache, 1, &pipeCrInfo, mpAllocator, &mPipeline);
+	if (VK_SUCCESS == vres) {
+		size_t cacheSize = 0;
+		vres = vkGetPipelineCacheData(mVkDevice, mPipelineCache, &cacheSize, nullptr);
+		if (VK_SUCCESS == vres) {
+			nxCore::dbg_msg("vk_test: gfx pipeline cache size = 0x%X bytes\n", cacheSize);
+			if (cacheSize > 0 && nxApp::get_bool_opt("vk_dump_pipe", false)) {
+				void* pCacheData = nxCore::mem_alloc(cacheSize, "vk_pipecache_data");
+				if (pCacheData) {
+					vres = vkGetPipelineCacheData(mVkDevice, mPipelineCache, &cacheSize, pCacheData);
+					if (VK_SUCCESS == vres && cacheSize > 0) {
+						nxCore::bin_save("vk_pipechache.bin", pCacheData, cacheSize);
+					}
+					nxCore::mem_free(pCacheData);
+				}
+			}
+		}
+	}
 }
 
 void VK_GLB::reset_gpu_code() {
