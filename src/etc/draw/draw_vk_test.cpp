@@ -48,6 +48,13 @@ struct GPUVtx {
 struct GPXform {
 	xt_mtx viewProj;
 	xt_xmtx xforms[MAX_XFORMS];
+
+	void reset() {
+		viewProj.identity();
+		for (size_t i = 0; i < MAX_XFORMS; ++i) {
+			xforms[i].identity();
+		}
+	}
 };
 
 struct MDL_GPU_WK {
@@ -394,6 +401,8 @@ static struct VK_GLB {
 	void drawpass_begin();
 	void drawpass_end();
 
+	void gp_reset();
+
 	void begin(const cxColor& clearColor);
 	void end();
 	void draw_batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const Draw::Context* pCtx);
@@ -431,6 +440,8 @@ void VK_GLB::init_rsrc_mgr(cxResourceManager* pRsrcMgr) {
 
 bool VK_GLB::init_vk() {
 	VkResult vres;
+	mXformWk.reset();
+	s_useFences = nxApp::get_bool_opt("vk_fences", false);
 	int extsInUse = 0;
 	uint32_t instExtsCnt = 0;
 	vres = vkEnumerateInstanceExtensionProperties(nullptr, &instExtsCnt, nullptr);
@@ -496,9 +507,9 @@ bool VK_GLB::init_vk() {
 	nxCore::mem_zero(&appInfo, sizeof(appInfo));
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pNext = nullptr;
-	appInfo.pApplicationName = "crosscore_gfx";
+	appInfo.pApplicationName = "crosscore_app";
 	appInfo.applicationVersion = 1;
-	appInfo.pEngineName = "draw_vk";
+	appInfo.pEngineName = "crosscore_draw";
 	appInfo.engineVersion = 1;
 	appInfo.apiVersion = VK_API_VERSION_1_0;
 	VkInstanceCreateInfo instCrInfo;
@@ -527,7 +538,7 @@ bool VK_GLB::init_vk() {
 	if (ngpu > 0) {
 		VkPhysicalDevice* pDev = (VkPhysicalDevice*)nxCore::mem_alloc(sizeof(VkPhysicalDevice)*ngpu, "VkTmpGPUList");
 		if (pDev) {
-			gpuId = nxCalc::clamp(nxApp::get_int_opt("vk.gpu", 0), 0, int(ngpu - 1));
+			gpuId = nxCalc::clamp(nxApp::get_int_opt("vk_gpu", 0), 0, int(ngpu - 1));
 			vkEnumeratePhysicalDevices(VKG.mVkInst, &ngpu, pDev);
 			mVkGPU = pDev[gpuId];
 			nxCore::mem_free(pDev);
@@ -1461,6 +1472,11 @@ void VK_GLB::drawpass_end() {
 	vkCmdEndRenderPass(mpSwapChainCmdBufs[mSwapChainIdx]);
 }
 
+void VK_GLB::gp_reset() {
+	mXformWk.reset();
+	vkCmdUpdateBuffer(mpSwapChainCmdBufs[mSwapChainIdx], mpSwapChainXformBufs[mSwapChainIdx], 0, sizeof(mXformWk), &mXformWk);
+}
+
 void VK_GLB::begin(const cxColor& clearColor) {
 	mCurXformsNum = 0;
 	mBeginDrawPassFlg = true;
@@ -1676,7 +1692,7 @@ void VK_GLB::draw_batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode,
 	vkCmdDrawIndexed(cmd, pBat->mTriNum * 3, 1, 0, 0, 0);
 }
 
-static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont) {
+static void init_impl(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont) {
 	nxCore::mem_zero(&VKG, sizeof(VKG));
 	VKG.init_alloc_cb();
 	VKG.mpAllocator = s_useAllocCB ? &VKG.mAllocCB : nullptr;
@@ -1688,21 +1704,21 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 	}
 }
 
-static void reset() {
+static void reset_impl() {
 	if (!VKG.mInitFlg) return;
 	VKG.reset_vk();
 	VKG.mInitFlg = false;
 }
 
-static int get_screen_width() {
+static int get_screen_width_impl() {
 	return int(VKG.mSwapChainExtent.width);
 }
 
-static int get_screen_height() {
+static int get_screen_height_impl() {
 	return int(VKG.mSwapChainExtent.height);
 }
 
-static cxMtx get_shadow_bias_mtx() {
+static cxMtx get_shadow_bias_mtx_impl() {
 	static const float bias[4 * 4] = {
 		0.5f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.5f, 0.0f, 0.0f,
@@ -1712,7 +1728,7 @@ static cxMtx get_shadow_bias_mtx() {
 	return nxMtx::from_mem(bias);
 }
 
-static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const Draw::Context* pCtx) {
+static void batch_impl(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const Draw::Context* pCtx) {
 	if (!VKG.mInitFlg) return;
 	if (!pCtx) return;
 	if (!pWk) return;
@@ -1722,11 +1738,12 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	VKG.draw_batch(pWk, ibat, mode, pCtx);
 }
 
-static void begin(const cxColor& clearColor) {
+static void begin_impl(const cxColor& clearColor) {
 	VKG.begin(clearColor);
+	VKG.gp_reset();
 }
 
-static void end() {
+static void end_impl() {
 	VKG.end();
 }
 
@@ -1737,14 +1754,14 @@ struct DrwInit {
 		nxCore::mem_zero(&s_ifc, sizeof(s_ifc));
 		s_ifc.info.pName = "vk_test";
 		s_ifc.info.needOGLContext = false;
-		s_ifc.init = init;
-		s_ifc.reset = reset;
-		s_ifc.get_screen_width = get_screen_width;
-		s_ifc.get_screen_height = get_screen_height;
-		s_ifc.get_shadow_bias_mtx = get_shadow_bias_mtx;
-		s_ifc.begin = begin;
-		s_ifc.end = end;
-		s_ifc.batch = batch;
+		s_ifc.init = init_impl;
+		s_ifc.reset = reset_impl;
+		s_ifc.get_screen_width = get_screen_width_impl;
+		s_ifc.get_screen_height = get_screen_height_impl;
+		s_ifc.get_shadow_bias_mtx = get_shadow_bias_mtx_impl;
+		s_ifc.begin = begin_impl;
+		s_ifc.end = end_impl;
+		s_ifc.batch = batch_impl;
 		Draw::register_ifc_impl(&s_ifc);
 	}
 } s_drwInit;
