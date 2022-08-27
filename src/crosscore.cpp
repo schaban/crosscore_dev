@@ -1264,6 +1264,18 @@ size_t str_len(const char* pStr) {
 	return len;
 }
 
+int64_t parse_i64(const char* pStr) {
+	int64_t res = 0;
+	if (pStr) {
+#if defined(_MSC_VER)
+		res = ::_atoi64(pStr);
+#else
+		res = ::atoll(pStr);
+#endif
+	}
+	return res;
+}
+
 uint16_t float_to_half(const float x) {
 	uint32_t b = f32_get_bits(x);
 	uint16_t s = (uint16_t)((b >> 16) & (1 << 15));

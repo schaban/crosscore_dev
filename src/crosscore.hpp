@@ -341,6 +341,8 @@ bool str_ends_with(const char* pStr, const char* pPostfix);
 char* str_dup(const char* pSrc, const char* pTag = "xStr");
 size_t str_len(const char* pStr);
 
+int64_t parse_i64(const char* pStr);
+
 template <typename T> struct tMem {
 	static void ctor(T* pTop, int n = 1) {
 		T* pObj = pTop;
