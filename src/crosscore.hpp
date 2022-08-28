@@ -6437,6 +6437,160 @@ public:
 };
 
 
+class cxXqcLexer {
+public:
+	enum class TokId {
+		TOK_UNKNOWN = -1,
+		TOK_SYM,
+		TOK_FLOAT,
+		TOK_INT,
+		TOK_QSTR,
+		TOK_SQSTR,
+
+		/* keywords */
+		TOK_KW_IF,
+		TOK_KW_PI,
+		TOK_KW_IN,
+		TOK_KW_DO,
+		TOK_KW_FOR,
+		TOK_KW_INT,
+		TOK_KW_OUT,
+		TOK_KW_FVEC,
+		TOK_KW_VOID,
+		TOK_KW_CASE,
+		TOK_KW_ELSE,
+		TOK_KW_BYTE,
+		TOK_KW_TRUE,
+		TOK_KW_LONG,
+		TOK_KW_BOOL,
+		TOK_KW_ENUM,
+		TOK_KW_GOTO,
+		TOK_KW_AUTO,
+		TOK_KW_CHAR,
+		TOK_KW_FMTX,
+		TOK_KW_XMTX,
+		TOK_KW_WHILE,
+		TOK_KW_FALSE,
+		TOK_KW_BREAK,
+		TOK_KW_FPAIR,
+		TOK_KW_FLOAT,
+		TOK_KW_FQUAT,
+		TOK_KW_SHORT,
+		TOK_KW_CONST,
+		TOK_KW_INOUT,
+		TOK_KW_STATIC,
+		TOK_KW_SIGNED,
+		TOK_KW_DOUBLE,
+		TOK_KW_INLINE,
+		TOK_KW_SIZEOF,
+		TOK_KW_SWITCH,
+		TOK_KW_RETURN,
+		TOK_KW_STRUCT,
+		TOK_KW_TYPEDEF,
+		TOK_KW_DEFAULT,
+		TOK_KW_UNSIGNED,
+		TOK_KW_CONTINUE,
+
+
+		/* punctuation */
+		TOK_NOT, /* ! */
+		TOK_MOD, /* % */
+		TOK_BAND, /* & */
+		TOK_LPAREN, /* ( */
+		TOK_RPAREN, /* ) */
+		TOK_MUL, /* * */
+		TOK_PLUS, /* + */
+		TOK_COMMA, /* , */
+		TOK_MINUS, /* - */
+		TOK_DOT, /* . */
+		TOK_DIV, /* / */
+		TOK_COLON, /* : */
+		TOK_SEMICOLON, /* ; */
+		TOK_LT, /* < */
+		TOK_ASGN, /* = */
+		TOK_GT, /* > */
+		TOK_LBRACKET, /* [ */
+		TOK_RBRACKET, /* ] */
+		TOK_BXOR, /* ^ */
+		TOK_LBRACE, /* { */
+		TOK_BOR, /* | */
+		TOK_RBRACE, /* } */
+		TOK_BNOT, /* ~ */
+		TOK_AND, /* && */
+		TOK_INC, /* ++ */
+		TOK_DEC, /* -- */
+		TOK_DBLCOLON, /* :: */
+		TOK_SHL, /* << */
+		TOK_NEQ, /* != */
+		TOK_DSTMOD, /* %= */
+		TOK_DSTBAND, /* &= */
+		TOK_DSTMUL, /* *= */
+		TOK_DSTADD, /* += */
+		TOK_DSTSUB, /* -= */
+		TOK_DSTDIV, /* /= */
+		TOK_LEQ, /* <= */
+		TOK_EQ, /* == */
+		TOK_GEQ, /* >= */
+		TOK_DSTBXOR, /* ^= */
+		TOK_DSTBOR, /* |= */
+		TOK_SHR, /* >> */
+		TOK_OR, /* || */
+		TOK_DSTSHL, /* <<= */
+		TOK_DSTSHR, /* >>= */
+
+		_TOK_SYS_MAX_
+	};
+
+	struct Location {
+		int line;
+		int column;
+	};
+
+	union TokVal {
+		void* p;
+		double f;
+		int64_t i;
+		char c[8];
+	};
+
+	struct Token {
+		TokId id;
+		TokVal val;
+		Location loc;
+
+		bool is_keyword() const;
+		bool is_punctuation() const;
+		bool is_symbol() const;
+		bool is_string() const;
+	};
+
+	class TokenFunc {
+	public:
+		TokenFunc() {}
+		virtual ~TokenFunc() {}
+		virtual bool operator()(const Token& tok) { return true; /* continue */ }
+	};
+
+protected:
+	const char* mpText;
+	size_t mTextSize;
+	int mCursor;
+	Location mLoc;
+	Location mPrevLoc;
+	bool mDisableKwd;
+
+	int read_char();
+
+public:
+	cxXqcLexer();
+
+	void reset();
+	void disable_keywords();
+	void set_text(const char* pText, const size_t textSize);
+	void scan(TokenFunc& func);
+};
+
+
 namespace nxApp {
 
 void init_params(int argc, char* argv[]);

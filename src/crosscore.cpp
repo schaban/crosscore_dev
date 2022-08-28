@@ -14184,6 +14184,569 @@ void cxResourceManager::destroy(cxResourceManager* pMgr) {
 }
 
 
+static const uint64_t s_xqc_kwcodes[] = {
+	0x0000000000006669ULL, /* if */
+	0x0000000000006970ULL, /* pi */
+	0x0000000000006E69ULL, /* in */
+	0x0000000000006F64ULL, /* do */
+	0x0000000000726F66ULL, /* for */
+	0x0000000000746E69ULL, /* int */
+	0x000000000074756FULL, /* out */
+	0x0000000063657666ULL, /* fvec */
+	0x0000000064696F76ULL, /* void */
+	0x0000000065736163ULL, /* case */
+	0x0000000065736C65ULL, /* else */
+	0x0000000065747962ULL, /* byte */
+	0x0000000065757274ULL, /* true */
+	0x00000000676E6F6CULL, /* long */
+	0x000000006C6F6F62ULL, /* bool */
+	0x000000006D756E65ULL, /* enum */
+	0x000000006F746F67ULL, /* goto */
+	0x000000006F747561ULL, /* auto */
+	0x0000000072616863ULL, /* char */
+	0x0000000078746D66ULL, /* fmtx */
+	0x0000000078746D78ULL, /* xmtx */
+	0x000000656C696877ULL, /* while */
+	0x00000065736C6166ULL, /* false */
+	0x0000006B61657262ULL, /* break */
+	0x0000007269617066ULL, /* fpair */
+	0x00000074616F6C66ULL, /* float */
+	0x0000007461757166ULL, /* fquat */
+	0x00000074726F6873ULL, /* short */
+	0x00000074736E6F63ULL, /* const */
+	0x00000074756F6E69ULL, /* inout */
+	0x0000636974617473ULL, /* static */
+	0x000064656E676973ULL, /* signed */
+	0x0000656C62756F64ULL, /* double */
+	0x0000656E696C6E69ULL, /* inline */
+	0x0000666F657A6973ULL, /* sizeof */
+	0x0000686374697773ULL, /* switch */
+	0x00006E7275746572ULL, /* return */
+	0x0000746375727473ULL, /* struct */
+	0x0066656465707974ULL, /* typedef */
+	0x00746C7561666564ULL, /* default */
+	0x64656E6769736E75ULL, /* unsigned */
+	0x65756E69746E6F63ULL  /* continue */
+};
+
+static const int s_xqc_kworg = (int)cxXqcLexer::TokId::TOK_KW_IF;
+static const int s_xqc_kwend = (int)cxXqcLexer::TokId::TOK_KW_CONTINUE;
+static const int s_xqc_nkw = 42;
+
+static const uint32_t s_xqc_plst[] = {
+	0x00000021UL, /* ! */
+	0x00000025UL, /* % */
+	0x00000026UL, /* & */
+	0x00000028UL, /* ( */
+	0x00000029UL, /* ) */
+	0x0000002AUL, /* * */
+	0x0000002BUL, /* + */
+	0x0000002CUL, /* , */
+	0x0000002DUL, /* - */
+	0x0000002EUL, /* . */
+	0x0000002FUL, /* / */
+	0x0000003AUL, /* : */
+	0x0000003BUL, /* ; */
+	0x0000003CUL, /* < */
+	0x0000003DUL, /* = */
+	0x0000003EUL, /* > */
+	0x0000005BUL, /* [ */
+	0x0000005DUL, /* ] */
+	0x0000005EUL, /* ^ */
+	0x0000007BUL, /* { */
+	0x0000007CUL, /* | */
+	0x0000007DUL, /* } */
+	0x0000007EUL, /* ~ */
+	0x00002626UL, /* && */
+	0x00002B2BUL, /* ++ */
+	0x00002D2DUL, /* -- */
+	0x00003A3AUL, /* :: */
+	0x00003C3CUL, /* << */
+	0x00003D21UL, /* != */
+	0x00003D25UL, /* %= */
+	0x00003D26UL, /* &= */
+	0x00003D2AUL, /* *= */
+	0x00003D2BUL, /* += */
+	0x00003D2DUL, /* -= */
+	0x00003D2FUL, /* /= */
+	0x00003D3CUL, /* <= */
+	0x00003D3DUL, /* == */
+	0x00003D3EUL, /* >= */
+	0x00003D5EUL, /* ^= */
+	0x00003D7CUL, /* |= */
+	0x00003E3EUL, /* >> */
+	0x00007C7CUL, /* || */
+	0x003D3C3CUL, /* <<= */
+	0x003D3E3EUL  /* >>= */
+};
+
+static const int s_xqc_punorg = (int)cxXqcLexer::TokId::TOK_NOT;
+static const int s_xqc_punend = (int)cxXqcLexer::TokId::TOK_DSTSHR;
+static const int s_xqc_npun = 44;
+static const int s_xqc_punmaxlen = 3;
+
+template<typename CODE_T> int xqc_find_code(const CODE_T* pTbl, const CODE_T code, const int n) {
+	const CODE_T* p = pTbl;
+	uint32_t cnt = (uint32_t)n;
+	while (cnt > 1) {
+		uint32_t mid = cnt / 2;
+		const CODE_T* pm = &p[mid];
+		p = (code < *pm) ? p : pm;
+		cnt -= mid;
+	}
+	return *p == code ? (int)(p - pTbl) : -1;
+}
+
+template<typename CODE_T> union uxXqcSymCode {
+	CODE_T cod;
+	char chr[sizeof(CODE_T)];
+
+	uxXqcSymCode(const char* pStr) {
+		from_str(pStr);
+	}
+
+	void from_str(const char* pStr) {
+		int idx = 0;
+		cod = 0;
+		while (pStr[idx] && idx < sizeof(CODE_T)) {
+			chr[idx] = pStr[idx];
+			++idx;
+		}
+		if (pStr[idx]) {
+			cod = 0; /* too long for a keyword */
+		}
+	}
+};
+
+cxXqcLexer::TokId xqc_find_kwid(const char* pKW) {
+	int id = xqc_find_code<uint64_t>(s_xqc_kwcodes, uxXqcSymCode<uint64_t>(pKW).cod, s_xqc_nkw);
+	if (id >= 0) {
+		id += s_xqc_kworg;
+	}
+	return (cxXqcLexer::TokId)id;
+}
+
+cxXqcLexer::TokId xqc_find_punctid(const char* pPun) {
+	int id = xqc_find_code<uint32_t>(s_xqc_plst, uxXqcSymCode<uint32_t>(pPun).cod, s_xqc_npun);
+	if (id >= 0) {
+		id += s_xqc_punorg;
+	}
+	return (cxXqcLexer::TokId)id;
+}
+
+static bool xqc_dec_digit_ck(int ch) {
+	return ch >= '0' && ch <= '9';
+}
+
+static bool xqc_hex_digit_ck(int ch) {
+	return xqc_dec_digit_ck(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+}
+
+static int64_t xqc_parse_hex(const char* pStr, const size_t len) {
+	int64_t val = 0;
+	const char* p0 = pStr;
+	bool negFlg = p0[0] == '-';
+	if (negFlg) {
+		++p0;
+	} else if (p0[0] == '+') {
+		++p0;
+	}
+	p0 += 2;
+	const char* p = pStr + len - 1;
+	int s = 0;
+	while (p >= p0) {
+		char c = *p;
+		int64_t d = 0;
+		if (xqc_dec_digit_ck(c)) {
+			d = c - '0';
+		} else if (c >= 'a' && c <= 'f') {
+			d = c - 'a' + 10;
+		} else if (c >= 'A' && c <= 'F') {
+			d = c - 'A' + 10;
+		} else {
+			return 0;
+		}
+		val |= d << s;
+		s += 4;
+		--p;
+	}
+	if (negFlg) {
+		val = -val;
+	}
+	return val;
+}
+
+struct sxXqcTmpStr {
+	static const int BUF_SIZE = 128;
+
+	char mBuf[BUF_SIZE];
+	char* mpBuf;
+	size_t mSize;
+	size_t mCursor;
+
+	sxXqcTmpStr() {
+		mpBuf = mBuf;
+		mSize = BUF_SIZE;
+		start();
+	}
+
+	~sxXqcTmpStr() {
+		reset();
+	}
+
+	void start() {
+		mCursor = 0;
+	}
+
+	void reset() {
+		if (mpBuf != mBuf) {
+			nxCore::mem_free(mpBuf);
+			mpBuf = nullptr;
+		}
+		mCursor = 0;
+	}
+
+	void put(char ch) {
+		if (mCursor >= mSize - 1) {
+			size_t newSize = (size_t)(mSize * 1.5f);
+			char* pNewBuf = (char*)nxCore::mem_alloc(newSize, "Xqc::tstr");
+			nxCore::mem_copy(pNewBuf, mpBuf, mCursor);
+			if (mpBuf != mBuf) {
+				nxCore::mem_free(mpBuf);
+			}
+			mpBuf = pNewBuf;
+			mSize = newSize;
+		}
+		mpBuf[mCursor++] = ch;
+	}
+
+	char* get_str() {
+		mpBuf[mCursor] = 0;
+		return mpBuf;
+	}
+
+	size_t len() {
+		return mCursor;
+	}
+};
+
+bool cxXqcLexer::Token::is_keyword() const {
+	return int(id) >= s_xqc_kworg && int(id) <= s_xqc_kwend;
+}
+
+bool cxXqcLexer::Token::is_punctuation() const {
+	return int(id) >= s_xqc_punorg && int(id) <= s_xqc_punend;
+}
+
+bool cxXqcLexer::Token::is_symbol() const {
+	return id == TokId::TOK_SYM;
+}
+
+bool cxXqcLexer::Token::is_string() const {
+	return id == TokId::TOK_QSTR || id == TokId::TOK_SQSTR;
+}
+
+cxXqcLexer::cxXqcLexer() {
+	mpText = nullptr;
+	mTextSize = 0;
+	reset();
+	mDisableKwd = false;
+}
+
+void cxXqcLexer::reset() {
+	mCursor = 0;
+	mLoc.line = 0;
+	mLoc.column = 0;
+	mPrevLoc = mLoc;
+}
+
+void cxXqcLexer::disable_keywords() {
+	mDisableKwd = true;
+}
+
+void cxXqcLexer::set_text(const char* pText, const size_t textSize) {
+	mpText = pText;
+	mTextSize = textSize;
+}
+
+int cxXqcLexer::read_char() {
+	char ch = -1;
+	mPrevLoc = mLoc;
+	while (true) {
+		if (mCursor >= mTextSize) break;
+		char tst = mpText[mCursor];
+		++mCursor;
+		++mLoc.column;
+		bool eolFlg = tst == '\n';
+		if (!eolFlg) {
+			eolFlg = tst == '\r';
+			if (eolFlg) {
+				if (mCursor < mTextSize) {
+					if (mpText[mCursor] == '\n') {
+						tst = mpText[mCursor];
+						++mCursor;
+					}
+				}
+			}
+		}
+		if (eolFlg) {
+			++mLoc.line;
+			mLoc.column = 0;
+			mPrevLoc = mLoc;
+		} else {
+			ch = tst & 0xFF;
+			break;
+		}
+	}
+	return ch;
+}
+
+void cxXqcLexer::scan(TokenFunc& func) {
+	if (!mpText || mTextSize < 1) {
+		nxCore::dbg_msg("Xquic has no text to scan.\n");
+		return;
+	}
+	Token tok;
+	sxXqcTmpStr tstr;
+	int ch = 0;
+	bool errFlg = false;
+	bool readFlg = true;
+	bool contFlg = true;
+	while (true) {
+		if (!contFlg) break;
+		if (readFlg) {
+			ch = read_char();
+		}
+		if (ch < 0) break;
+		if (errFlg) break;
+		while (ch == ' ' || ch == '\t') {
+			ch = read_char();
+		}
+		readFlg = true;
+
+		if (ch == '/') {
+			if (mCursor < mTextSize) {
+				int next = mpText[mCursor];
+				if (next == '/') {
+					int line = mLoc.line;
+					while (next >= 0 && line == mLoc.line) {
+						next = read_char();
+					}
+					ch = next;
+					readFlg = false;
+					if (next < 0) break;
+					continue;
+				} else if (next == '*') {
+					bool done = false;
+					read_char();
+					while (!done) {
+						next = read_char();
+						if (next == '*') {
+							if (mCursor < mTextSize) {
+								if (mpText[mCursor] == '/') {
+									done = true;
+									read_char();
+								}
+							} else break;
+						} else if (next < 0) break;
+					}
+					continue;
+				}
+			}
+		}
+
+		tok.loc = mPrevLoc;
+
+		bool numFlg = xqc_dec_digit_ck(ch);
+		bool sgnFlg = false;
+		bool dotFlg = false;
+		bool expFlg = false;
+		bool hexFlg = false;
+		if (!numFlg) {
+			sgnFlg = ch == '-' || ch == '+';
+			if (sgnFlg) {
+				if (mCursor < mTextSize) {
+					int next = mpText[mCursor];
+					dotFlg = next == '.';
+					numFlg = dotFlg || xqc_dec_digit_ck(next);
+				}
+			} else {
+				if (mCursor < mTextSize) {
+					dotFlg = ch == '.';
+					int next = mpText[mCursor];
+					numFlg = dotFlg && xqc_dec_digit_ck(next);
+				}
+			}
+		}
+		if (numFlg) {
+			if (ch == '0') {
+				if (mCursor < mTextSize) {
+					int next = mpText[mCursor];
+					hexFlg = next == 'x' || next == 'X';
+				}
+			} else if (sgnFlg) {
+				if (mCursor < mTextSize) {
+					int next = mpText[mCursor];
+					if (next == '0') {
+						if (mCursor + 1 < mTextSize) {
+							next = mpText[mCursor + 1];
+							hexFlg = next == 'x' || next == 'X';
+						}
+					}
+				}
+			}
+			tstr.start();
+			tstr.put(ch);
+			int line = mLoc.line;
+			while (true) {
+				ch = read_char();
+				if (ch == '.') {
+					dotFlg = true;
+				}
+				if (ch == 'e' || ch == 'E') {
+					expFlg = true;
+				}
+				bool putFlg = ch >= 0 && line == mLoc.line;
+				if (putFlg) {
+					if (hexFlg) {
+						putFlg = xqc_hex_digit_ck(ch) || ch == 'x' || ch == 'X';
+					} else {
+						putFlg = xqc_dec_digit_ck(ch) || ch == '.' || ch == '-' || ch == '+' || ch == 'e' || ch == 'E';
+					}
+				}
+				if (putFlg) {
+					tstr.put(ch);
+				} else {
+					if (hexFlg) {
+						const char* pHexStr = tstr.get_str();
+						int64_t hexVal = xqc_parse_hex(pHexStr, tstr.len());
+						tok.id = TokId::TOK_INT;
+						tok.val.i = hexVal;
+						contFlg = func(tok);
+						readFlg = false;
+						break;
+					} else if (dotFlg || expFlg) {
+						const char* pFltStr = tstr.get_str();
+						double fltVal = ::atof(pFltStr);
+						tok.id = TokId::TOK_FLOAT;
+						tok.val.f = fltVal;
+						contFlg = func(tok);
+						readFlg = false;
+						break;
+					} else {
+						const char* pIntStr = tstr.get_str();
+						int64_t intVal = nxCore::parse_i64(pIntStr);
+						tok.id = TokId::TOK_INT;
+						tok.val.i = intVal;
+						contFlg = func(tok);
+						readFlg = false;
+						break;
+					}
+				}
+			}
+			continue;
+		}
+
+		char punct[5];
+		punct[0] = ch;
+		bool punctFlg = false;
+		TokId punctId = TokId::TOK_UNKNOWN;
+		size_t maxPunct = s_xqc_punmaxlen;
+		if (mCursor - 1 + maxPunct >= mTextSize) {
+			maxPunct = mTextSize - mCursor + 1;
+		}
+		size_t punctLen = maxPunct;
+		for (size_t i = 1; i < maxPunct; ++i) {
+			punct[i] = mpText[mCursor - 1 + i];
+		}
+		for (size_t i = maxPunct; i > 0; --i) {
+			punct[i] = 0;
+			punctId = xqc_find_punctid(punct);
+			if (punctId != TokId::TOK_UNKNOWN) {
+				punctLen = i;
+				break;
+			}
+		}
+		if (punctId != TokId::TOK_UNKNOWN) {
+			for (size_t i = 0; i < punctLen - 1; ++i) {
+				read_char();
+			}
+			tok.id = punctId;
+			for (int i = 0; i < punctLen + 1; ++i) {
+				tok.val.c[i] = punct[i];
+			}
+			contFlg = func(tok);
+			continue;
+		}
+
+		char qch = '"';
+		if (ch != qch) {
+			qch = '\'';
+			if (ch != qch) {
+				qch = 0;
+			}
+		}
+		if (qch) {
+			tstr.start();
+			while (true) {
+				ch = read_char();
+				if (ch < 0) {
+					tok.id = TokId::TOK_UNKNOWN;
+					contFlg = func(tok);
+					errFlg = true;
+					readFlg = false;
+					break;
+				}
+				if (ch == qch) {
+					tok.id = qch == '"' ? TokId::TOK_QSTR : TokId::TOK_SQSTR;
+					tok.val.p = tstr.get_str();
+					contFlg = func(tok);
+					break;
+				} else {
+					tstr.put(ch);
+				}
+			}
+			continue;
+		}
+
+		tstr.start();
+		tstr.put(ch);
+		int line = mLoc.line;
+		while (true) {
+			ch = read_char();
+			bool putFlg = ch >= 0 && line == mLoc.line;
+			if (putFlg) {
+				putFlg = !(ch == ' ' || ch == '\t');
+				if (putFlg) {
+					punct[0] = ch;
+					punct[1] = 0;
+					TokId punctId = xqc_find_punctid(punct);
+					putFlg = punctId == TokId::TOK_UNKNOWN;
+				}
+			}
+			if (putFlg) {
+				tstr.put(ch);
+			} else {
+				char* pSymStr = tstr.get_str();
+				TokId kwId = TokId::TOK_UNKNOWN;
+				if (!mDisableKwd) {
+					kwId = xqc_find_kwid(pSymStr);
+				}
+				if (kwId != TokId::TOK_UNKNOWN) {
+					tok.id = kwId;
+				} else {
+					tok.id = TokId::TOK_SYM;
+				}
+				tok.val.p = pSymStr;
+				contFlg = func(tok);
+				readFlg = false;
+				break;
+			}
+		}
+	}
+}
+
+
 namespace nxApp {
 
 cxCmdLine* s_pCmdLine = nullptr;
