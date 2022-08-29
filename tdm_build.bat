@@ -38,7 +38,7 @@ for /f %%i in ('dir /b %SRC_DIR%\*.cpp') do (
 
 
 set XCORE_FLAGS=-DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1
-set CPP_OPTS=%CPP_OFLGS% -std=c++11 -mavx -mf16c -mfpmath=sse -ffast-math -ftree-vectorize -fno-use-linker-plugin -Wno-psabi -Wno-deprecated-declarations
+set CPP_OPTS=%CPP_OFLGS% -std=c++11 -mavx -mf16c -mfpmath=sse -ffast-math -ftree-vectorize -Wno-psabi -Wno-deprecated-declarations
 set LNK_OPTS=-l gdi32 -l ole32 -l windowscodecs
 echo Compiling %PROG_EXE_PATH% [%EXE_MODE%]...
 %TDM_GPP% -DDEF_DEMO=\"roof\" %CPP_OPTS% %XCORE_FLAGS% -I %INC_DIR% -I %SRC_DIR% %SRC_FILES% -o %PROG_EXE_PATH% %LNK_OPTS%
