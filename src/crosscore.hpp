@@ -6574,7 +6574,7 @@ public:
 protected:
 	const char* mpText;
 	size_t mTextSize;
-	int mCursor;
+	size_t mCursor;
 	Location mLoc;
 	Location mPrevLoc;
 	bool mDisableKwd;

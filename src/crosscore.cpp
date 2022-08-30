@@ -14306,7 +14306,7 @@ template<typename CODE_T> union uxXqcSymCode {
 	}
 
 	void from_str(const char* pStr) {
-		int idx = 0;
+		size_t idx = 0;
 		cod = 0;
 		while (pStr[idx] && idx < sizeof(CODE_T)) {
 			chr[idx] = pStr[idx];
@@ -14649,7 +14649,6 @@ void cxXqcLexer::scan(TokenFunc& func) {
 
 		char punct[5];
 		punct[0] = ch;
-		bool punctFlg = false;
 		TokId punctId = TokId::TOK_UNKNOWN;
 		size_t maxPunct = s_xqc_punmaxlen;
 		if (mCursor - 1 + maxPunct >= mTextSize) {
@@ -14672,7 +14671,7 @@ void cxXqcLexer::scan(TokenFunc& func) {
 				read_char();
 			}
 			tok.id = punctId;
-			for (int i = 0; i < punctLen + 1; ++i) {
+			for (size_t i = 0; i < punctLen + 1; ++i) {
 				tok.val.c[i] = punct[i];
 			}
 			contFlg = func(tok);
