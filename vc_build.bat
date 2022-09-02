@@ -45,6 +45,16 @@ for /f %%i in ('dir /b %SRC_DIR%\*.cpp') do (
 	set OBJ_FILES=!OBJ_FILES! !SRC:~0,-3!obj
 )
 
+if not x%EXT_SRC_DIR%==x (
+	set EXT_SRC_FILES=
+	set EXT_OBJ_FILES=
+	for /f %%i in ('dir /b %EXT_SRC_DIR%\*.cpp') do (
+		set SRC=%%i
+		set EXT_SRC_FILES=!EXT_SRC_FILES! %EXT_SRC_DIR%/!SRC!
+		set EXT_OBJ_FILES=!EXT_OBJ_FILES! !SRC:~0,-3!obj
+	)
+)
+
 if exist %EXE_PATH% (
 	echo Cleaning %EXE_PATH%.
 	del %EXE_PATH%
@@ -70,7 +80,7 @@ set CPP_OPTS=/O2 /arch:AVX /GL /Gy /Zi /Gm- /Oi /Oy /Zc:inline  /Zc:forScope /MT
 set XCORE_FLAGS=-DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1 -DXD_XMTX_CONCAT_VEC=2
 set LNK_OPTS=/DYNAMICBASE:NO "kernel32.lib" "user32.lib" "gdi32.lib" "ole32.lib"
 
-%VC_CXX% -I %INC_DIR% %CPP_OPTS% %XCORE_FLAGS% %SRC_FILES% %EXT_SRC_FILES% /Fe%EXE_PATH% /Fd%PDB_PATH% %LNK_OPTS%
+%VC_CXX% -I %INC_DIR% %EXT_INC% %CPP_OPTS% %XCORE_FLAGS% %SRC_FILES% %EXT_SRC_FILES% /Fe%EXE_PATH% /Fd%PDB_PATH% %LNK_OPTS%
 
 copy /BY src\cmd\roof.bat %OUT_DIR%
 copy /BY src\cmd\roof_low.bat %OUT_DIR%
