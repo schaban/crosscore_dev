@@ -82,8 +82,13 @@ set LNK_OPTS=/DYNAMICBASE:NO "kernel32.lib" "user32.lib" "gdi32.lib" "ole32.lib"
 
 %VC_CXX% -I %INC_DIR% %EXT_INC% %CPP_OPTS% %XCORE_FLAGS% %SRC_FILES% %EXT_SRC_FILES% /Fe%EXE_PATH% /Fd%PDB_PATH% %LNK_OPTS%
 
-copy /BY src\cmd\roof.bat %OUT_DIR%
-copy /BY src\cmd\roof_low.bat %OUT_DIR%
+if exist src\cmd\roof.bat (
+	copy /BY src\cmd\roof.bat %OUT_DIR%
+)
+
+if exist src\cmd\roof_low.bat (
+	copy /BY src\cmd\roof_low.bat %OUT_DIR%
+)
 
 if exist %EXE_PATH% (
 	if not xVC_DIS%==x (
