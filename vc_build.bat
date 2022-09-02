@@ -8,7 +8,7 @@ if x%1==x (
 	call %1
 )
 
-set x%PROJ_NAME%==x (
+if x%PROJ_NAME%==x (
 	set PROJ_NAME=crosscore_demo
 )
 
