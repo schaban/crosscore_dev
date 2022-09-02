@@ -1,28 +1,33 @@
 @echo off
 setlocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
-set PROJ_NAME=crosscore_demo
-
-if x%VC_HOME%==x (
-	set VC_HOME="%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\VC\"
+if x%1==x (
+	echo vc_build path_to_config.bat
+	exit /B -1
+) else (
+	call %1
 )
 
-set VC_BIN=%VC_HOME%\bin
-set VC_CXX=%VC_BIN%\cl.exe
-set VC_DIS=%VC_BIN%\dumpbin.exe /disasm
+set x%PROJ_NAME%==x (
+	set PROJ_NAME=crosscore_demo
+)
+
+if x%VC_CXX%==x (
+	echo Path MSVC not specified.
+	exit /B -1
+)
 
 if not exist %VC_CXX% (
 	echo MSVC not found.
 	exit /B -1
 )
 
-call %VC_HOME%\vcvarsall.bat
 
 set SRC_DIR=src
 set INC_DIR=inc
 set BIN_DIR=bin
 set TMP_DIR=tmp
-set OUT_DIR=%BIN_DIR%\vc
+set OUT_DIR=%BIN_DIR%\vcexe
 
 set EXE_PATH="%OUT_DIR%\%PROJ_NAME%.exe"
 set PDB_PATH="%OUT_DIR%\%PROJ_NAME%.pdb"
@@ -63,19 +68,20 @@ if exist %LST_PATH% (
 
 set CPP_OPTS=/O2 /arch:AVX /GL /Gy /Zi /Gm- /Oi /Oy /Zc:inline  /Zc:forScope /MT /EHsc /GS- /fp:fast /DNDEBUG /D_CONSOLE  /D_UNICODE /DUNICODE
 set XCORE_FLAGS=-DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1 -DXD_XMTX_CONCAT_VEC=2
-rem set LNK_OPTS=/DYNAMICBASE:NO "kernel32.lib" "user32.lib" "gdi32.lib" "winspool.lib" "comdlg32.lib" "advapi32.lib" "shell32.lib" "ole32.lib" "oleaut32.lib" "uuid.lib" "odbc32.lib" "odbccp32.lib"
 set LNK_OPTS=/DYNAMICBASE:NO "kernel32.lib" "user32.lib" "gdi32.lib" "ole32.lib"
 
-%VC_CXX% -I %INC_DIR% %CPP_OPTS% %XCORE_FLAGS% %SRC_FILES% /Fe%EXE_PATH% /Fd%PDB_PATH% %LNK_OPTS%
+%VC_CXX% -I %INC_DIR% %CPP_OPTS% %XCORE_FLAGS% %SRC_FILES% %EXT_SRC_FILES% /Fe%EXE_PATH% /Fd%PDB_PATH% %LNK_OPTS%
 
 copy /BY src\cmd\roof.bat %OUT_DIR%
 copy /BY src\cmd\roof_low.bat %OUT_DIR%
 
 if exist %EXE_PATH% (
-	echo Generating listing...
-	%VC_DIS% %EXE_PATH% > %LST_PATH%
+	if not xVC_DIS%==x (
+		echo Generating listing...
+		%VC_DIS% %EXE_PATH% > %LST_PATH%
+	)
 )
 
-del /Q %OBJ_FILES%
+del /Q %OBJ_FILES% %EXT_OBJ_FILES%
 
 
