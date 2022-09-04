@@ -14470,7 +14470,7 @@ void cxXqcLexer::set_text(const char* pText, const size_t textSize) {
 }
 
 int cxXqcLexer::read_char() {
-	if (mCursor >= mTextSize) return 0;
+	if (mCursor >= mTextSize) return -1;
 	int ch = -1;
 	mPrevLoc = mLoc;
 	while (true) {
