@@ -14470,7 +14470,8 @@ void cxXqcLexer::set_text(const char* pText, const size_t textSize) {
 }
 
 int cxXqcLexer::read_char() {
-	char ch = -1;
+	if (mCursor >= mTextSize) return 0;
+	int ch = -1;
 	mPrevLoc = mLoc;
 	while (true) {
 		if (mCursor >= mTextSize) break;
@@ -14517,7 +14518,7 @@ void cxXqcLexer::scan(TokenFunc& func) {
 		if (readFlg) {
 			ch = read_char();
 		}
-		if (ch < 0) break;
+		if (ch <= 0) break;
 		if (errFlg) break;
 		while (ch == ' ' || ch == '\t') {
 			ch = read_char();
