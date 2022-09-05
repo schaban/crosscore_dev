@@ -74,6 +74,8 @@ static bool s_glslEcho = false;
 static const char* s_pGLSLBinSavePath = nullptr;
 static const char* s_pGLSLBinLoadPath = nullptr;
 
+static const char* s_pAltGLSL = nullptr;
+
 static bool s_glslNoBaseTex = false;
 static bool s_glslNoFog = false;
 static bool s_glslNoCC = false;
@@ -119,7 +121,7 @@ static GLuint load_shader(const char* pName) {
 			pathBufSize = pathSize;
 		}
 		if (pPath && pathBufSize > 0) {
-			XD_SPRINTF(XD_SPRINTF_BUF(pPath, pathBufSize), "%s/ogl/%s", pDataPath ? pDataPath : ".", pName);
+			XD_SPRINTF(XD_SPRINTF_BUF(pPath, pathBufSize), "%s/%s/%s", pDataPath ? pDataPath : ".", s_pAltGLSL ? s_pAltGLSL: "ogl", pName);
 		}
 		size_t srcSize = 0;
 		char* pSrc = nullptr;
@@ -1349,6 +1351,8 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 	s_glslNoBaseTex = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nobasetex", false);
 	s_glslNoFog = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nofog", false);
 	s_glslNoCC = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nocc", false);
+
+	s_pAltGLSL = nxApp::get_opt("alt_glsl");
 
 	s_useVtxLighting = nxApp::get_bool_opt("vl", false);
 
