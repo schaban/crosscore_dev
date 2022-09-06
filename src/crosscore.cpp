@@ -1731,6 +1731,33 @@ sxJobContext* cxBrigade::get_job_context(const int wrkId) {
 	return pCtx;
 }
 
+void cxBrigade::auto_affinity() {
+#if defined(XD_TSK_NATIVE_PTHREAD) && defined(XD_SYS_LINUX)
+	if (mWrkNum < 2) return;
+	if (!mppWrk) return;
+	int ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+	if (ncpu < 2) return;
+	pthread_t thrMain = pthread_self();
+	cpu_set_t mask;
+	CPU_ZERO(&mask);
+	CPU_SET(0, &mask);
+	pthread_setaffinity_np(thrMain, sizeof(mask), &mask);
+	int cpuNo = 1;
+	for (int i = 0; i < mWrkNum; ++i) {
+		sxWorker* pWrk = mppWrk[i];
+		if (pWrk) {
+			CPU_ZERO(&mask);
+			CPU_SET(cpuNo, &mask);
+			pthread_setaffinity_np(pWrk->mThread, sizeof(mask), &mask);
+			++cpuNo;
+		}
+		if (cpuNo >= ncpu) {
+			cpuNo = 1;
+		}
+	}
+#endif
+}
+
 cxBrigade* cxBrigade::create(int wrkNum) {
 	cxBrigade* pBgd = nullptr;
 	if (wrkNum < 1) wrkNum = 1;

@@ -600,6 +600,7 @@ public:
 	bool is_static_scheduling() const { return mSchedMode == SchedulingMode::STATIC; }
 	void set_dynamic_scheduling() { mSchedMode = SchedulingMode::DYNAMIC; }
 	void set_static_scheduling() { mSchedMode = SchedulingMode::STATIC; }
+	void auto_affinity();
 
 	static cxBrigade* create(int wrkNum);
 	static void destroy(cxBrigade* pBgd);
