@@ -284,6 +284,11 @@ void init(const ScnCfg& cfg) {
 
 	if (cfg.numWorkers > 0) {
 		s_pBgd = cxBrigade::create(cfg.numWorkers);
+		if (s_pBgd) {
+			if (nxApp::get_bool_opt("scn_cpu_sep", false)) {
+				s_pBgd->auto_affinity();
+			}
+		}
 		create_global_locks();
 	} else {
 #ifdef XD_USE_OMP
