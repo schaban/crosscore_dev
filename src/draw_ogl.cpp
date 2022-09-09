@@ -2273,10 +2273,10 @@ void quad(const Draw::Quad* pQuad) {
 		pPosDst[i] -= 1.0f;
 	}
 	cxColor clr[4];
-	float* pClrDst = clr[0].ch;
-	const float* pClr = pQuad->color.ch;
+	float* pClrDst = clr[0];
+	const float* pClr = pQuad->color;
 	if (pQuad->pClrs) {
-		float* pClrSrc = pQuad->pClrs[0].ch;
+		float* pClrSrc = pQuad->pClrs[0];
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
 				*pClrDst++ = pClrSrc[j] * pClr[j];
@@ -2304,7 +2304,7 @@ void quad(const Draw::Quad* pQuad) {
 		glUniform4fv(pProg->mParamLink.QuadVtxTex, 2, pQuad->tex[0]);
 	}
 	if (HAS_PARAM(QuadVtxClr)) {
-		glUniform4fv(pProg->mParamLink.QuadVtxClr, 4, clr[0].ch);
+		glUniform4fv(pProg->mParamLink.QuadVtxClr, 4, clr[0]);
 	}
 	if (HAS_PARAM(InvGamma)) {
 		xt_float3 invGamma;

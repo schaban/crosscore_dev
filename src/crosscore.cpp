@@ -5014,7 +5014,7 @@ float approx_CMF_z64(float w) {
 } // nxColor
 
 cxVec cxColor::YCgCo() const {
-	cxVec rgb(r, g, b);
+	cxVec rgb = rgb_vec();
 	return cxVec(
 		rgb.dot(cxVec(0.25f, 0.5f, 0.25f)),
 		rgb.dot(cxVec(-0.25f, 0.5f, -0.25f)),
@@ -5035,7 +5035,7 @@ void cxColor::from_YCgCo(const cxVec& ygo) {
 cxVec cxColor::TMI() const {
 	float T = b - r;
 	float M = (r - g*2.0f + b) * 0.5f;
-	float I = (r + g + b) / 3.0f;
+	float I = average();
 	return cxVec(T, M, I);
 }
 
@@ -5046,6 +5046,7 @@ void cxColor::from_TMI(const cxVec& tmi) {
 	r = I - T*0.5f + M/3.0f;
 	g = I - M*2.0f/3.0f;
 	b = I + T*0.5f + M/3.0f;
+	a = 1.0f;
 }
 
 static inline cxMtx* mtx_RGB2XYZ(cxMtx* pRGB2XYZ) {
@@ -5069,7 +5070,7 @@ static inline cxMtx* mtx_XYZ2RGB(cxMtx* pXYZ2RGB) {
 }
 
 cxVec cxColor::XYZ(cxMtx* pRGB2XYZ) const {
-	return mtx_RGB2XYZ(pRGB2XYZ)->calc_vec(cxVec(r, g, b));
+	return mtx_RGB2XYZ(pRGB2XYZ)->calc_vec(rgb_vec());
 }
 
 void cxColor::from_XYZ(const cxVec& xyz, cxMtx* pXYZ2RGB) {
@@ -5107,7 +5108,7 @@ uint32_t cxColor::encode_rgbe() const {
 	int e;
 	float s = nxCalc::div0(::mth_frexpf(m, &e) * 256.0f, m);
 	for (int i = 0; i < 3; ++i) {
-		t[i] = ch[i] * s;
+		t[i] = (*this)[i] * s;
 	}
 	uxVal32 res;
 	for (int i = 0; i < 3; ++i) {
@@ -5128,7 +5129,7 @@ void cxColor::decode_rgbe(uint32_t rgbe) {
 			t[i] = (float)v.b[i];
 		}
 		for (int i = 0; i < 3; ++i) {
-			ch[i] = t[i] * s;
+			(*this)[i] = t[i] * s;
 		}
 		a = 1.0f;
 	} else {
@@ -5156,7 +5157,7 @@ void cxColor::decode_bgre(uint32_t bgre) {
 uint32_t cxColor::encode_rgbi() const {
 	float e[4];
 	for (int i = 0; i < 3; ++i) {
-		e[i] = nxCalc::clamp(ch[i], 0.0f, 100.0f);
+		e[i] = nxCalc::clamp((*this)[i], 0.0f, 100.0f);
 	}
 	e[3] = 1.0f;
 	for (int i = 0; i < 4; ++i) {
@@ -5183,11 +5184,11 @@ void cxColor::decode_rgbi(uint32_t rgbi) {
 	uxVal32 v;
 	v.u = rgbi;
 	for (int i = 0; i < 4; ++i) {
-		ch[i] = (float)v.b[i];
+		(*this)[i] = (float)v.b[i];
 	}
 	scl(nxCalc::rcp0(a));
 	for (int i = 0; i < 4; ++i) {
-		ch[i] = nxCalc::sq(ch[i]); /* gamma 2.0 decoding */
+		(*this)[i] = nxCalc::sq((*this)[i]); /* gamma 2.0 decoding */
 	}
 }
 
@@ -5202,7 +5203,7 @@ void cxColor::decode_bgri(uint32_t bgri) {
 uint32_t cxColor::encode_rgba8() const {
 	float f[4];
 	for (int i = 0; i < 4; ++i) {
-		f[i] = nxCalc::saturate(ch[i]);
+		f[i] = nxCalc::saturate((*this)[i]);
 	}
 	for (int i = 0; i < 4; ++i) {
 		f[i] *= 255.0f;
@@ -5218,7 +5219,7 @@ void cxColor::decode_rgba8(uint32_t rgba) {
 	uxVal32 v;
 	v.u = rgba;
 	for (int i = 0; i < 4; ++i) {
-		ch[i] = (float)v.b[i];
+		(*this)[i] = (float)v.b[i];
 	}
 	scl(1.0f / 255.0f);
 }
@@ -5262,17 +5263,17 @@ cxColor sxToneMap::apply(const cxColor& c) const {
 	cxColor res;
 	xt_float3 iw = get_inv_white();
 	for (int i = 0; i < 3; ++i) {
-		float cc = c.ch[i];
-		res.ch[i] = nxCalc::div0((cc * (1.0f + cc*iw[i])), 1.0f + cc);
+		float cc = c[i];
+		res[i] = nxCalc::div0((cc * (1.0f + cc*iw[i])), 1.0f + cc);
 	}
 	for (int i = 0; i < 3; ++i) {
-		res.ch[i] *= mLinGain[i];
+		res[i] *= mLinGain[i];
 	}
 	for (int i = 0; i < 3; ++i) {
-		res.ch[i] += mLinBias[i];
+		res[i] += mLinBias[i];
 	}
 	for (int i = 0; i < 3; ++i) {
-		res.ch[i] = nxCalc::max(res.ch[i], 0.0f);
+		res[i] = nxCalc::max(res[i], 0.0f);
 	}
 	res.a = c.a;
 	return res;
@@ -9135,8 +9136,7 @@ void save_dds64(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) 
 			::fwrite(&dds, sizeof(dds), 1, pOut);
 			xt_half4 h;
 			for (uint32_t i = 0; i < npix; ++i) {
-				cxColor c = pClr[i];
-				h.set(c.r, c.g, c.b, c.a);
+				h.set(pClr[i].r, pClr[i].g, pClr[i].b, pClr[i].a);
 				::fwrite(&h, sizeof(h), 1, pOut);
 			}
 			::fclose(pOut);
@@ -9234,10 +9234,10 @@ void save_dds32_rgba8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 				for (uint32_t i = 0; i < npix; ++i) {
 					cxColor cc = pClr[i];
 					for (int j = 0; j < 3; ++j) {
-						if (cc.ch[j] > 0.0f) {
-							cc.ch[j] = ::mth_powf(cc.ch[j], invg);
+						if (cc[j] > 0.0f) {
+							cc[j] = ::mth_powf(cc[j], invg);
 						} else {
-							cc.ch[j] = 0.0f;
+							cc[j] = 0.0f;
 						}
 					}
 					uint32_t e = cc.encode_rgba8();
@@ -9272,10 +9272,10 @@ void save_dds32_bgra8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 				for (uint32_t i = 0; i < npix; ++i) {
 					cxColor cc = pClr[i];
 					for (int j = 0; j < 3; ++j) {
-						if (cc.ch[j] > 0.0f) {
-							cc.ch[j] = ::mth_powf(cc.ch[j], invg);
+						if (cc[j] > 0.0f) {
+							cc[j] = ::mth_powf(cc[j], invg);
 						} else {
-							cc.ch[j] = 0.0f;
+							cc[j] = 0.0f;
 						}
 					}
 					uint32_t e = cc.encode_bgra8();
@@ -9353,10 +9353,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 					uint32_t ig = (enc & maskG) >> shiftG;
 					uint32_t ib = (enc & maskB) >> shiftB;
 					uint32_t ia = (enc & maskA) >> shiftA;
-					pClr[i].r = (float)(int)ir;
-					pClr[i].g = (float)(int)ig;
-					pClr[i].b = (float)(int)ib;
-					pClr[i].a = (float)(int)ia;
+					pClr[i].set((float)(int)ir, (float)(int)ig, (float)(int)ib, (float)(int)ia);
 				}
 				float scl[4];
 				scl[0] = nxCalc::rcp0((float)(int)(maskR >> shiftR));
@@ -9364,14 +9361,14 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 				scl[2] = nxCalc::rcp0((float)(int)(maskB >> shiftB));
 				scl[3] = nxCalc::rcp0((float)(int)(maskA >> shiftA));
 				for (int i = 0; i < n; ++i) {
-					float* pDst = pClr[i].ch;
+					float* pDst = (float*)(pClr + i);
 					for (int j = 0; j < 4; ++j) {
 						pDst[j] *= scl[j];
 					}
 				}
 				if (wg > 0.0f) {
 					for (int i = 0; i < n; ++i) {
-						float* pDst = pClr[i].ch;
+						float* pDst = (float*)(pClr + i);
 						for (int j = 0; j < 4; ++j) {
 							pDst[j] = ::mth_powf(pDst[j], wg);
 						}
@@ -9420,10 +9417,10 @@ void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 				cxColor c = pClr[idx];
 				if (gflg) {
 					for (int i = 0; i < 3; ++i) {
-						if (c.ch[i] > 0.0f) {
-							c.ch[i] = ::mth_powf(c.ch[i], invg);
+						if (c[i] > 0.0f) {
+							c[i] = ::mth_powf(c[i], invg);
 						} else {
-							c.ch[i] = 0.0f;
+							c[i] = 0.0f;
 						}
 					}
 				}
@@ -9456,10 +9453,10 @@ void save_hdr(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 		cxColor c = pClr[i];
 		if (gflg) {
 			for (int j = 0; j < 3; ++j) {
-				if (c.ch[j] > 0.0f) {
-					c.ch[j] = ::mth_powf(c.ch[j], invg);
+				if (c[j] > 0.0f) {
+					c[j] = ::mth_powf(c[j], invg);
 				} else {
-					c.ch[j] = 0.0f;
+					c[j] = 0.0f;
 				}
 			}
 		} else {
@@ -11255,12 +11252,12 @@ cxColor sxModelData::get_pnt_clr(const int pid) const {
 			if (has_skin()) {
 				const VtxSkinShort* pVtx = reinterpret_cast<const VtxSkinShort*>(XD_INCR_PTR(this, mPntOffs)) + pid;
 				for (int i = 0; i < 4; ++i) {
-					clr.ch[i] = float(pVtx->clr[i]);
+					clr[i] = float(pVtx->clr[i]);
 				}
 			} else {
 				const VtxRigidShort* pVtx = reinterpret_cast<const VtxRigidShort*>(XD_INCR_PTR(this, mPntOffs)) + pid;
 				for (int i = 0; i < 4; ++i) {
-					clr.ch[i] = float(pVtx->clr[i]);
+					clr[i] = float(pVtx->clr[i]);
 				}
 			}
 			clr.scl(1.0f / float(0x7FF));
@@ -11821,11 +11818,12 @@ void sxModelData::dump_geo(FILE* pOut) const {
 		cxColor clr = get_pnt_clr(i);
 		xt_texcoord tex = get_pnt_tex(i);
 		::fprintf(pOut, "%f %f %f 1 (%f %f %f  %f %f %f  %f  %f %f 1)\n",
-			pos.x, pos.y, pos.z,
-			nrm.x, nrm.y, nrm.z,
-			clr.r, clr.g, clr.b,
-			clr.a,
-			tex.u, 1.0f - tex.v);
+		          pos.x, pos.y, pos.z,
+		          nrm.x, nrm.y, nrm.z,
+		          clr.r, clr.g, clr.b,
+		          clr.a,
+		          tex.u, 1.0f - tex.v
+		);
 	}
 	::fprintf(pOut, "Run %d Poly\n", int(mTriNum));
 	for (uint32_t i = 0; i < mBatNum; ++i) {
@@ -11948,12 +11946,13 @@ void sxModelData::dump_skel(FILE* pOut) const {
 		::fprintf(pOut, "nd.setUserData('nodeshape', '%s')\n", pCtrlShape);
 		if (find_skin_id(pNodeName) >= 0) {
 			for (int j = 0; j < 3; ++j) {
-				ctrlClr.ch[j] = nxCalc::fit(nxCore::rng_f01(&rng), 0.0f, 1.0f, 0.25f, 0.5f);
+				ctrlClr[j] = nxCalc::fit(nxCore::rng_f01(&rng), 0.0f, 1.0f, 0.25f, 0.5f);
 			}
 			::fprintf(pOut, "cr = nd.createNode('cregion', 'cregion')\n");
 			::fprintf(pOut, "cr.setParms({ 'squashx':0.0001,'squashy' : 0.0001,'squashz' : 0.0001 })\n");
 		}
-		::fprintf(pOut, "nd.setParms({ 'dcolorr':%.4f,'dcolorg':%.4f,'dcolorb':%.4f })\n", ctrlClr.r, ctrlClr.g, ctrlClr.b);
+		::fprintf(pOut, "nd.setParms({ 'dcolorr':%.4f,'dcolorg':%.4f,'dcolorb':%.4f })\n",
+		          ctrlClr[0], ctrlClr[1], ctrlClr[2]);
 	}
 	const int32_t* pParents = get_skel_parents_ptr();
 	for (int i = 0; i < nskel; ++i) {

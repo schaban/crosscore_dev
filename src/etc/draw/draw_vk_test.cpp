@@ -1476,7 +1476,7 @@ void VK_GLB::begin(const cxColor& clearColor) {
 	vres = vkBeginCommandBuffer(mpSwapChainCmdBufs[mSwapChainIdx], &cmdBufBeginInfo);
 	VkClearValue clearVals[2];
 	for (int i = 0; i < 4; ++i) {
-		clearVals[0].color.float32[i] = clearColor.ch[i];
+		clearVals[0].color.float32[i] = clearColor[i];
 	}
 	clearVals[1].depthStencil.depth = 1.0f;
 	clearVals[1].depthStencil.stencil = 0;

@@ -2002,10 +2002,10 @@ struct xt_texcoord {
 };
 
 struct xt_rgba {
-	union {
-		struct { float r, g, b, a; };
-		float ch[4];
-	};
+	float r, g, b, a;
+
+	operator float* () { return reinterpret_cast<float*>(this); }
+	operator const float* () const { return reinterpret_cast<const float*>(this); }
 };
 
 union uxVal32 {
@@ -3408,13 +3408,13 @@ public:
 
 	void zero() {
 		for (int i = 0; i < 4; ++i) {
-			ch[i] = 0.0f;
+			(*this)[i] = 0.0f;
 		}
 	}
 
 	void zero_rgb() {
 		for (int i = 0; i < 3; ++i) {
-			ch[i] = 0.0f;
+			(*this)[i] = 0.0f;
 		}
 		a = 1.0f;
 	}
@@ -3427,20 +3427,20 @@ public:
 
 	void clip_neg() {
 		for (int i = 0; i < 4; ++i) {
-			ch[i] = nxCalc::max(ch[i], 0.0f);
+			(*this)[i] = nxCalc::max((*this)[i], 0.0f);
 		}
 	}
 
 	void scl(float s) {
 		for (int i = 0; i < 4; ++i) {
-			ch[i] *= s;
+			(*this)[i] *= s;
 		}
 	}
 
 	void scl_rgb(float s) {
-		r *= s;
-		g *= s;
-		b *= s;
+		for (int i = 0; i < 3; ++i) {
+			(*this)[i] *= s;
+		}
 	}
 
 	void scl_rgb(float sr, float sg, float sb) {
@@ -3450,31 +3450,31 @@ public:
 	}
 
 	void scl_rgb(const cxColor& c) {
-		r *= c.r;
-		g *= c.g;
-		b *= c.b;
+		for (int i = 0; i < 3; ++i) {
+			(*this)[i] *= c[i];
+		}
 	}
 
 	void add(const cxColor& c) {
 		for (int i = 0; i < 4; ++i) {
-			ch[i] += c.ch[i];
+			(*this)[i] += c[i];
 		}
 	}
 
 	void add_rgb(const cxColor& c) {
-		r += c.r;
-		g += c.g;
-		b += c.b;
+		for (int i = 0; i < 3; ++i) {
+			(*this)[i] += c[i];
+		}
 	}
 
 	void to_nonlinear(float gamma = 2.2f) {
 		if (gamma <= 0.0f || gamma == 1.0f) return;
 		float igamma = 1.0f / gamma;
 		for (int i = 0; i < 3; ++i) {
-			if (ch[i] <= 0.0f) {
-				ch[i] = 0.0f;
+			if ((*this)[i] <= 0.0f) {
+				(*this)[i] = 0.0f;
 			} else {
-				ch[i] = ::mth_powf(ch[i], igamma);
+				(*this)[i] = ::mth_powf((*this)[i], igamma);
 			}
 		}
 	}
@@ -3482,11 +3482,13 @@ public:
 	void to_linear(float gamma = 2.2f) {
 		if (gamma <= 0.0f || gamma == 1.0f) return;
 		for (int i = 0; i < 3; ++i) {
-			if (ch[i] > 0.0f) {
-				ch[i] = ::mth_powf(ch[i], gamma);
+			if ((*this)[i] > 0.0f) {
+				(*this)[i] = ::mth_powf((*this)[i], gamma);
 			}
 		}
 	}
+
+	cxVec rgb_vec() const { return cxVec(r, g, b); }
 
 	cxVec YCgCo() const;
 	void from_YCgCo(const cxVec& ygo);
@@ -3540,7 +3542,7 @@ float approx_CMF_z64(float w);
 inline cxColor lerp(const cxColor& cA, const cxColor& cB, float t) {
 	cxColor c;
 	for (int i = 0; i < 4; ++i) {
-		c.ch[i] = nxCalc::lerp(cA.ch[i], cB.ch[i], t);
+		c[i] = nxCalc::lerp(cA[i], cB[i], t);
 	}
 	return c;
 }
@@ -3548,7 +3550,7 @@ inline cxColor lerp(const cxColor& cA, const cxColor& cB, float t) {
 inline cxColor lerp_rgb(const cxColor& cA, const cxColor& cB, float t) {
 	cxColor c;
 	for (int i = 0; i < 3; ++i) {
-		c.ch[i] = nxCalc::lerp(cA.ch[i], cB.ch[i], t);
+		c[i] = nxCalc::lerp(cA[i], cB[i], t);
 	}
 	return c;
 }
