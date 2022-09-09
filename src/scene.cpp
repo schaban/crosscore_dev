@@ -1510,7 +1510,7 @@ ScnObj* add_obj(sxModelData* pMdl, const char* pName) {
 				char name[32];
 				const char* pObjName = pName;
 				if (!pObjName) {
-					XD_SPRINTF(XD_SPRINTF_BUF(name, sizeof(name)), "$obj@%p", pObj);
+					XD_SPRINTF(XD_SPRINTF_BUF(name, sizeof(name)), "$obj@%p", (void*)pObj);
 					pObjName = name;
 				}
 				int nbat = pMdl->mBatNum;
