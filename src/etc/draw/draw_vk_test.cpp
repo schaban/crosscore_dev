@@ -234,6 +234,8 @@ static void* VKAPI_CALL vk_alloc(void* pData, size_t size, size_t alignment, VkS
 		case VK_SYSTEM_ALLOCATION_SCOPE_INSTANCE:
 			pTag = "vkInstance";
 			break;
+		default:
+			break;
 	}
 	void* pMem = nxCore::mem_alloc(size, pTag, (int)alignment);
 	return pMem;
@@ -1087,7 +1089,7 @@ VkShaderModule VK_GLB::mk_shader(const char* pName) {
 		nxCore::bin_unload(pBin);
 	} else if (pName) {
 		int idx = -1;
-		for (int i = 0; i < XD_ARY_LEN(s_gpu_code); ++i) {
+		for (int i = 0; i < (int)XD_ARY_LEN(s_gpu_code); ++i) {
 			if (nxCore::str_eq(s_gpu_code[i].pName, pName)) {
 				idx = i;
 				break;
@@ -1474,6 +1476,11 @@ void VK_GLB::begin(const cxColor& clearColor) {
 	cmdBufBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	cmdBufBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 	vres = vkBeginCommandBuffer(mpSwapChainCmdBufs[mSwapChainIdx], &cmdBufBeginInfo);
+	if (VK_ERROR_OUT_OF_HOST_MEMORY == vres) {
+		return;
+	} else if (VK_ERROR_OUT_OF_DEVICE_MEMORY == vres) {
+		return;
+	}
 	VkClearValue clearVals[2];
 	for (int i = 0; i < 4; ++i) {
 		clearVals[0].color.float32[i] = clearColor[i];
@@ -1568,7 +1575,7 @@ static inline bool drwvk_mem32_same_sub(const uint32_t* pMem1, const uint32_t* p
 #if 0
 	return ::memcmp(pMem1, pMem2, n * sizeof(uint32_t)) == 0;
 #else
-	for (int i = 0; i < n; ++i) {
+	for (size_t i = 0; i < n; ++i) {
 		if (pMem1[i] != pMem2[i]) return false;
 	}
 	return true;
@@ -1583,7 +1590,7 @@ static inline void drwvk_mem32_copy_sub(uint32_t* pDst, const uint32_t* pSrc, co
 #if 0
 	::memcpy(pDst, pSrc, n * sizeof(uint32_t));
 #else
-	for (int i = 0; i < n; ++i) {
+	for (size_t i = 0; i < n; ++i) {
 		pDst[i] = pSrc[i];
 	}
 #endif
