@@ -11918,6 +11918,7 @@ void sxModelData::dump_skel(FILE* pOut) const {
 	nxCore::rng_seed(&rng, 1);
 	for (int i = 0; i < nskel; ++i) {
 		const char* pNodeName = get_skel_name(i);
+		if (!pNodeName) pNodeName = "__none__";
 		::fprintf(pOut, "# %d: %s\n", i, pNodeName);
 		::fprintf(pOut, "nd = base.createNode('null', '%s')\n", pNodeName);
 		int ctrlTyp = 1; // Circles
@@ -11960,9 +11961,11 @@ void sxModelData::dump_skel(FILE* pOut) const {
 		if (iparent >= 0) {
 			const char* pNodeName = get_skel_name(i);
 			const char* pParentName = get_skel_name(iparent);
-			::fprintf(pOut, "# %s -> %s\n", pNodeName, pParentName);
-			::fprintf(pOut, "nd = hou.node(basePath + '%s')\n", pNodeName);
-			::fprintf(pOut, "nd.setFirstInput(hou.node(basePath + '%s'))\n", pParentName);
+			if (pNodeName && pParentName) {
+				::fprintf(pOut, "# %s -> %s\n", pNodeName, pParentName);
+				::fprintf(pOut, "nd = hou.node(basePath + '%s')\n", pNodeName);
+				::fprintf(pOut, "nd.setFirstInput(hou.node(basePath + '%s'))\n", pParentName);
+			}
 		}
 	}
 }
