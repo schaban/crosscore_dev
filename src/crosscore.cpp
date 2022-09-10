@@ -78,6 +78,11 @@
 #	include <pthread.h>
 #endif
 
+#ifdef XD_SYS_OPENBSD
+#	include <sys/types.h>
+#	include <sys/sysctl.h>
+#endif
+
 const uint32_t sxValuesData::KIND = XD_FOURCC('X', 'V', 'A', 'L');
 const uint32_t sxRigData::KIND = XD_FOURCC('X', 'R', 'I', 'G');
 const uint32_t sxGeometryData::KIND = XD_FOURCC('X', 'G', 'E', 'O');
@@ -349,6 +354,23 @@ void sleep_millis(uint32_t millis) {
 	using namespace std;
 	this_thread::sleep_for(chrono::milliseconds(millis));
 #endif
+}
+
+int num_active_cpus() {
+	int ncpu = 1;
+#if defined(XD_SYS_LINUX)
+	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+#elif defined(XD_SYS_OPENBSD)
+	int cmd[] = { CTL_HW, HW_NCPUONLINE };
+	size_t clen = sizeof(ncpu);
+	sysctl(cmd, XD_ARY_LEN(cmd), &ncpu, &clen, nullptr, 0);
+#elif defined(XD_SYS_WINDOWS)
+	SYSTEM_INFO si;
+	nxCore::mem_zero(&si, sizeof(SYSTEM_INFO));
+	GetSystemInfo(&si);
+	ncpu = (int)si.dwNumberOfProcessors;
+#endif
+	return ncpu;
 }
 
 #if defined(XD_TSK_NATIVE_WINDOWS)
@@ -1735,14 +1757,18 @@ void cxBrigade::auto_affinity() {
 #if defined(XD_TSK_NATIVE_PTHREAD) && defined(XD_SYS_LINUX)
 	if (mWrkNum < 2) return;
 	if (!mppWrk) return;
-	int ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+	int ncpu = nxSys::num_active_cpus();
 	if (ncpu < 2) return;
 	pthread_t thrMain = pthread_self();
 	cpu_set_t mask;
 	CPU_ZERO(&mask);
 	CPU_SET(0, &mask);
 	pthread_setaffinity_np(thrMain, sizeof(mask), &mask);
-	int cpuNo = 1;
+	int cpuMin = 1;
+	if (ncpu < 3) {
+		cpuMin = 0;
+	}
+	int cpuNo = cpuMin;
 	for (int i = 0; i < mWrkNum; ++i) {
 		sxWorker* pWrk = mppWrk[i];
 		if (pWrk) {
@@ -1752,7 +1778,7 @@ void cxBrigade::auto_affinity() {
 			++cpuNo;
 		}
 		if (cpuNo >= ncpu) {
-			cpuNo = 1;
+			cpuNo = cpuMin;
 		}
 	}
 #endif

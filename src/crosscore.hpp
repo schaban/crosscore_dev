@@ -237,6 +237,8 @@ FILE* fopen_w_bin(const char* fpath);
 double time_micros();
 void sleep_millis(uint32_t millis);
 
+int num_active_cpus();
+
 sxLock* lock_create();
 void lock_destroy(sxLock* pLock);
 bool lock_acquire(sxLock* pLock);
