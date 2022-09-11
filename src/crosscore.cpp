@@ -358,7 +358,7 @@ void sleep_millis(uint32_t millis) {
 
 int num_active_cpus() {
 	int ncpu = 1;
-#if defined(XD_SYS_LINUX)
+#if defined(XD_SYS_LINUX) || defined(XD_SYS_FREEBSD)
 	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(XD_SYS_OPENBSD)
 	int cmd[] = { CTL_HW, HW_NCPUONLINE };
