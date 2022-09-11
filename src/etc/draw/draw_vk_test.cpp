@@ -536,6 +536,10 @@ bool VK_GLB::init_vk() {
 	}
 	vkGetPhysicalDeviceProperties(mVkGPU, &mGPUProps);
 	nxCore::dbg_msg("VkGPU[%d/%d]: %s\n", gpuId, ngpu, mGPUProps.deviceName);
+	nxCore::dbg_msg(" maxUniformBufferRange: 0x%X\n", mGPUProps.limits.maxUniformBufferRange);
+	nxCore::dbg_msg(" maxStorageBufferRange: 0x%X\n", mGPUProps.limits.maxStorageBufferRange);
+	nxCore::dbg_msg(" maxPushConstantsSize: 0x%X\n", mGPUProps.limits.maxPushConstantsSize);
+	nxCore::dbg_msg(" maxMemoryAllocationCount: 0x%X\n", mGPUProps.limits.maxMemoryAllocationCount);
 	vkGetPhysicalDeviceMemoryProperties(mVkGPU, &mGPUMemProps);
 	mNumQueueFam = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(mVkGPU, &mNumQueueFam, nullptr);
