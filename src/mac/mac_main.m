@@ -91,7 +91,7 @@ BOOL stopFlg = NO;
 		NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc]initWithAttributes:attrs];
 		OGLView = [[NSOpenGLView alloc]initWithFrame:contentRect pixelFormat:fmt];
 		[[OGLView openGLContext]makeCurrentContext];
-		
+
 		[self setContentView:OGLView];
 		[OGLView prepareOpenGL];
 		[self makeKeyAndOrderFront:self];
@@ -99,8 +99,8 @@ BOOL stopFlg = NO;
 		[self makeKeyWindow];
 		[self setOpaque:YES];
 		[self setOneShot:NO];
-		
-		mac_init(s_pAppPath, s_width, s_height);
+
+		mac_init(s_pAppPath);
 	}
 	return self;
 }
@@ -158,7 +158,7 @@ BOOL stopFlg = NO;
 	mac_kbd(name, true);
 }
 
--(void)keyUp:(NSEvent *)event {
+-(void)keyUp:(NSEvent*)event {
 	char name[32];
 	getKbdName(event, name);
 	mac_kbd(name, false);
@@ -167,6 +167,9 @@ BOOL stopFlg = NO;
 
 int main(int argc, const char* argv[]) {
 	s_pAppPath = argv[0];
+	mac_start(argc, argv);
+	s_width = mac_get_width_opt();
+	s_height = mac_get_height_opt();
 	MacOGLApp* OGLApp;
 	g_app = [NSApplication sharedApplication];
 	[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];

@@ -5,9 +5,16 @@
 extern "C" {
 #endif
 
-void mac_init(const char* pAppPath, int w, int h);
+void mac_start(int argc, const char* argv[]);
+void mac_init(const char* pAppPath);
 void mac_exec();
 void mac_stop();
+
+int mac_get_int_opt(const char* pName);
+bool mac_get_bool_opt(const char* pName);
+float mac_get_float_opt(const char* pName);
+int mac_get_width_opt();
+int mac_get_height_opt();
 
 void mac_mouse_down(int btn, float x, float y);
 void mac_mouse_up(int btn, float x, float y);

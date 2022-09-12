@@ -23,6 +23,9 @@ static const bool c_defSpec = true;
 static const bool c_defReduce = false;
 #endif
 
+static int c_defW = 1200;
+static int c_defH = 700;
+
 extern "C" {
 
 // web-interface functions
@@ -36,7 +39,7 @@ void wi_set_key_state(const char* pName, const int state) {
 
 } // wi
 
-static void tst_dbgmsg(const char* pMsg) {
+static void dbgmsg_impl(const char* pMsg) {
 	::printf("%s", pMsg);
 	::fflush(stdout);
 }
@@ -44,7 +47,7 @@ static void tst_dbgmsg(const char* pMsg) {
 static void init_sys() {
 	sxSysIfc sysIfc;
 	nxCore::mem_zero(&sysIfc, sizeof(sysIfc));
-	sysIfc.fn_dbgmsg = tst_dbgmsg;
+	sysIfc.fn_dbgmsg = dbgmsg_impl;
 	nxSys::init(&sysIfc);
 }
 
@@ -132,15 +135,24 @@ static void exec_demo() {
 
 #ifdef OGLSYS_MACOS
 static Demo::Ifc* s_pIfc = nullptr;
+static bool s_macStartFlg = false;
 
-void mac_init(const char* pAppPath, int w, int h) {
-	int argc = 1;
-	const char* argv[] = { pAppPath };
+void mac_start(int argc, const char* argv[]) {
 	nxApp::init_params(argc, (char**)argv);
-	init_sys();
+	s_macStartFlg = true;
+}
 
+void mac_init(const char* pAppPath) {
+	if (!s_macStartFlg) {
+		return;
+	}
+
+	int w = mac_get_width_opt();
+	int h = mac_get_height_opt();
+
+	init_sys();
 	init_ogl(0, 0, w, h, true);
-	init_scn(argv[0]);
+	init_scn(pAppPath);
 
 	s_pIfc = Demo::get_demo();
 	if (s_pIfc) {
@@ -157,6 +169,8 @@ void mac_exec() {
 }
 
 void mac_stop() {
+	s_macStartFlg = false;
+
 	if (s_pIfc) {
 		s_pIfc->reset();
 		s_pIfc = nullptr;
@@ -167,6 +181,46 @@ void mac_stop() {
 
 	nxApp::reset();
 	nxCore::mem_dbg();
+}
+
+int mac_get_int_opt(const char* pName) {
+	int val = 0;
+	if (s_macStartFlg && pName) {
+		val = nxApp::get_int_opt(pName, 0);
+	}
+	return val;
+}
+
+bool mac_get_bool_opt(const char* pName) {
+	bool val = false;
+	if (s_macStartFlg && pName) {
+		val = nxApp::get_bool_opt(pName, false);
+	}
+	return val;
+}
+
+float mac_get_float_opt(const char* pName) {
+	float val = 0.0f;
+	if (s_macStartFlg && pName) {
+		val = nxApp::get_float_opt(pName, 0.0f);
+	}
+	return val;
+}
+
+int mac_get_width_opt() {
+	int w = c_defW;
+	if (s_macStartFlg) {
+		w = nxCalc::max(32, nxApp::get_int_opt("w", c_defW));
+	}
+	return w;
+}
+
+int mac_get_height_opt() {
+	int h = c_defH;
+	if (s_macStartFlg) {
+		h = nxCalc::max(32, nxApp::get_int_opt("h", c_defH));
+	}
+	return h;
 }
 
 static float mac_mouse_y(float y) {
@@ -198,8 +252,8 @@ int main(int argc, char* argv[]) {
 	float scrScl = 1.0f;
 	int x = 10;
 	int y = 10;
-	int w = 1200;
-	int h = 700;
+	int w = c_defW;
+	int h = c_defH;
 
 	w = int(float(w) * scrScl);
 	h = int(float(h) * scrScl);
