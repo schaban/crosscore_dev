@@ -14,6 +14,8 @@ uniform vec3 gpVtxHemiUpper;
 uniform vec3 gpVtxHemiLower;
 uniform vec3 gpVtxHemiParam; // exp, gain
 
+uniform vec4 gpTexXform; // offs.xy
+
 uniform vec4 gpQuadVtxPos[2];
 uniform vec4 gpQuadVtxTex[2];
 uniform vec4 gpQuadVtxClr[4];

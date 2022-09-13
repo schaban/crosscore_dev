@@ -397,6 +397,7 @@ void prim_geom(const uint32_t vorg, const uint32_t vnum, const sxPrimVtx* pVtxSr
 void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
 void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
 void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const bool depthWrite = true);
+void idx_tris_semi_dsided_toffs(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const xt_texcoord toffs, const bool depthWrite = true);
 void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pTex, const bool depthWrite = true);
 
 void set_ref_scr_size(const float w, const float h);

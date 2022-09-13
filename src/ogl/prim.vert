@@ -31,7 +31,7 @@ void main() {
 	}
 	pixPos = pos;
 	pixNrm = nrm;
-	pixTex = vtxTex.xy;
+	pixTex = vtxTex.xy + gpTexXform.xy;
 	pixClr = clr;
 	calcGLPos(pos);
 }

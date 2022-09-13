@@ -291,6 +291,7 @@ struct ParamLink {
 	GLint VtxHemiUpper;
 	GLint VtxHemiLower;
 	GLint VtxHemiParam;
+	GLint TexXform;
 	GLint ShadowMtx;
 	GLint ShadowSize;
 	GLint ShadowCtrl;
@@ -537,6 +538,8 @@ struct GPUProg {
 		CachedParam<xt_float3> mVtxHemiUp;
 		CachedParam<xt_float3> mVtxHemiParam;
 
+		CachedParam<xt_float4> mTexXform;
+
 		CachedParam<xt_float3> mBaseColor;
 		CachedParam<xt_float3> mSpecColor;
 		CachedParam<xt_float4> mSurfParam;
@@ -580,6 +583,7 @@ struct GPUProg {
 			mVtxHemiLower.reset();
 			mVtxHemiUp.reset();
 			mVtxHemiParam.reset();
+			mTexXform.reset();
 			mBaseColor.reset();
 			mSpecColor.reset();
 			mSurfParam.reset();
@@ -639,6 +643,7 @@ struct GPUProg {
 		PARAM_LINK(VtxHemiUpper);
 		PARAM_LINK(VtxHemiLower);
 		PARAM_LINK(VtxHemiParam);
+		PARAM_LINK(TexXform);
 		PARAM_LINK(ShadowMtx);
 		PARAM_LINK(ShadowSize);
 		PARAM_LINK(ShadowCtrl);
@@ -819,6 +824,10 @@ struct GPUProg {
 
 	void set_vtx_hemi_param(const xt_float3& hprm) {
 		mCache.mVtxHemiParam.set(mParamLink.VtxHemiParam, hprm);
+	}
+
+	void set_tex_xform(const xt_float4& txform) {
+		mCache.mTexXform.set(mParamLink.TexXform, txform);
 	}
 
 	void set_base_color(const xt_float3& c) {
@@ -2523,6 +2532,12 @@ void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 		}
 	}
 	pProg->set_prim_ctrl(ctrl);
+
+	if (HAS_PARAM(TexXform)) {
+		xt_float4 txform;
+		txform.set(pPrim->texOffs.u, pPrim->texOffs.v, 0.0f, 0.0f);
+		pProg->set_tex_xform(txform);
+	}
 
 	pProg->set_fog_color(pCtx->fog.mColor);
 	pProg->set_fog_param(pCtx->fog.mParam);
