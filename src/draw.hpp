@@ -247,6 +247,7 @@ namespace Draw {
 	struct Prim {
 		sxTextureData* pTex;
 		xt_texcoord texOffs;
+		xt_rgba clr;
 		cxMtx* pMtx;
 		uint32_t org;
 		uint32_t num;

@@ -1744,6 +1744,7 @@ void tris_semi_dsided(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx,
 	prim.dblSided = true;
 	prim.depthWrite = depthWrite;
 	prim.texOffs.set(0.0f, 0.0f);
+	prim.clr.fill(1.0f);
 	prim_draw(&prim);
 }
 
@@ -1759,6 +1760,7 @@ void tris_semi(const uint32_t vtxOrg, const uint32_t triNum, cxMtx* pMtx, sxText
 	prim.dblSided = false;
 	prim.depthWrite = depthWrite;
 	prim.texOffs.set(0.0f, 0.0f);
+	prim.clr.fill(1.0f);
 	prim_draw(&prim);
 }
 
@@ -1774,6 +1776,7 @@ void idx_tris_semi_dsided(const uint32_t idxOrg, const uint32_t triNum, cxMtx* p
 	prim.dblSided = true;
 	prim.depthWrite = depthWrite;
 	prim.texOffs.set(0.0f, 0.0f);
+	prim.clr.fill(1.0f);
 	prim_draw(&prim);
 }
 
@@ -1789,6 +1792,23 @@ void idx_tris_semi_dsided_toffs(const uint32_t idxOrg, const uint32_t triNum, cx
 	prim.dblSided = true;
 	prim.depthWrite = depthWrite;
 	prim.texOffs = toffs;
+	prim.clr.fill(1.0f);
+	prim_draw(&prim);
+}
+
+void idx_tris_semi_dsided_toffs_clr(const uint32_t idxOrg, const uint32_t triNum, cxMtx* pMtx, sxTextureData* pTex, const xt_texcoord toffs, const cxColor clr, const bool depthWrite) {
+	Draw::Prim prim;
+	prim.type = Draw::PRIMTYPE_POLY;
+	prim.pMtx = pMtx;
+	prim.pTex = pTex;
+	prim.org = idxOrg;
+	prim.num = triNum * 3;
+	prim.indexed = true;
+	prim.alphaBlend = true;
+	prim.dblSided = true;
+	prim.depthWrite = depthWrite;
+	prim.texOffs = toffs;
+	prim.clr = clr;
 	prim_draw(&prim);
 }
 
@@ -1804,6 +1824,7 @@ void sprite_tris(const uint32_t vtxOrg, const uint32_t triNum, sxTextureData* pT
 	prim.dblSided = false;
 	prim.depthWrite = depthWrite;
 	prim.texOffs.set(0.0f, 0.0f);
+	prim.clr.fill(1.0f);
 	prim_draw(&prim);
 }
 

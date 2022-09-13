@@ -2006,6 +2006,7 @@ struct xt_texcoord {
 struct xt_rgba {
 	float r, g, b, a;
 
+	void fill(const float val) { for (int i = 0; i < 4; ++i) { (*this)[i] = val; } }
 	operator float* () { return reinterpret_cast<float*>(this); }
 	operator const float* () const { return reinterpret_cast<const float*>(this); }
 };

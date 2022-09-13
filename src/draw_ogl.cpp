@@ -311,6 +311,7 @@ struct ParamLink {
 	GLint Exposure;
 	GLint InvGamma;
 	GLint PrimCtrl;
+	GLint PrimColor;
 	GLint QuadVtxPos;
 	GLint QuadVtxTex;
 	GLint QuadVtxClr;
@@ -563,6 +564,7 @@ struct GPUProg {
 		CachedParam<xt_float3> mInvGamma;
 
 		CachedParam<xt_float4> mPrimCtrl;
+		CachedParam<xt_float4> mPrimColor;
 
 
 		void reset() {
@@ -602,6 +604,7 @@ struct GPUProg {
 			mExposure.reset();
 			mInvGamma.reset();
 			mPrimCtrl.reset();
+			mPrimColor.reset();
 		}
 	} mCache;
 
@@ -663,6 +666,7 @@ struct GPUProg {
 		PARAM_LINK(Exposure);
 		PARAM_LINK(InvGamma);
 		PARAM_LINK(PrimCtrl);
+		PARAM_LINK(PrimColor);
 		PARAM_LINK(QuadVtxPos);
 		PARAM_LINK(QuadVtxTex);
 		PARAM_LINK(QuadVtxClr);
@@ -911,6 +915,12 @@ struct GPUProg {
 
 	void set_prim_ctrl(const xt_float4& ctrl) {
 		mCache.mPrimCtrl.set(mParamLink.PrimCtrl, ctrl);
+	}
+
+	void set_prim_color(const xt_rgba& c) {
+		xt_float4 val;
+		val.set(c.r, c.g, c.b, c.a);
+		mCache.mPrimColor.set(mParamLink.PrimColor, val);
 	}
 };
 
@@ -2532,6 +2542,7 @@ void prim(const Draw::Prim* pPrim, const Draw::Context* pCtx) {
 		}
 	}
 	pProg->set_prim_ctrl(ctrl);
+	pProg->set_prim_color(pPrim->clr);
 
 	if (HAS_PARAM(TexXform)) {
 		xt_float4 txform;

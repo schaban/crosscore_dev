@@ -36,4 +36,6 @@ uniform vec3 gpExposure;
 uniform vec3 gpInvGamma;
 
 
+uniform vec4 gpPrimColor;
+
 uniform vec4 gpFontColor;
