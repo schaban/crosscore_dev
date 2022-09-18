@@ -83,6 +83,10 @@
 #	include <sys/sysctl.h>
 #endif
 
+#ifndef XD_FILEFUNCS_ENABLED
+#	define XD_FILEFUNCS_ENABLED 1
+#endif
+
 const uint32_t sxValuesData::KIND = XD_FOURCC('X', 'V', 'A', 'L');
 const uint32_t sxRigData::KIND = XD_FOURCC('X', 'R', 'I', 'G');
 const uint32_t sxGeometryData::KIND = XD_FOURCC('X', 'G', 'E', 'O');
@@ -167,12 +171,16 @@ struct sxWorker {
 namespace nxSys {
 
 FILE* x_fopen(const char* fpath, const char* mode) {
+#if XD_FILEFUNCS_ENABLED
 #if defined(_MSC_VER)
 	FILE* f;
 	::fopen_s(&f, fpath, mode);
 	return f;
 #else
 	return ::fopen(fpath, mode);
+#endif
+#else
+	return nullptr;
 #endif
 }
 
@@ -200,26 +208,32 @@ xt_fhandle def_fopen(const char* fpath) {
 }
 
 void def_fclose(xt_fhandle fh) {
+#if XD_FILEFUNCS_ENABLED
 	::fclose((FILE*)fh);
+#endif
 }
 
 size_t def_fsize(xt_fhandle fh) {
 	long len = 0;
+#if XD_FILEFUNCS_ENABLED
 	FILE* f = (FILE*)fh;
 	long old = ::ftell(f);
 	if (0 == ::fseek(f, 0, SEEK_END)) {
 		len = ::ftell(f);
 	}
 	::fseek(f, old, SEEK_SET);
+#endif
 	return (size_t)len;
 }
 
 size_t def_fread(xt_fhandle fh, void* pDst, size_t size) {
 	size_t nread = 0;
+#if XD_FILEFUNCS_ENABLED
 	if (fh && pDst && size) {
 		FILE* f = (FILE*)fh;
 		nread = ::fread(pDst, 1, size, f);
 	}
+#endif
 	return nread;
 }
 
@@ -1187,17 +1201,20 @@ void bin_unload(void* pMem) {
 }
 
 void bin_save(const char* pPath, const void* pMem, size_t size) {
+#if XD_FILEFUNCS_ENABLED
 	if (!pPath || !pMem || !size) return;
 	FILE* f = nxSys::fopen_w_bin(pPath);
 	if (f) {
 		::fwrite(pMem, 1, size, f);
 		::fclose(f);
 	}
+#endif
 }
 
 void* raw_bin_load(const char* pPath, size_t* pSize) {
 	void* pData = nullptr;
 	size_t size = 0;
+#if XD_FILEFUNCS_ENABLED
 	if (pPath) {
 		xt_fhandle fh = nxSys::def_fopen(pPath);
 		if (fh) {
@@ -1211,6 +1228,7 @@ void* raw_bin_load(const char* pPath, size_t* pSize) {
 			nxSys::def_fclose(fh);
 		}
 	}
+#endif
 	if (pSize) {
 		*pSize = size;
 	}
@@ -2524,6 +2542,7 @@ void xmtx_set_pos(xt_xmtx& xm, const cxVec& pos) {
 }
 
 void dump_hgeo(FILE* pOut, const cxMtx* pMtx, const int n, float scl) {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	if (!pMtx) return;
 	if (n <= 0) return;
@@ -2559,15 +2578,18 @@ void dump_hgeo(FILE* pOut, const cxMtx* pMtx, const int n, float scl) {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void dump_hgeo(const char* pOutPath, const cxMtx* pMtx, const int n, float scl) {
+#if XD_FILEFUNCS_ENABLED
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
 		return;
 	}
 	dump_hgeo(pOut, pMtx, n, scl);
 	::fclose(pOut);
+#endif
 }
 
 } // nxMtx
@@ -4847,6 +4869,7 @@ bool cxFrustum::overlaps(const cxAABB& box) const {
 }
 
 void cxFrustum::dump_geo(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	const int nedges = XD_ARY_LEN(s_frustumEdgeTbl);
 	::fprintf(pOut, "PGEOMETRY V5\n");
@@ -4863,9 +4886,11 @@ void cxFrustum::dump_geo(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void cxFrustum::dump_geo(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) return;
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
@@ -4873,6 +4898,7 @@ void cxFrustum::dump_geo(const char* pOutPath) const {
 	}
 	dump_geo(pOut);
 	::fclose(pOut);
+#endif
 }
 
 
@@ -9139,6 +9165,7 @@ sxDDSHead* alloc_dds128(uint32_t w, uint32_t h, uint32_t* pSize) {
 }
 
 void save_dds128(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9150,9 +9177,11 @@ void save_dds128(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h)
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds64(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9168,9 +9197,11 @@ void save_dds64(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) 
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_rgbe(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9186,9 +9217,11 @@ void save_dds32_rgbe(const char* pPath, const cxColor* pClr, uint32_t w, uint32_
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_bgre(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9204,9 +9237,11 @@ void save_dds32_bgre(const char* pPath, const cxColor* pClr, uint32_t w, uint32_
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_rgbi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9222,9 +9257,11 @@ void save_dds32_rgbi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_bgri(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9240,9 +9277,11 @@ void save_dds32_bgri(const char* pPath, const cxColor* pClr, uint32_t w, uint32_
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_rgba8(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, float gamma) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9278,9 +9317,11 @@ void save_dds32_rgba8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 void save_dds32_bgra8(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, float gamma) {
+#if XD_FILEFUNCS_ENABLED
 	uint32_t npix = w*h;
 	if ((int)npix > 0) {
 		FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9316,6 +9357,7 @@ void save_dds32_bgra8(const char* pPath, const cxColor* pClr, uint32_t w, uint32
 			::fclose(pOut);
 		}
 	}
+#endif
 }
 
 cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float gamma) {
@@ -9412,6 +9454,7 @@ cxColor* decode_dds(sxDDSHead* pDDS, uint32_t* pWidth, uint32_t* pHeight, float 
 }
 
 void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, float gamma) {
+#if XD_FILEFUNCS_ENABLED
 	if (!pPath || !pClr || (w*h == 0)) return;
 	FILE* pOut = nxSys::fopen_w_bin(pPath);
 	if (!pOut) return;
@@ -9462,9 +9505,11 @@ void save_sgi(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 		nxCore::mem_free(pMem);
 	}
 	::fclose(pOut);
+#endif
 }
 
 void save_hdr(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, float gamma, float exposure) {
+#if XD_FILEFUNCS_ENABLED
 	size_t n = w * h;
 	if (!pPath || !pClr || !n) return;
 	FILE* pOut = nxSys::fopen_w_bin(pPath);
@@ -9492,6 +9537,7 @@ void save_hdr(const char* pPath, const cxColor* pClr, uint32_t w, uint32_t h, fl
 		::fwrite(&rgbe, sizeof(rgbe), 1, pOut);
 	}
 	::fclose(pOut);
+#endif
 }
 
 /* see PBRT book for details */
@@ -10592,6 +10638,7 @@ void sxKeyframesData::eval_rig_link(RigLink* pLink, float frm, const sxRigData* 
 }
 
 void sxKeyframesData::dump_clip(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	int nfcv = get_fcv_num();
 	int nfrm = get_frame_count();
@@ -10617,9 +10664,11 @@ void sxKeyframesData::dump_clip(FILE* pOut) const {
 		::fprintf(pOut, "   }\n");
 	}
 	::fprintf(pOut, "}\n");
+#endif
 }
 
 void sxKeyframesData::dump_clip(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	char outPath[XD_MAX_PATH];
 	if (!pOutPath) {
 		const char* pSrcPath = get_file_path();
@@ -10639,6 +10688,7 @@ void sxKeyframesData::dump_clip(const char* pOutPath) const {
 	}
 	dump_clip(pOut);
 	::fclose(pOut);
+#endif
 }
 
 
@@ -11829,6 +11879,7 @@ int sxModelData::find_skel_node_id(const char* pName) const {
 }
 
 void sxModelData::dump_geo(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	::fprintf(pOut, "PGEOMETRY V5\n");
 	::fprintf(pOut, "NPoints %d NPrims %d\n", int(mPntNum), int(mTriNum));
 	::fprintf(pOut, "NPointGroups 0 NPrimGroups %d\n", int(mBatNum));
@@ -11881,9 +11932,11 @@ void sxModelData::dump_geo(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void sxModelData::dump_geo(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) return;
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
@@ -11891,9 +11944,11 @@ void sxModelData::dump_geo(const char* pOutPath) const {
 	}
 	dump_geo(pOut);
 	::fclose(pOut);
+#endif
 }
 
 void sxModelData::dump_ocapt(FILE* pOut, const char* pSkelPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) {
 		return;
 	}
@@ -11911,9 +11966,11 @@ void sxModelData::dump_ocapt(FILE* pOut, const char* pSkelPath) const {
 			::fprintf(pOut, "%d %s/%s/cregion 0 %f\n", int(i), pSkelPath, pJntName, skn.wgt[j]);
 		}
 	}
+#endif
 }
 
 void sxModelData::dump_ocapt(const char* pOutPath, const char* pSkelPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) {
 		return;
 	}
@@ -11926,9 +11983,11 @@ void sxModelData::dump_ocapt(const char* pOutPath, const char* pSkelPath) const 
 	}
 	dump_ocapt(pOut);
 	::fclose(pOut);
+#endif
 }
 
 void sxModelData::dump_skel(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) {
 		return;
 	}
@@ -11993,9 +12052,11 @@ void sxModelData::dump_skel(FILE* pOut) const {
 			}
 		}
 	}
+#endif
 }
 
 void sxModelData::dump_skel(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) {
 		return;
 	}
@@ -12008,9 +12069,11 @@ void sxModelData::dump_skel(const char* pOutPath) const {
 	}
 	dump_skel(pOut);
 	::fclose(pOut);
+#endif
 }
 
 void sxModelData::dump_mdl_spheres(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) {
 		return;
 	}
@@ -12046,9 +12109,11 @@ void sxModelData::dump_mdl_spheres(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void sxModelData::dump_mdl_spheres(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) {
 		return;
 	}
@@ -12061,9 +12126,11 @@ void sxModelData::dump_mdl_spheres(const char* pOutPath) const {
 	}
 	dump_mdl_spheres(pOut);
 	::fclose(pOut);
+#endif
 }
 
 void sxModelData::dump_bat_spheres(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) {
 		return;
 	}
@@ -12117,9 +12184,11 @@ void sxModelData::dump_bat_spheres(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void sxModelData::dump_bat_spheres(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) {
 		return;
 	}
@@ -12132,6 +12201,7 @@ void sxModelData::dump_bat_spheres(const char* pOutPath) const {
 	}
 	dump_bat_spheres(pOut);
 	::fclose(pOut);
+#endif
 }
 
 
@@ -12294,6 +12364,7 @@ cxVec sxMotionData::eval_pos(const int inode, const float frm) const {
 }
 
 void sxMotionData::dump_clip(FILE* pOut, const float fstep) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	const Node* pNodes = get_nodes_top();
 	if (!pNodes) return;
@@ -12365,9 +12436,11 @@ void sxMotionData::dump_clip(FILE* pOut, const float fstep) const {
 		}
 	}
 	::fprintf(pOut, "}\n");
+#endif
 }
 
 void sxMotionData::dump_clip(const char* pOutPath, const float fstep) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOutPath) return;
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
@@ -12375,6 +12448,7 @@ void sxMotionData::dump_clip(const char* pOutPath, const float fstep) const {
 	}
 	dump_clip(pOut, fstep);
 	::fclose(pOut);
+#endif
 }
 
 
@@ -12703,6 +12777,7 @@ sxCollisionData::NearestHit sxCollisionData::nearest_hit(const cxLineSeg& seg) {
 }
 
 void sxCollisionData::dump_pol_geo(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	if (!mPntOffs) return;
 	::fprintf(pOut, "PGEOMETRY V5\n");
@@ -12741,18 +12816,22 @@ void sxCollisionData::dump_pol_geo(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void sxCollisionData::dump_pol_geo(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
 		return;
 	}
 	dump_pol_geo(pOut);
 	::fclose(pOut);
+#endif
 }
 
 void sxCollisionData::dump_tri_geo(FILE* pOut) const {
+#if XD_FILEFUNCS_ENABLED
 	if (!pOut) return;
 	if (!mPntOffs) return;
 	::fprintf(pOut, "PGEOMETRY V5\n");
@@ -12785,15 +12864,18 @@ void sxCollisionData::dump_tri_geo(FILE* pOut) const {
 	}
 	::fprintf(pOut, "beginExtra\n");
 	::fprintf(pOut, "endExtra\n");
+#endif
 }
 
 void sxCollisionData::dump_tri_geo(const char* pOutPath) const {
+#if XD_FILEFUNCS_ENABLED
 	FILE* pOut = nxSys::fopen_w_txt(pOutPath);
 	if (!pOut) {
 		return;
 	}
 	dump_tri_geo(pOut);
 	::fclose(pOut);
+#endif
 }
 
 
