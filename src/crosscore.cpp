@@ -27,8 +27,21 @@
 
 #include "crosscore.hpp"
 
+#ifndef XD_FILEFUNCS_ENABLED
+#	define XD_FILEFUNCS_ENABLED 1
+#endif
+
+#ifndef XD_THREADFUNCS_ENABLED
+#	define XD_THREADFUNCS_ENABLED 1
+#endif
+
 #ifndef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 1
+#endif
+
+#if !XD_THREADFUNCS_ENABLED
+#	undef XD_TSK_NATIVE
+#	define XD_TSK_NATIVE 0
 #endif
 
 #ifndef XD_SYNC_MULTI
@@ -67,9 +80,11 @@
 #endif
 
 #if !XD_TSK_NATIVE
-#	include <thread>
-#	include <mutex>
-#	include <condition_variable>
+#	if XD_THREADFUNCS_ENABLED
+#		include <thread>
+#		include <mutex>
+#		include <condition_variable>
+#	endif
 #endif
 
 #include <atomic>
@@ -83,9 +98,6 @@
 #	include <sys/sysctl.h>
 #endif
 
-#ifndef XD_FILEFUNCS_ENABLED
-#	define XD_FILEFUNCS_ENABLED 1
-#endif
 
 const uint32_t sxValuesData::KIND = XD_FOURCC('X', 'V', 'A', 'L');
 const uint32_t sxRigData::KIND = XD_FOURCC('X', 'R', 'I', 'G');
@@ -146,7 +158,7 @@ struct sxWorker {
 	pthread_t mThread;
 	bool mEndFlg;
 };
-#else
+#elif XD_THREADFUNCS_ENABLED
 struct sxLock {
 	std::mutex mMutex;
 };
@@ -165,6 +177,10 @@ struct sxWorker {
 	std::thread mThread;
 	bool mEndFlg;
 };
+#else
+struct sxLock { void* p; };
+struct sxSignal { void* p; };
+struct sxWorker { void* p; };
 #endif
 
 
@@ -364,7 +380,7 @@ void sleep_millis(uint32_t millis) {
 	} else {
 		::usleep(millis * 1000);
 	}
-#else
+#elif XD_THREADFUNCS_ENABLED
 	using namespace std;
 	this_thread::sleep_for(chrono::milliseconds(millis));
 #endif
@@ -678,7 +694,7 @@ void worker_stop(sxWorker* pWrk) {
 	}
 }
 
-#else
+#elif XD_THREADFUNCS_ENABLED
 
 sxLock* lock_create() {
 	sxLock* pLock = (sxLock*)nxCore::mem_alloc(sizeof(sxLock), "xLock");
@@ -833,6 +849,23 @@ void worker_stop(sxWorker* pWrk) {
 		pWrk->mThread.join();
 	}
 }
+
+#else
+
+sxLock* lock_create() { return nullptr; }
+void lock_destroy(sxLock* pLock) { }
+bool lock_acquire(sxLock* pLock) { return true; }
+bool lock_release(sxLock* pLock) { return true; }
+sxSignal* signal_create() { return nullptr; }
+void signal_destroy(sxSignal* pSig) { }
+bool signal_wait(sxSignal* pSig) { return true; }
+bool signal_set(sxSignal* pSig) { return true; }
+bool signal_reset(sxSignal* pSig) { return true; }
+sxWorker* worker_create(xt_worker_func func, void* pData) { return nullptr; }
+void worker_destroy(sxWorker* pWrk) { }
+void worker_exec(sxWorker* pWrk) { }
+void worker_wait(sxWorker* pWrk) { }
+void worker_stop(sxWorker* pWrk) { }
 
 #endif // XD_TSK_NATIVE_*
 
@@ -1802,6 +1835,7 @@ void cxBrigade::auto_affinity() {
 #endif
 }
 
+#if XD_THREADFUNCS_ENABLED
 cxBrigade* cxBrigade::create(int wrkNum) {
 	cxBrigade* pBgd = nullptr;
 	if (wrkNum < 1) wrkNum = 1;
@@ -1843,6 +1877,11 @@ cxBrigade* cxBrigade::create(int wrkNum) {
 	}
 	return pBgd;
 }
+#else
+cxBrigade* cxBrigade::create(int wrkNum) {
+	return nullptr;
+}
+#endif
 
 void cxBrigade::destroy(cxBrigade* pBgd) {
 	if (!pBgd) return;
