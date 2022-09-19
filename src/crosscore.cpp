@@ -957,7 +957,7 @@ void* mem_alloc(const size_t size, const char* pTag, int alignment) {
 	if (alignment < 1) alignment = 0x10;
 	if (size > 0) {
 		if (!pTag) pTag = "xMem";
-		size_t tagLen = ::strlen(pTag) + 1;
+		size_t tagLen = nxCore::str_len(pTag) + 1;
 		size_t asize = nxCore::align_pad(sizeof(sxMemInfo) + tagLen + size + alignment + sizeof(uint32_t), alignment);
 		void* p0 = nxSys::malloc(asize);
 		if (p0) {
@@ -1166,7 +1166,7 @@ static void* bin_load_impl(const char* pPath, size_t* pSize, bool appendPath, bo
 	size_t size = 0;
 	xt_fhandle fh = nxSys::fopen(pPath);
 	if (fh) {
-		size_t pathLen = ::strlen(pPath);
+		size_t pathLen = nxCore::str_len(pPath);
 		size_t fsize = nxSys::fsize(fh);
 		size_t memsize = fsize;
 		if (appendPath) {
@@ -1296,7 +1296,7 @@ bool str_eq(const char* pStrA, const char* pStrB) {
 
 bool str_starts_with(const char* pStr, const char* pPrefix) {
 	if (pStr && pPrefix) {
-		size_t len = ::strlen(pPrefix);
+		size_t len = nxCore::str_len(pPrefix);
 		for (size_t i = 0; i < len; ++i) {
 			char ch = pStr[i];
 			if (0 == ch || ch != pPrefix[i]) return false;
@@ -1308,8 +1308,8 @@ bool str_starts_with(const char* pStr, const char* pPrefix) {
 
 bool str_ends_with(const char* pStr, const char* pPostfix) {
 	if (pStr && pPostfix) {
-		size_t lenStr = ::strlen(pStr);
-		size_t lenPost = ::strlen(pPostfix);
+		size_t lenStr = nxCore::str_len(pStr);
+		size_t lenPost = nxCore::str_len(pPostfix);
 		if (lenStr < lenPost) return false;
 		for (size_t i = 0; i < lenPost; ++i) {
 			if (pStr[lenStr - lenPost + i] != pPostfix[i]) return false;
@@ -1322,7 +1322,7 @@ bool str_ends_with(const char* pStr, const char* pPostfix) {
 char* str_dup(const char* pSrc, const char* pTag) {
 	char* pDst = nullptr;
 	if (pSrc) {
-		size_t len = ::strlen(pSrc) + 1;
+		size_t len = nxCore::str_len(pSrc) + 1;
 		pDst = reinterpret_cast<char*>(mem_alloc(len, pTag ? pTag : "xStr"));
 		mem_copy(pDst, pSrc, len);
 	}
@@ -6040,7 +6040,7 @@ XD_NOINLINE sxData* load(const char* pPath) {
 	sxData* pData = reinterpret_cast<sxData*>(nxCore::bin_load_impl(pPath, &size, true, true, true, s_pXDataMemTag));
 	if (pData) {
 		if (pData->mFileSize == size) {
-			pData->mFilePathLen = (uint32_t)::strlen(pPath);
+			pData->mFilePathLen = (uint32_t)nxCore::str_len(pPath);
 		} else {
 			unload(pData);
 			pData = nullptr;
@@ -10744,7 +10744,7 @@ enum class exExprFunc {
 bool sxCompiledExpression::String::eq(const char* pStr) const {
 	bool res = false;
 	if (pStr) {
-		size_t len = ::strlen(pStr);
+		size_t len = nxCore::str_len(pStr);
 		if (len == mLen) {
 			res = ::memcmp(mpChars, pStr, len) == 0;
 		}
@@ -10755,7 +10755,7 @@ bool sxCompiledExpression::String::eq(const char* pStr) const {
 bool sxCompiledExpression::String::starts_with(const char* pStr) const {
 	bool res = false;
 	if (pStr) {
-		size_t len = ::strlen(pStr);
+		size_t len = nxCore::str_len(pStr);
 		if (len <= mLen) {
 			res = ::memcmp(mpChars, pStr, len) == 0;
 		}
@@ -13593,7 +13593,7 @@ char* cxStrStore::add(const char* pStr) {
 	char* pRes = nullptr;
 	if (pStr) {
 		cxStrStore* pStore = this;
-		size_t len = ::strlen(pStr) + 1;
+		size_t len = nxCore::str_len(pStr) + 1;
 		while (!pRes) {
 			size_t free = pStore->mSize - pStore->mPtr;
 			if (free >= len) {
@@ -13635,7 +13635,7 @@ void cxCmdLine::ctor(int argc, char* argv[]) {
 	for (int i = 1; i < argc; ++i) {
 		char* pArg = argv[i];
 		if (nxCore::str_starts_with(pArg, "-")) {
-			int argLen = int(::strlen(pArg));
+			int argLen = int(nxCore::str_len(pArg));
 			char* pVal = nullptr;
 			for (int j = 1; j < argLen; ++j) {
 				if (pArg[j] == ':') {
@@ -13983,7 +13983,7 @@ cxResourceManager::Pkg* cxResourceManager::load_pkg(const char* pName) {
 	char path[1024];
 	char* pPath = path;
 	size_t pathBufSize = sizeof(path);
-	size_t pathSize = ::strlen(mpDataPath) + 1 + (::strlen(pName) + 1)*2 + 4 + 1;
+	size_t pathSize = nxCore::str_len(mpDataPath) + 1 + (nxCore::str_len(pName) + 1)*2 + 4 + 1;
 	if (pathSize > pathBufSize) {
 		pPath = (char*)nxCore::mem_alloc(pathSize, "RsrcMgr:path");
 		pathBufSize = pathSize;
@@ -14045,7 +14045,7 @@ cxResourceManager::Pkg* cxResourceManager::load_pkg(const char* pName) {
 				for (uint32_t i = 0; i < pCat->mFilesNum; ++i) {
 					const char* pItemName = pCat->get_item_name(i);
 					const char* pFileName = pCat->get_file_name(i);
-					pathSize = ::strlen(mpDataPath) + 1 + ::strlen(pName) + 1 + ::strlen(pFileName) + 1;
+					pathSize = nxCore::str_len(mpDataPath) + 1 + nxCore::str_len(pName) + 1 + nxCore::str_len(pFileName) + 1;
 					if (pathSize > pathBufSize) {
 						if (pPath != path) {
 							nxCore::mem_free(pPath);
@@ -14314,7 +14314,7 @@ cxResourceManager* cxResourceManager::create(const char* pAppPath, const char* p
 	if (pMgr) {
 		pMgr->mpAppPath = pAppPath ? nxCore::str_dup(pAppPath, "xRsrcMgr:appPath") : nullptr;
 		pMgr->mpRelDataDir = nxCore::str_dup(pRelDataDir ? pRelDataDir : "../data", "xRsrcMgr:relDir");
-		size_t pathLen = pMgr->mpAppPath ? ::strlen(pMgr->mpAppPath) : 0;
+		size_t pathLen = pMgr->mpAppPath ? nxCore::str_len(pMgr->mpAppPath) : 0;
 		if (pathLen > 0) {
 			--pathLen;
 			while (pathLen > 0) {
@@ -14327,14 +14327,14 @@ cxResourceManager* cxResourceManager::create(const char* pAppPath, const char* p
 		} else {
 			pathLen = 0;
 		}
-		size_t pathSize = pathLen + ::strlen(pMgr->mpRelDataDir) + 1;
+		size_t pathSize = pathLen + nxCore::str_len(pMgr->mpRelDataDir) + 1;
 		pMgr->mpDataPath = (char*)nxCore::mem_alloc(pathSize, "xRsrcMgr:path");
 		if (pMgr->mpDataPath) {
 			nxCore::mem_zero(pMgr->mpDataPath, pathSize);
 			if (pathLen) {
 				nxCore::mem_copy(pMgr->mpDataPath, pMgr->mpAppPath, pathLen);
 			}
-			nxCore::mem_copy(pMgr->mpDataPath + pathLen, pMgr->mpRelDataDir, ::strlen(pMgr->mpRelDataDir));
+			nxCore::mem_copy(pMgr->mpDataPath + pathLen, pMgr->mpRelDataDir, nxCore::str_len(pMgr->mpRelDataDir));
 		}
 		pMgr->mpPkgList = PkgList::create("xRsrcMgr:PkgList");
 		pMgr->mpPkgMap = PkgMap::create("xRsrcMgr:PkgMap");
