@@ -35,8 +35,8 @@
 #	define XD_THREADFUNCS_ENABLED 1
 #endif
 
-#ifndef XD_FILEFUNCS_INTERNAL
-#	define XD_FILEFUNCS_INTERNAL 0
+#ifndef XD_STRFUNCS_INTERNAL
+#	define XD_STRFUNCS_INTERNAL 0
 #endif
 
 #ifndef XD_TSK_NATIVE
@@ -205,7 +205,7 @@ FILE* x_fopen(const char* fpath, const char* mode) {
 }
 
 void x_strcpy(char* pDst, const size_t dstSize, const char* pSrc) {
-#if XD_FILEFUNCS_INTERNAL
+#if XD_STRFUNCS_INTERNAL
 	if (pDst && pSrc && dstSize > 0) {
 		size_t srcSize = nxCore::str_len(pSrc) + 1;
 		if (dstSize >= srcSize) {
@@ -1347,7 +1347,7 @@ char* str_dup(const char* pSrc, const char* pTag) {
 size_t str_len(const char* pStr) {
 	size_t len = 0;
 	if (pStr) {
-#if XD_FILEFUNCS_INTERNAL
+#if XD_STRFUNCS_INTERNAL
 		const char* p = pStr;
 		while (true) {
 			if (!*p) break;
