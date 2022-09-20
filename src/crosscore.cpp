@@ -1353,10 +1353,35 @@ uint16_t str_hash16(const char* pStr) {
 	return (uint16_t)((h >> 16) ^ (h & 0xFFFF));
 }
 
+XD_FORCEINLINE static int x_strcompare_sub(const char* pStr1, const char* pStr2) {
+	int res = 0;
+	if (pStr1 && pStr2) {
+		const char* p1 = pStr1;
+		const char* p2 = pStr2;
+		while (true) {
+			char c = *p1;
+			if (c != *p2) {
+				res = c < *p2 ? -1 : 1;
+				break;
+			}
+			if (!c) {
+				break;
+			}
+			++p1;
+			++p2;
+		}
+	}
+	return res;
+}
+
 bool str_eq(const char* pStrA, const char* pStrB) {
 	bool res = false;
 	if (pStrA && pStrB) {
+#if XD_STRFUNCS_INTERNAL
+		res = x_strcompare_sub(pStrA, pStrB) == 0;
+#else
 		res = ::strcmp(pStrA, pStrB) == 0;
+#endif
 	}
 	return res;
 }
