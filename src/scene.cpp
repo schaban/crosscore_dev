@@ -688,19 +688,19 @@ uint64_t get_frame_count() {
 	return s_frameCnt;
 }
 
-void push_ctx() {
+XD_NOINLINE void push_ctx() {
 	if ((size_t)s_drwCtxSP < XD_ARY_LEN(s_drwCtxStk)) {
-		s_drwCtxStk[s_drwCtxSP] = s_drwCtx;
+		nxCore::mem_copy(&s_drwCtxStk[s_drwCtxSP], &s_drwCtx, sizeof(Draw::Context)); //s_drwCtxStk[s_drwCtxSP] = s_drwCtx;
 		++s_drwCtxSP;
 		s_viewUpdateFlg = true;
 		s_shadowUpdateFlg = true;
 	}
 }
 
-void pop_ctx() {
+XD_NOINLINE void pop_ctx() {
 	if (s_drwCtxSP > 0) {
 		--s_drwCtxSP;
-		s_drwCtx = s_drwCtxStk[s_drwCtxSP];
+		nxCore::mem_copy(&s_drwCtx, &s_drwCtxStk[s_drwCtxSP], sizeof(Draw::Context)); //s_drwCtx = s_drwCtxStk[s_drwCtxSP];
 		s_viewUpdateFlg = true;
 		s_shadowUpdateFlg = true;
 	}
