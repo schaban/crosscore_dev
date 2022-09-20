@@ -115,7 +115,7 @@ static GLuint load_shader(const char* pName) {
 		char path[256];
 		char* pPath = path;
 		size_t pathBufSize = sizeof(path);
-		size_t pathSize = (pDataPath ? ::strlen(pDataPath) : 1) + 5 + ::strlen(pName) + 1;
+		size_t pathSize = (pDataPath ? nxCore::str_len(pDataPath) : 1) + 5 + nxCore::str_len(pName) + 1;
 		if (pathSize > pathBufSize) {
 			pPath = (char*)nxCore::mem_alloc(pathSize, "glsl_path");
 			pathBufSize = pathSize;
@@ -160,7 +160,7 @@ static GLuint load_shader(const char* pName) {
 				}
 			}
 			if (pPreStr) {
-				size_t preSize = ::strlen(pPreStr);
+				size_t preSize = nxCore::str_len(pPreStr);
 				size_t altSize = preSize + srcSize;
 				char* pAltSrc = (char*)nxCore::mem_alloc(altSize, "glsl:pre+src");
 				if (pAltSrc) {
@@ -210,7 +210,7 @@ static GLuint load_shader(const char* pName) {
 				}
 			}
 #	endif
-			size_t preSize = ::strlen(pPreStr);
+			size_t preSize = nxCore::str_len(pPreStr);
 			size_t altSize = preSize + srcSize;
 			char* pAltSrc = (char*)nxCore::mem_alloc(altSize, "glsl:pre+src");
 			if (pAltSrc) {
@@ -401,10 +401,10 @@ static void save_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 	char path[128];
 	char* pPath = path;
 	size_t bufSize = sizeof(path);
-	size_t pathSize = ::strlen(s_pGLSLBinSavePath) + 1
-	                + ::strlen(pVertName) + 1
-	                + ::strlen(pFragName) + 1
-	                + ::strlen(pExt) + 1;
+	size_t pathSize = nxCore::str_len(s_pGLSLBinSavePath) + 1
+	                + nxCore::str_len(pVertName) + 1
+	                + nxCore::str_len(pFragName) + 1
+	                + nxCore::str_len(pExt) + 1;
 	if (pathSize > sizeof(path)) {
 		bufSize = pathSize;
 		pPath = (char*)nxCore::mem_alloc(pathSize, "GPUProg:save:path");
@@ -429,10 +429,10 @@ static bool load_gpu_prog_bin(const GLuint pid, const char* pVertName, const cha
 	char path[128];
 	char* pPath = path;
 	size_t bufSize = sizeof(path);
-	size_t pathSize = ::strlen(s_pGLSLBinLoadPath) + 1
-	                + ::strlen(pVertName) + 1
-	                + ::strlen(pFragName) + 1
-	                + ::strlen(pExt) + 1;
+	size_t pathSize = nxCore::str_len(s_pGLSLBinLoadPath) + 1
+	                + nxCore::str_len(pVertName) + 1
+	                + nxCore::str_len(pFragName) + 1
+	                + nxCore::str_len(pExt) + 1;
 	if (pathSize > sizeof(path)) {
 		bufSize = pathSize;
 		pPath = (char*)nxCore::mem_alloc(pathSize, "GPUProg:load:path");
