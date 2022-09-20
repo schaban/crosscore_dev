@@ -1438,7 +1438,7 @@ size_t str_len(const char* pStr) {
 	return len;
 }
 
-int64_t parse_i64(const char* pStr) {
+XD_NOINLINE int64_t parse_i64(const char* pStr) {
 	int64_t res = 0;
 	if (pStr) {
 #if defined(_MSC_VER)
@@ -1446,6 +1446,14 @@ int64_t parse_i64(const char* pStr) {
 #else
 		res = ::atoll(pStr);
 #endif
+	}
+	return res;
+}
+
+XD_NOINLINE double parse_f64(const char* pStr) {
+	double res = 0.0;
+	if (pStr) {
+		res = ::atof(pStr);
 	}
 	return res;
 }
@@ -13915,7 +13923,7 @@ XD_NOINLINE float cxCmdLine::get_float_opt(const char* pName, const float defVal
 	const char* pValStr = get_opt(pName);
 	float res = defVal;
 	if (pValStr) {
-		res = float(::atof(pValStr));
+		res = float(nxCore::parse_f64(pValStr));
 	}
 	return res;
 }
@@ -15015,7 +15023,7 @@ void cxXqcLexer::scan(TokenFunc& func) {
 						break;
 					} else if (dotFlg || expFlg) {
 						const char* pFltStr = tstr.get_str();
-						double fltVal = ::atof(pFltStr);
+						double fltVal = nxCore::parse_f64(pFltStr);
 						tok.id = TokId::TOK_FLOAT;
 						tok.val.f = fltVal;
 						contFlg = func(tok);
