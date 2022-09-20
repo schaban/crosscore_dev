@@ -13914,7 +13914,7 @@ XD_NOINLINE int cxCmdLine::get_int_opt(const char* pName, const int defVal) cons
 	const char* pValStr = get_opt(pName);
 	int res = defVal;
 	if (pValStr) {
-		res = ::atoi(pValStr);
+		res = int(nxCore::parse_i64(pValStr));
 	}
 	return res;
 }
