@@ -1552,7 +1552,7 @@ static int x_sort_cmpfunc_f32(const void* pA, const void* pB, void* pCtx) {
 }
 
 void sort_f32(float* pVals, size_t numVals) {
-	sort(pVals, numVals, sizeof(float), x_sort_cmpfunc_f32, nullptr);
+	sort(pVals, numVals, sizeof(float), x_sort_cmpfunc_f32);
 }
 
 static int x_sort_cmpfunc_f64(const void* pA, const void* pB, void* pCtx) {
@@ -1566,7 +1566,7 @@ static int x_sort_cmpfunc_f64(const void* pA, const void* pB, void* pCtx) {
 }
 
 void sort_f64(double* pVals, size_t numVals) {
-	sort(pVals, numVals, sizeof(double), x_sort_cmpfunc_f64, nullptr);
+	sort(pVals, numVals, sizeof(double), x_sort_cmpfunc_f64);
 }
 
 
