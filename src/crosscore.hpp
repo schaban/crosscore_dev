@@ -342,8 +342,12 @@ bool str_starts_with(const char* pStr, const char* pPrefix);
 bool str_ends_with(const char* pStr, const char* pPostfix);
 char* str_dup(const char* pSrc, const char* pTag = "xStr");
 size_t str_len(const char* pStr);
-
 int64_t parse_i64(const char* pStr);
+
+typedef int (*xt_sortcmp_func)(const void*, const void*, void*);
+void sort(void* pEntries, size_t numEntries, size_t elemSize, xt_sortcmp_func cmpfn, void* pCtx);
+void sort_f32(float* pVals, size_t numVals);
+void sort_f64(double* pVals, size_t numVals);
 
 template <typename T> struct tMem {
 	static void ctor(T* pTop, int n = 1) {

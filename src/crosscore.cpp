@@ -1373,6 +1373,126 @@ int64_t parse_i64(const char* pStr) {
 	return res;
 }
 
+
+XD_FORCEINLINE void sort_swap_bytes(uint8_t* pA, uint8_t* pB, size_t n) {
+	uint8_t t;
+	do {
+		t = *pA;
+		*pA++ = *pB;
+		*pB++ = t;
+		--n;
+	} while (n != 0);
+}
+
+struct sxSortPrivateWk {
+	void* pCtx;
+	xt_sortcmp_func cmpfn;
+	size_t elemSize;
+
+	uint8_t* pivot(uint8_t* p, size_t n) {
+		if (n > 10) {
+			size_t j = elemSize * (n / 6);
+			uint8_t* pI = p + j;
+			uint8_t* pJ = pI + j * 2;
+			uint8_t* pK = pI + j * 4;
+			if (cmpfn(pI, pJ, pCtx) < 0) {
+				if (cmpfn(pI, pK, pCtx) < 0) {
+					if (cmpfn(pJ, pK, pCtx) < 0) {
+						return pJ;
+					}
+					return pK;
+				}
+				return pI;
+			}
+			if (cmpfn(pJ, pK, pCtx) < 0) {
+				if (cmpfn(pI, pK, pCtx) < 0) {
+					return pI;
+				}
+				return pK;
+			}
+			return pJ;
+		}
+		return p + (elemSize * (n / 2));
+	}
+
+	void sort(uint8_t* p, size_t n) {
+		size_t s = elemSize;
+		while (n > 1) {
+			size_t j;
+			uint8_t* pJ;
+			uint8_t* pN;
+			uint8_t* pI = pivot(p, n);
+			sort_swap_bytes(p, pI, s);
+			pI = p;
+			pN = p + (n * s);
+			pJ = pN;
+			while (true) {
+				do {
+					pI += s;
+				} while (pI < pN && cmpfn(pI, p, pCtx) < 0);
+				do {
+					pJ -= s;
+				} while (pJ > p && cmpfn(pJ, p, pCtx) > 0);
+				if (pJ < pI) {
+					break;
+				}
+				sort_swap_bytes(pI, pJ, s);
+			}
+			sort_swap_bytes(p, pJ, s);
+			j = (size_t)(pJ - p) / s;
+			n -= j + 1;
+			if (j >= n) {
+				sort(p, j);
+				p += (j + 1) * s;
+			} else {
+				sort(p + (j + 1) * s, n);
+				n = j;
+			}
+		}
+	}
+};
+
+void sort(void* pEntries, size_t numEntries, size_t elemSize, xt_sortcmp_func cmpfn, void* pCtx) {
+	if (!pEntries) return;
+	if (!cmpfn) return;
+	if (numEntries < 2) return;
+	if (elemSize < 1) return;
+	sxSortPrivateWk wk;
+	wk.pCtx = pCtx;
+	wk.cmpfn = cmpfn;
+	wk.elemSize = elemSize;
+	wk.sort((uint8_t*)pEntries, numEntries);
+}
+
+static int x_sort_cmpfunc_f32(const void* pA, const void* pB, void* pCtx) {
+	float* pVal1 = (float*)pA;
+	float* pVal2 = (float*)pB;
+	float v1 = *pVal1;
+	float v2 = *pVal2;
+	if (v1 > v2) return 1;
+	if (v1 < v2) return -1;
+	return 0;
+}
+
+void sort_f32(float* pVals, size_t numVals) {
+	sort(pVals, numVals, sizeof(float), x_sort_cmpfunc_f32, nullptr);
+}
+
+static int x_sort_cmpfunc_f64(const void* pA, const void* pB, void* pCtx) {
+	double* pVal1 = (double*)pA;
+	double* pVal2 = (double*)pB;
+	double v1 = *pVal1;
+	double v2 = *pVal2;
+	if (v1 > v2) return 1;
+	if (v1 < v2) return -1;
+	return 0;
+}
+
+void sort_f64(double* pVals, size_t numVals) {
+	sort(pVals, numVals, sizeof(double), x_sort_cmpfunc_f64, nullptr);
+}
+
+
 uint16_t float_to_half(const float x) {
 	uint32_t b = f32_get_bits(x);
 	uint16_t s = (uint16_t)((b >> 16) & (1 << 15));
@@ -2083,20 +2203,10 @@ int32_t prime(const int32_t x) {
 	return x;
 }
 
-static int dbl_cmp(const void* pA, const void* pB) {
-	double* pSmp1 = (double*)pA;
-	double* pSmp2 = (double*)pB;
-	double s1 = *pSmp1;
-	double s2 = *pSmp2;
-	if (s1 > s2) return 1;
-	if (s1 < s2) return -1;
-	return 0;
-}
-
 double median(double* pData, const size_t num) {
 	double med = 0.0;
 	if (pData && num) {
-		::qsort(pData, num, sizeof(double), dbl_cmp);
+		nxCore::sort_f64(pData, num);
 		med = (num & 1) ? pData[(num - 1) / 2] : (pData[(num / 2) - 1] + pData[num / 2]) * 0.5;
 	}
 	return med;
