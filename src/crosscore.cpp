@@ -39,6 +39,10 @@
 #	define XD_STRFUNCS_INTERNAL 0
 #endif
 
+#ifndef XD_MEMFUNCS_INTERNAL
+#	define XD_MEMFUNCS_INTERNAL 0
+#endif
+
 #ifndef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 1
 #endif
@@ -1130,27 +1134,75 @@ uint64_t mem_peak_bytes() {
 }
 
 void mem_zero(void* pDst, size_t dstSize) {
+#if XD_MEMFUNCS_INTERNAL
+	if (pDst) {
+		uint8_t* pd = (uint8_t*)pDst;
+		for (size_t i = 0; i < dstSize; ++i) {
+			*pd++ = 0;
+		}
+	}
+#else
 	if (pDst && dstSize > 0) {
 		::memset(pDst, 0, dstSize);
 	}
+#endif
 }
 
 void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize) {
+#if XD_MEMFUNCS_INTERNAL
+	if (pDst) {
+		uint8_t* pd = (uint8_t*)pDst;
+		for (size_t i = 0; i < dstSize; ++i) {
+			*pd++ = fillVal;
+		}
+	}
+#else
 	if (pDst && dstSize > 0) {
 		::memset(pDst, (int)fillVal, dstSize);
+	}
+#endif
+}
+
+XD_FORCEINLINE static void x_memcopy_sub(uint8_t* pDst, const uint8_t* pSrc, const size_t len) {
+	for (size_t i = 0; i < len; ++i) {
+		*pDst++ = *pSrc++;
 	}
 }
 
 void mem_copy(void* pDst, const void* pSrc, size_t cpySize) {
 	if (pDst && pSrc && cpySize > 0) {
+#if XD_MEMFUNCS_INTERNAL
+		x_memcopy_sub((uint8_t*)pDst, (const uint8_t*)pSrc, cpySize);
+#else
 		::memcpy(pDst, pSrc, cpySize);
+#endif
 	}
 }
 
-bool mem_eq(const void* pDst, const void* pSrc, size_t memSize) {
+XD_FORCEINLINE static int x_memcompare_sub(const void* pSrc1, const void* pSrc2, const size_t len) {
+	int res = 0;
+	const uint8_t* p1 = (const uint8_t*)pSrc1;
+	const uint8_t* p2 = (const uint8_t*)pSrc2;
+	size_t i;
+	for (i = 0; i < len; ++i) {
+		if (*p1 != *p2) {
+			res = *p1 < *p2 ? -1 : 1;
+			break;
+		}
+		++p1;
+		++p2;
+	}
+	return res;
+}
+
+bool mem_eq(const void* pSrc1, const void* pSrc2, size_t memSize) {
 	bool res = false;
-	if (pDst && pSrc && memSize > 0) {
-		res = ::memcmp(pSrc, pDst, memSize) == 0;
+	if (pSrc1 && pSrc2 && memSize > 0) {
+#if XD_MEMFUNCS_INTERNAL
+		res = x_memcompare_sub(pSrc1, pSrc2, memSize) == 0;
+#else
+		res = ::memcmp(pSrc1, pSrc2, memSize) == 0;
+#endif
 	}
 	return res;
 }
@@ -6330,7 +6382,7 @@ static uint32_t backref_encode(
 			flg = offs < (1 << 13);
 		}
 		if (flg) {
-			flg = (::memcmp(&pSrc[isrc], &pSrc[istor], 3) == 0);
+			flg = nxCore::mem_eq(&pSrc[isrc], &pSrc[istor], 3);
 		}
 		if (flg) {
 			if (nstor > 0) {
@@ -6891,12 +6943,12 @@ sxData::Status sxData::get_status() const {
 		}
 	}
 	for (int i = 0; i < nfmt; ++i) {
-		if (::memcmp(&mKind, &flst[i].ccLE, sizeof(uint32_t)) == 0) {
+		if (nxCore::mem_eq(&mKind, &flst[i].ccLE, sizeof(uint32_t))) {
 			s.fmt = 1;
 			s.native = sysLE ? 1 : 0;
 			s.bige = 0;
 			break;
-		} else if (::memcmp(&mKind, &flst[i].ccBE, sizeof(uint32_t)) == 0) {
+		} else if (nxCore::mem_eq(&mKind, &flst[i].ccBE, sizeof(uint32_t))) {
 			s.fmt = 1;
 			s.native = sysLE ? 0 : 1;
 			s.bige = 1;
@@ -10880,7 +10932,7 @@ bool sxCompiledExpression::String::eq(const char* pStr) const {
 	if (pStr) {
 		size_t len = nxCore::str_len(pStr);
 		if (len == mLen) {
-			res = ::memcmp(mpChars, pStr, len) == 0;
+			res = nxCore::mem_eq(mpChars, pStr, len);
 		}
 	}
 	return res;
@@ -10891,7 +10943,7 @@ bool sxCompiledExpression::String::starts_with(const char* pStr) const {
 	if (pStr) {
 		size_t len = nxCore::str_len(pStr);
 		if (len <= mLen) {
-			res = ::memcmp(mpChars, pStr, len) == 0;
+			res = nxCore::mem_eq(mpChars, pStr, len);
 		}
 	}
 	return res;
