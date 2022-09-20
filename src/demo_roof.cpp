@@ -255,7 +255,7 @@ public:
 		const char* pExmCntsPath = "../ProgState/ExmCnts/";
 		if (path.starts_with(pVarsPath)) {
 			if (pWk && pWk->mpVarsMap) {
-				const char* pVarName = path.mpChars + ::strlen(pVarsPath);
+				const char* pVarName = path.mpChars + nxCore::str_len(pVarsPath);
 				int varIdx = -1;
 				if (pWk->mpVarsMap->get(pVarName, &varIdx)) {
 					if (varIdx >= 0 && varIdx < SCENARIO_MAX_VARS) {
@@ -264,7 +264,7 @@ public:
 				}
 			}
 		} else if (path.starts_with(pExmCntsPath)) {
-			int exmCntIdx = pWk->find_exm_cnt(path.mpChars + ::strlen(pExmCntsPath));
+			int exmCntIdx = pWk->find_exm_cnt(path.mpChars + nxCore::str_len(pExmCntsPath));
 			if (exmCntIdx >= 0) {
 				val = float(pWk->mExmCnts[exmCntIdx].cnt);
 			}
@@ -1887,7 +1887,7 @@ static void scenario_resolve_exm_text() {
 	if (!pWk->mpExmName) return;
 	if (!pWk->mpExmVals) return;
 	if (nxCore::str_starts_with(pWk->mpExmName, EXM_EVAL_PREFIX)) {
-		pWk->mpExmText = pWk->mpExmName + ::strlen(EXM_EVAL_PREFIX);
+		pWk->mpExmText = pWk->mpExmName + nxCore::str_len(EXM_EVAL_PREFIX);
 		return;
 	}
 	sxValuesData::Group grp = pWk->mpExmVals->find_grp("exm_roof");
@@ -2035,7 +2035,7 @@ static bool scenario_eval_exec(SCENARIO_WK* pWk, const char* pExec) {
 	bool execFlg = false;
 	if (pExec && pWk->mpVarsMap && pWk->mpExprLib) {
 		size_t idx = 0;
-		size_t execLen = ::strlen(pExec);
+		size_t execLen = nxCore::str_len(pExec);
 		if (execLen > 2) {
 			char c = 0;
 			size_t execDstOrg = 0;
@@ -2100,7 +2100,7 @@ static void scenario_exec_examine(SCENARIO_WK* pWk) {
 	if (s_kbdCtrl.ck_trg(KBD_CTRL::ENTER)) {
 		if (pWk->mpExmVals && pWk->mpExmTextName && pWk->mpVarsMap && pWk->mpExprLib) {
 			sxValuesData::Group grp = pWk->mpExmVals->find_grp("exm_roof");
-			if (grp.is_valid() && ::strlen(pWk->mpExmTextName) <= 32) {
+			if (grp.is_valid() && nxCore::str_len(pWk->mpExmTextName) <= 32) {
 				char execName[64];
 				for (int i = 0; i < SCENARIO_MAX_EXECS; ++i) {
 					XD_SPRINTF(XD_SPRINTF_BUF(execName, sizeof(execName)), "exec_%s_%d", pWk->mpExmTextName, i);
