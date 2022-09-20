@@ -43,6 +43,10 @@
 #	define XD_MEMFUNCS_INTERNAL 0
 #endif
 
+#ifndef XD_NUMPARSE_INTERNAL
+#	define XD_NUMPARSE_INTERNAL 0
+#endif
+
 #ifndef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 1
 #endif
@@ -1163,19 +1167,10 @@ void mem_fill(void* pDst, uint8_t fillVal, size_t dstSize) {
 #endif
 }
 
+#if XD_MEMFUNCS_INTERNAL
 XD_FORCEINLINE static void x_memcopy_sub(uint8_t* pDst, const uint8_t* pSrc, const size_t len) {
 	for (size_t i = 0; i < len; ++i) {
 		*pDst++ = *pSrc++;
-	}
-}
-
-void mem_copy(void* pDst, const void* pSrc, size_t cpySize) {
-	if (pDst && pSrc && cpySize > 0) {
-#if XD_MEMFUNCS_INTERNAL
-		x_memcopy_sub((uint8_t*)pDst, (const uint8_t*)pSrc, cpySize);
-#else
-		::memcpy(pDst, pSrc, cpySize);
-#endif
 	}
 }
 
@@ -1193,6 +1188,17 @@ XD_FORCEINLINE static int x_memcompare_sub(const void* pSrc1, const void* pSrc2,
 		++p2;
 	}
 	return res;
+}
+#endif
+
+void mem_copy(void* pDst, const void* pSrc, size_t cpySize) {
+	if (pDst && pSrc && cpySize > 0) {
+#if XD_MEMFUNCS_INTERNAL
+		x_memcopy_sub((uint8_t*)pDst, (const uint8_t*)pSrc, cpySize);
+#else
+		::memcpy(pDst, pSrc, cpySize);
+#endif
+	}
 }
 
 bool mem_eq(const void* pSrc1, const void* pSrc2, size_t memSize) {
@@ -1438,13 +1444,122 @@ size_t str_len(const char* pStr) {
 	return len;
 }
 
+#if XD_NUMPARSE_INTERNAL
+static int64_t x_parse_i64_sub(const char* pChrs, const size_t nchrs) {
+	int64_t val = 0;
+	int64_t mul = 1;
+	for (int i = int(nchrs); --i >= 0;) {
+		int64_t d = pChrs[i] - '0';
+		val += d * mul;
+		mul *= 10;
+	}
+	return val;
+}
+
+static int64_t x_parse_i64_impl(const char* pStr) {
+	int64_t res = 0;
+	size_t len = str_len(pStr);
+	if (len > 0 && len < 20) {
+		const char* p = pStr;
+		bool sgn = false;
+		while ((*p == ' ' || *p == '\t') && len > 0) {
+			++p;
+			--len;
+		}
+		if (len > 0) {
+			if (*p == '-') {
+				sgn = true;
+				++p;
+				--len;
+			} else  if (*p == '+') {
+				++p;
+				--len;
+			}
+			if (len > 0) {
+				bool ck = true;
+				for (size_t i = 0; i < len; ++i) {
+					if (p[i] < '0' || p[i] > '9') {
+						ck = false;
+						break;
+					}
+				}
+				if (ck) {
+					res = x_parse_i64_sub(p, len);
+					if (sgn) {
+						res = -res;
+					}
+				}
+			}
+		}
+	}
+	return res;
+}
+
+static double x_parse_f64_impl(const char* pStr) {
+	double res = 0.0;
+	size_t len = str_len(pStr);
+	if (len > 0 && len < 0x100) {
+		const char* p = pStr;
+		bool sgn = false;
+		while ((*p == ' ' || *p == '\t') && len > 0) {
+			++p;
+			--len;
+		}
+		if (len > 0) {
+			if (*p == '-') {
+				sgn = true;
+				++p;
+				--len;
+			} else  if (*p == '+') {
+				++p;
+				--len;
+			}
+			if (len > 0) {
+				bool ck = true;
+				int dpos = -1;
+				for (size_t i = 0; i < len; ++i) {
+					if (p[i] < '0' || p[i] > '9') {
+						if (p[i] == '.' && dpos < 0) {
+							dpos = int(i);
+						} else {
+							ck = false;
+							break;
+						}
+					}
+				}
+				if (ck) {
+					if (dpos < 0) {
+						res = double(x_parse_i64_sub(p, len));
+					} else {
+						size_t ilen = dpos;
+						size_t flen = len - dpos - 1;
+						double wpart = double(x_parse_i64_sub(p, ilen));
+						double fpart = double(x_parse_i64_sub(p + dpos + 1, flen));
+						fpart *= nxCalc::ipow(10.0, -int(flen));
+						res = wpart + fpart;
+					}
+					if (sgn) {
+						res = -res;
+					}
+				}
+			}
+		}
+	}
+	return res;
+}
+#endif
+
 XD_NOINLINE int64_t parse_i64(const char* pStr) {
 	int64_t res = 0;
 	if (pStr) {
+#if XD_NUMPARSE_INTERNAL
+		res = x_parse_i64_impl(pStr);
+#else
 #if defined(_MSC_VER)
 		res = ::_atoi64(pStr);
 #else
 		res = ::atoll(pStr);
+#endif
 #endif
 	}
 	return res;
@@ -1453,7 +1568,11 @@ XD_NOINLINE int64_t parse_i64(const char* pStr) {
 XD_NOINLINE double parse_f64(const char* pStr) {
 	double res = 0.0;
 	if (pStr) {
+#if XD_NUMPARSE_INTERNAL
+		res = x_parse_f64_impl(pStr);
+#else
 		res = ::atof(pStr);
+#endif
 	}
 	return res;
 }
