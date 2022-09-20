@@ -558,7 +558,7 @@ sxData* load_data_file(const char* pRelPath) {
 		char path[512];
 		char* pPath = path;
 		size_t bufSize = sizeof(path);
-		size_t pathSize = ::strlen(pDataPath) + 1 + ::strlen(pRelPath) + 1;
+		size_t pathSize = nxCore::str_len(pDataPath) + 1 + nxCore::str_len(pRelPath) + 1;
 		if (pathSize > bufSize) {
 			pPath = (char*)nxCore::mem_alloc(pathSize, "Scn:data_path");
 			bufSize = pathSize;
@@ -2600,8 +2600,8 @@ void print(const float x, const float y, const cxColor& clr, const char* pStr) {
 	xt_float2 vtex[4];
 	float v0 = sclV * 0.5f;
 	float v1 = (fontH - 1.0f) * sclV;
-	size_t strLen = ::strlen(pStr);
-	for (size_t i = 0; i < strLen; ++i) {
+	size_t slen = nxCore::str_len(pStr);
+	for (size_t i = 0; i < slen; ++i) {
 		int cc = pStr[i];
 		if (cc > ' ') {
 			cc -= '!';
