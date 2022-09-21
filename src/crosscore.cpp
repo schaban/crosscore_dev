@@ -14338,12 +14338,25 @@ cxResourceManager::Pkg* cxResourceManager::load_pkg(const char* pName) {
 	char path[1024];
 	char* pPath = path;
 	size_t pathBufSize = sizeof(path);
-	size_t pathSize = nxCore::str_len(mpDataPath) + 1 + (nxCore::str_len(pName) + 1)*2 + 4 + 1;
+	size_t lenDataPath = nxCore::str_len(mpDataPath);
+	size_t lenName = nxCore::str_len(pName);
+	size_t pathSize = lenDataPath + 1 + (lenName + 1)*2 + 4 + 1;
 	if (pathSize > pathBufSize) {
 		pPath = (char*)nxCore::mem_alloc(pathSize, "RsrcMgr:path");
 		pathBufSize = pathSize;
 	}
-	XD_SPRINTF(XD_SPRINTF_BUF(pPath, pathBufSize), "%s/%s/%s.fcat", mpDataPath, pName, pName);
+	nxCore::mem_copy(pPath, mpDataPath, lenDataPath);
+	pPath[lenDataPath] = '/';
+	nxCore::mem_copy(pPath + lenDataPath + 1, pName, lenName);
+	pPath[lenDataPath + 1 + lenName] = '/';
+	nxCore::mem_copy(pPath + lenDataPath + 1 + lenName + 1, pName, lenName);
+	size_t extIdx = lenDataPath + 1 + lenName + 1 + lenName;
+	pPath[extIdx] = '.';
+	pPath[extIdx + 1] = 'f';
+	pPath[extIdx + 2] = 'c';
+	pPath[extIdx + 3] = 'a';
+	pPath[extIdx + 4] = 't';
+	pPath[extIdx + 5] = 0;
 	sxData* pCatData = nxData::load(pPath);
 	if (!pCatData) {
 		nxCore::dbg_msg("Can't find catalogue for pkg: '%s'\n", pName);
@@ -14400,16 +14413,26 @@ cxResourceManager::Pkg* cxResourceManager::load_pkg(const char* pName) {
 				for (uint32_t i = 0; i < pCat->mFilesNum; ++i) {
 					const char* pItemName = pCat->get_item_name(i);
 					const char* pFileName = pCat->get_file_name(i);
-					pathSize = nxCore::str_len(mpDataPath) + 1 + nxCore::str_len(pName) + 1 + nxCore::str_len(pFileName) + 1;
-					if (pathSize > pathBufSize) {
-						if (pPath != path) {
-							nxCore::mem_free(pPath);
+					sxData* pData = nullptr;
+					if (pFileName) {
+						size_t lenFileName = nxCore::str_len(pFileName);
+						pathSize = lenDataPath + 1 + lenName + 1 + lenFileName + 1;
+						if (pathSize > pathBufSize) {
+							if (pPath != path) {
+								nxCore::mem_free(pPath);
+							}
+							pPath = (char*)nxCore::mem_alloc(pathSize, "RsrcMgr:path");
+							pathBufSize = pathSize;
 						}
-						pPath = (char*)nxCore::mem_alloc(pathSize, "RsrcMgr:path");
-						pathBufSize = pathSize;
+						nxCore::mem_copy(pPath, mpDataPath, lenDataPath);
+						pPath[lenDataPath] = '/';
+						nxCore::mem_copy(pPath + lenDataPath + 1, pName, lenName);
+						pPath[lenDataPath + 1 + lenName] = '/';
+						size_t fileNameIdx = lenDataPath + 1 + lenName + 1;
+						nxCore::mem_copy(pPath + fileNameIdx, pFileName, lenFileName);
+						pPath[fileNameIdx + lenFileName] = 0;
+						pData = nxData::load(pPath);
 					}
-					XD_SPRINTF(XD_SPRINTF_BUF(pPath, pathBufSize), "%s/%s/%s", mpDataPath, pName, pFileName);
-					sxData* pData = nxData::load(pPath);
 					if (pData) {
 						Pkg::Entry* pEntry = pPkg->mpEntries->new_item();
 						if (pEntry) {
