@@ -190,13 +190,8 @@
 #define XD_DEG2RAD(_deg) ( (_deg) * (XD_PI / 180.0f) )
 #define XD_RAD2DEG(_rad) ( (_rad) * (180.0f / XD_PI) )
 
-#ifdef _MSC_VER
-#	define XD_SPRINTF ::sprintf_s
-#	define XD_SPRINTF_BUF(_buf, _bufsize)  (_buf), (_bufsize)
-#else
-#	define XD_SPRINTF ::sprintf
-#	define XD_SPRINTF_BUF(_buf, _bufsize)  (_buf)
-#endif
+#define XD_SPRINTF nxCore::str_fmt
+#define XD_SPRINTF_BUF(_buf, _bufsize)  (_buf), (_bufsize)
 
 typedef void* xt_fhandle;
 
@@ -344,6 +339,7 @@ char* str_dup(const char* pSrc, const char* pTag = "xStr");
 size_t str_len(const char* pStr);
 int64_t parse_i64(const char* pStr);
 double parse_f64(const char* pStr);
+int str_fmt(char* pBuf, size_t bufSize, const char* pFmt, ...);
 
 typedef int (*xt_sortcmp_func)(const void*, const void*, void*);
 void sort(void* pEntries, size_t numEntries, size_t elemSize, xt_sortcmp_func cmpfn, void* pCtx = nullptr);

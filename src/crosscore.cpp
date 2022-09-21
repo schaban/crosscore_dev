@@ -1218,20 +1218,23 @@ void dbg_break(const char* pMsg) {
 
 void dbg_msg(const char* pFmt, ...) {
 	char msg[1024 * 2];
-	va_list mrk;
-	va_start(mrk, pFmt);
+	va_list argLst;
+	va_start(argLst, pFmt);
+	int n = 0;
 #if defined(_MSC_VER)
-	::vsprintf_s(msg, sizeof(msg), pFmt, mrk);
+	n = ::vsprintf_s(msg, sizeof(msg), pFmt, argLst);
 #else
-	::vsprintf(msg, pFmt, mrk);
+	n = ::vsprintf(msg, pFmt, argLst);
 #endif
-	va_end(mrk);
-	if (msg[0] == '[') {
-		if (nxCore::str_starts_with(msg, "[BREAK]")) {
-			dbg_break(msg);
+	va_end(argLst);
+	if (n > 0) {
+		if (msg[0] == '[') {
+			if (nxCore::str_starts_with(msg, "[BREAK]")) {
+				dbg_break(msg);
+			}
 		}
+		nxSys::dbgmsg(msg);
 	}
-	nxSys::dbgmsg(msg);
 }
 
 static void* bin_load_impl(const char* pPath, size_t* pSize, bool appendPath, bool unpack, bool recursive, const char* pTag) {
@@ -1575,6 +1578,20 @@ XD_NOINLINE double parse_f64(const char* pStr) {
 #endif
 	}
 	return res;
+}
+
+XD_NOINLINE int str_fmt(char* pBuf, size_t bufSize, const char* pFmt, ...) {
+	if (!pBuf || bufSize < 1) return -1;
+	va_list argLst;
+	va_start(argLst, pFmt);
+	int n = 0;
+#if defined(_MSC_VER)
+	n = ::vsprintf_s(pBuf, bufSize, pFmt, argLst);
+#else
+	n = ::vsprintf(pBuf, pFmt, argLst);
+#endif
+	va_end(argLst);
+	return n;
 }
 
 
