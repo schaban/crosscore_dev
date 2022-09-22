@@ -35,6 +35,10 @@
 #	define XD_THREADFUNCS_ENABLED 1
 #endif
 
+#ifndef XD_TIMEFUNCS_ENABLED
+#	define XD_TIMEFUNCS_ENABLED 1
+#endif
+
 #ifndef XD_STRFUNCS_INTERNAL
 #	define XD_STRFUNCS_INTERNAL 0
 #endif
@@ -286,7 +290,9 @@ static sxSysIfc s_ifc {
 	def_fclose,
 	def_fsize,
 	def_fread,
-	def_dbgmsg
+	def_dbgmsg,
+	nullptr, // micros
+	nullptr // sleep
 };
 
 void init(sxSysIfc* pIfc) {
@@ -367,49 +373,61 @@ FILE* fopen_w_bin(const char* fpath) {
 	return x_fopen(fpath, "wb");
 }
 
-double time_micros() {
+XD_NOINLINE double time_micros() {
 	double ms = 0.0f;
-#if defined(XD_SYS_WINDOWS)
-	LARGE_INTEGER frq;
-	if (QueryPerformanceFrequency(&frq)) {
-		LARGE_INTEGER ctr;
-		QueryPerformanceCounter(&ctr);
-		ms = ((double)ctr.QuadPart / (double)frq.QuadPart) * 1.0e6;
-	}
-#elif defined(XD_SYS_APPLE) || defined(XD_FORCE_CHRONO)
-	using namespace std::chrono;
-	auto t = high_resolution_clock::now();
-	ms = (double)duration_cast<nanoseconds>(t.time_since_epoch()).count() * 1.0e-3;
-#else
-	struct timespec t;
-	if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) {
-		clock_gettime(CLOCK_REALTIME, &t);
-	}
-	ms = (double)t.tv_nsec*1.0e-3 + (double)t.tv_sec*1.0e6;
+	if (s_ifc.fn_micros) {
+		ms = s_ifc.fn_micros();
+	} else {
+#if XD_TIMEFUNCS_ENABLED
+#	if defined(XD_SYS_WINDOWS)
+		LARGE_INTEGER frq;
+		if (QueryPerformanceFrequency(&frq)) {
+			LARGE_INTEGER ctr;
+			QueryPerformanceCounter(&ctr);
+			ms = ((double)ctr.QuadPart / (double)frq.QuadPart) * 1.0e6;
+		}
+#	elif defined(XD_SYS_APPLE) || defined(XD_FORCE_CHRONO)
+		using namespace std::chrono;
+		auto t = high_resolution_clock::now();
+		ms = (double)duration_cast<nanoseconds>(t.time_since_epoch()).count() * 1.0e-3;
+#	else
+		struct timespec t;
+		if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) {
+			clock_gettime(CLOCK_REALTIME, &t);
+		}
+		ms = (double)t.tv_nsec*1.0e-3 + (double)t.tv_sec*1.0e6;
+#	endif
 #endif
+	}
 	return ms;
 }
 
-void sleep_millis(uint32_t millis) {
-#if defined(XD_TSK_NATIVE_WINDOWS)
-	::Sleep(millis);
-#elif defined(XD_TSK_NATIVE_PTHREAD)
-	if (millis < 1000) {
-		timespec req;
-		timespec rem;
-		req.tv_sec = 0;
-		req.tv_nsec = millis * 1000000;
-		::nanosleep(&req, &rem);
+XD_NOINLINE void sleep_millis(uint32_t millis) {
+	if (s_ifc.fn_sleep) {
+		s_ifc.fn_sleep(millis);
 	} else {
-		::usleep(millis * 1000);
-	}
-#elif XD_THREADFUNCS_ENABLED
-	using namespace std;
-	this_thread::sleep_for(chrono::milliseconds(millis));
+#if XD_TIMEFUNCS_ENABLED
+#	if defined(XD_TSK_NATIVE_WINDOWS)
+		::Sleep(millis);
+#	elif defined(XD_TSK_NATIVE_PTHREAD)
+		if (millis < 1000) {
+			timespec req;
+			timespec rem;
+			req.tv_sec = 0;
+			req.tv_nsec = millis * 1000000;
+			::nanosleep(&req, &rem);
+		} else {
+			::usleep(millis * 1000);
+		}
+#	elif XD_THREADFUNCS_ENABLED
+		using namespace std;
+		this_thread::sleep_for(chrono::milliseconds(millis));
+#	endif
 #endif
+	}
 }
 
-int num_active_cpus() {
+XD_NOINLINE int num_active_cpus() {
 	int ncpu = 1;
 #if defined(XD_SYS_LINUX) || defined(XD_SYS_FREEBSD)
 	ncpu = sysconf(_SC_NPROCESSORS_ONLN);

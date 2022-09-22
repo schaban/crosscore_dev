@@ -203,6 +203,8 @@ struct sxSysIfc {
 	size_t (*fn_fsize)(xt_fhandle);
 	size_t (*fn_fread)(xt_fhandle, void*, size_t);
 	void (*fn_dbgmsg)(const char*);
+	double (*fn_micros)();
+	void (*fn_sleep)(uint32_t);
 };
 
 struct sxLock;
