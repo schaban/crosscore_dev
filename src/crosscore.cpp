@@ -1890,7 +1890,7 @@ void* cxHeap::alloc(size_t size, const uint32_t tag) {
 	}
 	*ppBlkList = pBlkFound->pNext;
 	pBlkUse = (Block*)XD_INCR_PTR(pBlkFound + 1, pBlkFound->size - size);
-	size_t alignMod = (size_t)((uintptr_t)pBlkUse % mAlign);
+	size_t alignMod = (size_t)((uintptr_t)pBlkUse % alignment());
 	if (alignMod) {
 		pBlkUse = (Block*)((char*)pBlkUse - alignMod);
 	}
@@ -2019,18 +2019,27 @@ void cxHeap::free(void* pMem) {
 	*ppBlkList = pBlkWk;
 }
 
-void cxHeap::purge() {
+XD_NOINLINE void cxHeap::purge() {
 	if (mpBlkTop) {
 		init(mpBlkTop);
 	}
 }
 
-cxHeap* cxHeap::create(const size_t size, const char* pName, const uint32_t align) {
+uint32_t cxHeap::alignment() const {
+	int32_t algn = (int32_t)mAlign;
+	if (algn < 0) {
+		algn = -algn;
+	}
+	return (uint32_t)algn;
+}
+
+XD_NOINLINE cxHeap* cxHeap::create(const size_t size, const char* pName, const uint32_t align) {
 	cxHeap* pHeap = nullptr;
 	void* pMem = nxCore::mem_alloc(size, pName);
 	if (pMem) {
 		size_t headSize = sizeof(cxHeap) + sizeof(Block);
-		size_t alignMod = ((size_t)(uintptr_t)XD_INCR_PTR(pMem, headSize)) % align;
+		size_t alignVal = (int32_t)align > 0 ? align : 0x10;
+		size_t alignMod = ((size_t)(uintptr_t)XD_INCR_PTR(pMem, headSize)) % alignVal;
 		if (alignMod) {
 			headSize += align - alignMod;
 		}
@@ -2040,15 +2049,39 @@ cxHeap* cxHeap::create(const size_t size, const char* pName, const uint32_t alig
 			pHeap = (cxHeap*)pMem;
 			Block* pBlk = (Block*)XD_INCR_PTR(pMem, headSize - sizeof(Block));
 			pHeap->mSize = size;
-			pHeap->mAlign = align;
+			pHeap->mAlign = (uint32_t)alignVal;
 			pHeap->init(pBlk);
 		}
 	}
 	return pHeap;
 }
 
-void cxHeap::destroy(cxHeap* pHeap) {
-	nxCore::mem_free(pHeap);
+XD_NOINLINE cxHeap* cxHeap::create(void* pMem, const size_t size, const char* pName, const uint32_t align) {
+	cxHeap* pHeap = nullptr;
+	if (pMem) {
+		size_t headSize = sizeof(cxHeap) + sizeof(Block);
+		size_t alignVal = (int32_t)align > 0 ? align : 0x10;
+		size_t alignMod = ((size_t)(uintptr_t)XD_INCR_PTR(pMem, headSize)) % alignVal;
+		if (alignMod) {
+			headSize += align - alignMod;
+		}
+		if (headSize < size) {
+			pHeap = (cxHeap*)pMem;
+			Block* pBlk = (Block*)XD_INCR_PTR(pMem, headSize - sizeof(Block));
+			pHeap->mSize = size;
+			pHeap->mAlign = (uint32_t)(-(int32_t)alignVal);
+			pHeap->init(pBlk);
+		}
+	}
+	return pHeap;
+}
+
+XD_NOINLINE void cxHeap::destroy(cxHeap* pHeap) {
+	if (pHeap) {
+		if ((int32_t)pHeap->mAlign > 0) {
+			nxCore::mem_free(pHeap);
+		}
+	}
 }
 
 struct sxJobQueue {
