@@ -39,6 +39,10 @@
 #	define XD_TIMEFUNCS_ENABLED 1
 #endif
 
+#ifndef XD_CXXATOMIC_ENABLED
+#	define XD_CXXATOMIC_ENABLED 1
+#endif
+
 #ifndef XD_STRFUNCS_INTERNAL
 #	define XD_STRFUNCS_INTERNAL 0
 #endif
@@ -103,7 +107,9 @@
 #	endif
 #endif
 
-#include <atomic>
+#if XD_CXXATOMIC_ENABLED
+#	include <atomic>
+#endif
 
 #ifdef XD_TSK_NATIVE_PTHREAD
 #	include <pthread.h>
@@ -912,6 +918,7 @@ void worker_stop(sxWorker* pWrk) { }
 
 
 #if !defined(XD_MSC_ATOMIC)
+#if XD_CXXATOMIC_ENABLED
 int32_t atomic_inc(int32_t* p) {
 	auto pA = (std::atomic<int32_t>*)p;
 	return pA->fetch_add(1) + 1;
@@ -924,6 +931,17 @@ int32_t atomic_add(int32_t* p, const int32_t val) {
 	auto pA = (std::atomic<int32_t>*)p;
 	return pA->fetch_add(val) + val;
 }
+#elif defined(__GNUC__)
+int32_t atomic_inc(int32_t* p) {
+	return __atomic_fetch_add(p, 1, __ATOMIC_SEQ_CST) + 1;
+}
+int32_t atomic_dec(int32_t* p) {
+	return __atomic_fetch_sub(p, 1, __ATOMIC_SEQ_CST) - 1;
+}
+int32_t atomic_add(int32_t* p, const int32_t val) {
+	return __atomic_fetch_add(p, val, __ATOMIC_SEQ_CST) + val;
+}
+#endif
 #endif
 
 
@@ -2087,14 +2105,25 @@ XD_NOINLINE void cxHeap::destroy(cxHeap* pHeap) {
 struct sxJobQueue {
 	int mSlotsNum;
 	int mPutIdx;
+#if XD_CXXATOMIC_ENABLED
 	std::atomic<int> mAccessIdx;
+#else
+	int mAccessIdx;
+#endif
 	sxJob* mpJobs[1];
 
 	sxJob* get_next_job() {
 		sxJob* pJob = nullptr;
 		int count = mPutIdx;
 		if (count > 0) {
+#if XD_CXXATOMIC_ENABLED
 			int idx = mAccessIdx.fetch_add(1);
+#elif defined(__GNUC__)
+			int idx = __atomic_fetch_add(&mAccessIdx, 1, __ATOMIC_SEQ_CST);
+#else
+			int idx = mAccessIdx;
+			++mAccessIdx;
+#endif
 			if (idx < count) {
 				pJob = mpJobs[idx];
 			}
@@ -2103,7 +2132,11 @@ struct sxJobQueue {
 	}
 
 	void reset_cursor() {
+#if XD_CXXATOMIC_ENABLED
 		mAccessIdx.store(0);
+#else
+		mAccessIdx = 0;
+#endif
 	}
 
 	int get_count() const {
