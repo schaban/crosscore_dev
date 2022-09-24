@@ -27,33 +27,59 @@
 
 #include "crosscore.hpp"
 
-#ifndef XD_FILEFUNCS_ENABLED
-#	define XD_FILEFUNCS_ENABLED 1
-#endif
+#ifdef XD_NOSTDLIB
+#	undef XD_FILEFUNCS_ENABLED
+#	define XD_FILEFUNCS_ENABLED 0
+#	undef XD_THREADFUNCS_ENABLED
+#	define XD_THREADFUNCS_ENABLED 0
+#	undef XD_TIMEFUNCS_ENABLED
+#	define XD_TIMEFUNCS_ENABLED 0
+#	undef XD_MALLOC_ENABLED
+#	define XD_MALLOC_ENABLED 0
+#	undef XD_CXXATOMIC_ENABLED
+#	define XD_CXXATOMIC_ENABLED 0
+#	undef XD_STRFUNCS_INTERNAL
+#	define XD_STRFUNCS_INTERNAL 1
+#	undef XD_MEMFUNCS_INTERNAL
+#	define XD_MEMFUNCS_INTERNAL 1
+#	undef XD_NUMPARSE_INTERNAL
+#	define XD_NUMPARSE_INTERNAL 1
 
-#ifndef XD_THREADFUNCS_ENABLED
-#	define XD_THREADFUNCS_ENABLED 1
-#endif
+#else /* XD_NOSTDLIB */
 
-#ifndef XD_TIMEFUNCS_ENABLED
-#	define XD_TIMEFUNCS_ENABLED 1
-#endif
+#	ifndef XD_FILEFUNCS_ENABLED
+#		define XD_FILEFUNCS_ENABLED 1
+#	endif
 
-#ifndef XD_CXXATOMIC_ENABLED
-#	define XD_CXXATOMIC_ENABLED 1
-#endif
+#	ifndef XD_THREADFUNCS_ENABLED
+#		define XD_THREADFUNCS_ENABLED 1
+#	endif
 
-#ifndef XD_STRFUNCS_INTERNAL
-#	define XD_STRFUNCS_INTERNAL 0
-#endif
+#	ifndef XD_TIMEFUNCS_ENABLED
+#		define XD_TIMEFUNCS_ENABLED 1
+#	endif
 
-#ifndef XD_MEMFUNCS_INTERNAL
-#	define XD_MEMFUNCS_INTERNAL 0
-#endif
+#	ifndef XD_MALLOC_ENABLED
+#		define XD_MALLOC_ENABLED 1
+#	endif
 
-#ifndef XD_NUMPARSE_INTERNAL
-#	define XD_NUMPARSE_INTERNAL 0
-#endif
+#	ifndef XD_CXXATOMIC_ENABLED
+#		define XD_CXXATOMIC_ENABLED 1
+#	endif
+
+#	ifndef XD_STRFUNCS_INTERNAL
+#		define XD_STRFUNCS_INTERNAL 0
+#	endif
+
+#	ifndef XD_MEMFUNCS_INTERNAL
+#		define XD_MEMFUNCS_INTERNAL 0
+#	endif
+
+#	ifndef XD_NUMPARSE_INTERNAL
+#		define XD_NUMPARSE_INTERNAL 0
+#	endif
+
+#endif /* XD_NOSTDLIB */
 
 #ifndef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 1
@@ -89,14 +115,16 @@
 #	endif
 #	include <unistd.h>
 #	include <time.h>
-#else
+#elif !defined(XD_SYS_NONE)
 #	undef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 0
 #	include <time.h>
 #endif
 
-#if !XD_TSK_NATIVE || defined(XD_SYS_APPLE) || defined(XD_FORCE_CHRONO)
-#	include <chrono>
+#ifndef XD_NOSTDLIB
+#	if !XD_TSK_NATIVE || defined(XD_SYS_APPLE) || defined(XD_FORCE_CHRONO)
+#		include <chrono>
+#	endif
 #endif
 
 #if !XD_TSK_NATIVE
@@ -141,7 +169,10 @@ const uint32_t sxDDSHead::ENC_BGRI = XD_FOURCC('B', 'G', 'R', 'I');
 const uint32_t sxPackedData::SIG = XD_FOURCC('x', 'p', 'k', 'd');
 
 static const char* s_pXDataMemTag = "xData";
+
+#if XD_THREADFUNCS_ENABLED
 static const char* s_pXWorkerTag = "xWorker";
+#endif
 
 #if defined(XD_TSK_NATIVE_WINDOWS)
 struct sxLock {
@@ -243,13 +274,19 @@ void x_strcpy(char* pDst, const size_t dstSize, const char* pSrc) {
 
 
 void* def_malloc(size_t size) {
+#if XD_MALLOC_ENABLED
 	return ::malloc(size);
+#else
+	return nullptr;
+#endif
 }
 
 void def_free(void* p) {
+#if XD_MALLOC_ENABLED
 	if (p) {
 		::free(p);
 	}
+#endif
 }
 
 xt_fhandle def_fopen(const char* fpath) {
@@ -931,7 +968,7 @@ int32_t atomic_add(int32_t* p, const int32_t val) {
 	auto pA = (std::atomic<int32_t>*)p;
 	return pA->fetch_add(val) + val;
 }
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(XD_NOSTDLIB)
 int32_t atomic_inc(int32_t* p) {
 	return __atomic_fetch_add(p, 1, __ATOMIC_SEQ_CST) + 1;
 }
@@ -940,6 +977,22 @@ int32_t atomic_dec(int32_t* p) {
 }
 int32_t atomic_add(int32_t* p, const int32_t val) {
 	return __atomic_fetch_add(p, val, __ATOMIC_SEQ_CST) + val;
+}
+#else
+int32_t atomic_inc(int32_t* p) {
+	int32_t res = *p;
+	*p += 1;
+	return res + 1;
+}
+int32_t atomic_dec(int32_t* p) {
+	int32_t res = *p;
+	*p -= 1;
+	return res - 1;
+}
+int32_t atomic_add(int32_t* p, const int32_t val) {
+	int32_t res = *p;
+	*p += val;
+	return res + val;
 }
 #endif
 #endif
@@ -1257,10 +1310,12 @@ void dbg_msg(const char* pFmt, ...) {
 	va_list argLst;
 	va_start(argLst, pFmt);
 	int n = 0;
+#ifndef XD_NOSTDLIB
 #if defined(_MSC_VER)
 	n = ::vsprintf_s(msg, sizeof(msg), pFmt, argLst);
 #else
 	n = ::vsprintf(msg, pFmt, argLst);
+#endif
 #endif
 	va_end(argLst);
 	if (n > 0) {
@@ -1621,10 +1676,12 @@ XD_NOINLINE int str_fmt(char* pBuf, size_t bufSize, const char* pFmt, ...) {
 	va_list argLst;
 	va_start(argLst, pFmt);
 	int n = 0;
+#ifndef XD_NOSTDLIB
 #if defined(_MSC_VER)
 	n = ::vsprintf_s(pBuf, bufSize, pFmt, argLst);
 #else
 	n = ::vsprintf(pBuf, pFmt, argLst);
+#endif
 #endif
 	va_end(argLst);
 	return n;
@@ -2118,7 +2175,7 @@ struct sxJobQueue {
 		if (count > 0) {
 #if XD_CXXATOMIC_ENABLED
 			int idx = mAccessIdx.fetch_add(1);
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(XD_NOSTDLIB)
 			int idx = __atomic_fetch_add(&mAccessIdx, 1, __ATOMIC_SEQ_CST);
 #else
 			int idx = mAccessIdx;
@@ -2144,6 +2201,7 @@ struct sxJobQueue {
 	}
 };
 
+#if XD_THREADFUNCS_ENABLED
 static void brigade_wrk_func(void* pMem) {
 	sxJobContext* pCtx = (sxJobContext*)pMem;
 	if (!pCtx) return;
@@ -2173,7 +2231,7 @@ static void brigade_wrk_func(void* pMem) {
 		}
 	}
 }
-
+#endif
 
 void cxBrigade::exec(sxJobQueue* pQue) {
 	if (!pQue) return;
@@ -2758,10 +2816,12 @@ cxVec rot_deg(const cxVec& v, const float dx, const float dy, const float dz, ex
 void cxVec::parse(const char* pStr) {
 	float val[3];
 	nxCore::mem_zero(val, sizeof(val));
+#ifndef XD_NOSTDLIB
 #if defined(_MSC_VER)
 	::sscanf_s(pStr, "[%f,%f,%f]", &val[0], &val[1], &val[2]);
 #else
 	::sscanf(pStr, "[%f,%f,%f]", &val[0], &val[1], &val[2]);
+#endif
 #endif
 	set(val[0], val[1], val[2]);
 }
@@ -5948,7 +6008,7 @@ void apply_weights(float* pDst, int order, const float* pSrc, const float* pWgt,
 }
 
 double calc_K(int l, int m) {
-	int am = ::abs(m);
+	int am = m < 0 ? -m : m;
 	double v = 1.0;
 	for (int k = l + am; k > l - am; --k) {
 		v *= k;
@@ -11604,6 +11664,7 @@ void sxCompiledExpression::exec(ExecIfc& ifc) const {
 	ifc.set_result(res);
 }
 
+#if XD_FILEFUNCS_ENABLED
 static const char* s_exprOpNames[] = {
 	"NOP", "END", "NUM", "STR", "VAR", "CMP", "ADD", "SUB", "MUL", "DIV", "MOD", "NEG", "FUN", "XOR", "AND", "OR"
 };
@@ -11620,8 +11681,10 @@ static const char* s_exprFuncNames[] = {
 	"log", "log10", "max", "min", "pow", "rad",
 	"rint", "round", "sign", "sin", "sqrt", "tan"
 };
+#endif
 
 void sxCompiledExpression::disasm(FILE* pFile) const {
+#if XD_FILEFUNCS_ENABLED
 	int n = mCodeNum;
 	const Code* pCode = get_code_top();
 	char abuf[128];
@@ -11668,6 +11731,7 @@ void sxCompiledExpression::disasm(FILE* pFile) const {
 
 		++pCode;
 	}
+#endif /* XD_FILEFUNCS_ENABLED */
 }
 
 int sxExprLibData::find_expr_idx(const char* pNodeName, const char* pChanName, const char* pNodePath, int startIdx) const {

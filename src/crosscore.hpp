@@ -42,15 +42,30 @@
 #elif defined(__NetBSD__)
 #	define XD_SYS_BSD
 #	define XD_SYS_NETBSD
+#else
+#	define XD_SYS_NONE
 #endif
 
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stddef.h>
-#include <stdint.h>
+#ifdef XD_NOSTDLIB
+#	undef XD_USE_OMP
+#	undef XD_USE_VEMA
+#	define XD_USE_VEMA
+#	include <stdarg.h>
+#	include <stddef.h>
+#	include <stdint.h>
+#	undef XD_CXXMEM_ENABLED
+#	define XD_CXXMEM_ENABLED 0
+#	define FILE void
+#	define stdout nullptr
+#else /* XD_NOSTDLIB */
+#	include <stdlib.h>
+#	include <stdarg.h>
+#	include <stdio.h>
+#	include <string.h>
+#	include <ctype.h>
+#	include <stddef.h>
+#	include <stdint.h>
+#endif /* XD_NOSTDLIB */
 
 #if defined(_MSC_VER)
 #	include <malloc.h>
