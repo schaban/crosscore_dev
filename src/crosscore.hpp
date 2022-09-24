@@ -136,7 +136,13 @@
 #endif
 #include <float.h>
 
-#include <new>
+#ifndef XD_CXXMEM_ENABLED
+#	define XD_CXXMEM_ENABLED 1
+#endif
+
+#if XD_CXXMEM_ENABLED
+#	include <new>
+#endif
 
 #ifndef XD_INLINE
 #	define XD_INLINE inline
@@ -348,6 +354,7 @@ void sort(void* pEntries, size_t numEntries, size_t elemSize, xt_sortcmp_func cm
 void sort_f32(float* pVals, size_t numVals);
 void sort_f64(double* pVals, size_t numVals);
 
+#if XD_CXXMEM_ENABLED
 template <typename T> struct tMem {
 	static void ctor(T* pTop, int n = 1) {
 		T* pObj = pTop;
@@ -380,6 +387,7 @@ template <typename T> struct tMem {
 		}
 	}
 };
+#endif
 
 inline bool is_pow2(uint32_t val) {
 	return (val & (val - 1)) == 0;
