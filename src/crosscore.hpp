@@ -563,6 +563,7 @@ public:
 	void* alloc(const size_t size, const uint32_t tag = XD_FOURCC('H', 'M', 'E', 'M'));
 	void free(void* p);
 	void purge();
+	bool contains(const void* p) const;
 	uint32_t alignment() const;
 
 	static cxHeap* create(const size_t size, const char* pName = "xHeap", const uint32_t align = 0x10);

@@ -2108,6 +2108,14 @@ uint32_t cxHeap::alignment() const {
 	return (uint32_t)algn;
 }
 
+XD_NOINLINE bool cxHeap::contains(const void* p) const {
+	bool res = false;
+	if (p) {
+		res = (char*)p >(char*)XD_INCR_PTR(this, sizeof(cxHeap) + sizeof(Block)) && (char*)p < (char*)XD_INCR_PTR(this, mSize);
+	}
+	return res;
+}
+
 XD_NOINLINE cxHeap* cxHeap::create(const size_t size, const char* pName, const uint32_t align) {
 	cxHeap* pHeap = nullptr;
 	void* pMem = nxCore::mem_alloc(size, pName);
@@ -2143,7 +2151,7 @@ XD_NOINLINE cxHeap* cxHeap::create(void* pMem, const size_t size, const char* pN
 		if (headSize < size) {
 			pHeap = (cxHeap*)pMem;
 			Block* pBlk = (Block*)XD_INCR_PTR(pMem, headSize - sizeof(Block));
-			pHeap->mSize = size;
+			pHeap->mSize = size - headSize;
 			pHeap->mAlign = (uint32_t)(-(int32_t)alignVal);
 			pHeap->init(pBlk);
 		}
