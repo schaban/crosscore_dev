@@ -411,9 +411,8 @@ void dbgmsg(const char* pMsg) {
 static const char* s_pDecDigits = "0123456789";
 
 XD_NOINLINE void dbgmsg_u32(const uint32_t x) {
-	uint32_t val = x;
-	int idx = 0;
 	char buf[16];
+	uint32_t val = x;
 	char* p = buf + (sizeof(buf) - 1);
 	*p-- = 0;
 	while (true) {
@@ -426,9 +425,8 @@ XD_NOINLINE void dbgmsg_u32(const uint32_t x) {
 }
 
 XD_NOINLINE void dbgmsg_i32(const int32_t x) {
-	int32_t val = x;
-	int idx = 0;
 	char buf[16];
+	int32_t val = x;
 	bool sgn = val < 0;
 	if (sgn) val = -val;
 	char* p = buf + (sizeof(buf) - 1);
