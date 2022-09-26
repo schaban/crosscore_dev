@@ -408,6 +408,43 @@ void dbgmsg(const char* pMsg) {
 	}
 }
 
+static const char* s_pDecDigits = "0123456789";
+
+XD_NOINLINE void dbgmsg_u32(const uint32_t x) {
+	uint32_t val = x;
+	int idx = 0;
+	char buf[16];
+	char* p = buf + (sizeof(buf) - 1);
+	*p-- = 0;
+	while (true) {
+		char c = s_pDecDigits[val % 10];
+		*p-- = c;
+		val /= 10;
+		if (0 == val) break;
+	}
+	dbgmsg(p + 1);
+}
+
+XD_NOINLINE void dbgmsg_i32(const int32_t x) {
+	int32_t val = x;
+	int idx = 0;
+	char buf[16];
+	bool sgn = val < 0;
+	if (sgn) val = -val;
+	char* p = buf + (sizeof(buf) - 1);
+	*p-- = 0;
+	while (true) {
+		char c = s_pDecDigits[val % 10];
+		*p-- = c;
+		val /= 10;
+		if (0 == val) break;
+	}
+	if (sgn) {
+		*p-- = '-';
+	}
+	dbgmsg(p + 1);
+}
+
 FILE* fopen_w_txt(const char* fpath) {
 	return x_fopen(fpath, "w");
 }

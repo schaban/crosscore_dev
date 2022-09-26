@@ -249,6 +249,9 @@ size_t fsize(xt_fhandle);
 size_t fread(xt_fhandle, void*, size_t);
 void dbgmsg(const char*);
 
+void dbgmsg_u32(const uint32_t x);
+void dbgmsg_i32(const int32_t x);
+
 FILE* fopen_w_txt(const char* fpath);
 FILE* fopen_w_bin(const char* fpath);
 
