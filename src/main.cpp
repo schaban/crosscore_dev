@@ -86,7 +86,7 @@ struct ROMFileInfo {
 };
 
 extern "C" uint8_t _binary_xrom_start;
-static ROMHead* s_pROM = (ROMHead*)&_binary_xrom_start;
+static ROMHead* s_pROM = nullptr;
 
 XD_NOINLINE static bool rom_valid() {
 	return s_pROM && (s_pROM->sig == XROM_SIG);
@@ -101,12 +101,11 @@ static xt_fhandle rom_fopen(const char* pPath) {
 			const char* pSearchPath = pPath + nxCore::str_len(pPrefix);
 			ROMFileInfo::Path search;
 			search.set(pSearchPath);
-			ROMFileInfo* pInfo = nullptr;
-			ROMFileInfo* pInfoROM = (ROMFileInfo*)(pROM + 1);
+			ROMFileInfo* pInfo = (ROMFileInfo*)(pROM + 1);
 			for (uint32_t i = 0; i < pROM->nfiles; ++i) {
-				if (pInfoROM[i].path.tag == search.tag) {
-					if (nxCore::mem_eq(pInfoROM[i].path.str, search.str, search.len())) {
-						fh = (xt_fhandle)&pInfoROM[i];
+				if (pInfo[i].path.tag == search.tag) {
+					if (nxCore::mem_eq(pInfo[i].path.str, search.str, search.len())) {
+						fh = (xt_fhandle)&pInfo[i];
 						break;
 					}
 				}
@@ -165,6 +164,7 @@ static void init_sys() {
 	nxCore::mem_zero(&sysIfc, sizeof(sysIfc));
 	sysIfc.fn_dbgmsg = dbgmsg_impl;
 #ifdef USE_XROM_ARCHIVE
+	s_pROM =(ROMHead*)&_binary_xrom_start;
 	sysIfc.fn_fopen = rom_fopen;
 	sysIfc.fn_fclose = rom_fclose;
 	sysIfc.fn_fread = rom_fread;
@@ -174,6 +174,9 @@ static void init_sys() {
 }
 
 static void reset_sys() {
+#ifdef USE_XROM_ARCHIVE
+	s_pROM = nullptr;
+#endif
 }
 
 static void* oglsys_mem_alloc(size_t size, const char* pTag) {
@@ -404,6 +407,7 @@ int main(int argc, char* argv[]) {
 
 	nxApp::reset();
 	nxCore::mem_dbg();
+	reset_sys();
 
 	return 0;
 }
