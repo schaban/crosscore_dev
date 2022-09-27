@@ -409,6 +409,7 @@ void dbgmsg(const char* pMsg) {
 }
 
 static const char* s_pDecDigits = "0123456789";
+static const char* s_pHexDigits = "0123456789ABCDEF";
 
 XD_NOINLINE void dbgmsg_u32(const uint32_t x) {
 	char buf[16];
@@ -442,6 +443,60 @@ XD_NOINLINE void dbgmsg_i32(const int32_t x) {
 	}
 	dbgmsg(p + 1);
 }
+
+template<typename T> inline void t_dbgmsg_hex(const T x) {
+	char buf[48];
+	char* p = buf;
+	for (int i = int(sizeof(T))*2; --i >= 0;) {
+		*p++ = s_pHexDigits[(x >> (i << 2)) & 0xF];
+	}
+	*p = 0;
+	dbgmsg(buf);
+}
+
+XD_NOINLINE void dbgmsg_u32_hex(const uint32_t x) { t_dbgmsg_hex(x); }
+XD_NOINLINE void dbgmsg_u64_hex(const uint64_t x) { t_dbgmsg_hex(x); }
+
+void dbgmsg_ptr(const void* p) {
+	const uintptr_t x = (const uintptr_t)p;
+	t_dbgmsg_hex(x);
+}
+
+XD_NOINLINE void dbgmsg_f32(const float x, const int nfrc) {
+	char buf[64];
+	float val = x;
+	bool sgn = (val < 0.0f);
+	if (sgn) {
+		val = -val;
+	}
+	float s = 1000000.0f;
+	if (nfrc > 0 && nfrc < 10) {
+		s = nxCalc::ipow(10.0f, nfrc);
+	}
+	uint32_t i = (uint32_t)val;
+	uint32_t f = (uint32_t)((val - float(i))*s + s);
+	char* p = buf + (sizeof(buf) - 1);
+	*p-- = 0;
+	while (true) {
+		char c = s_pDecDigits[f % 10];
+		*p-- = c;
+		f /= 10;
+		if (0 == f) break;
+	}
+	p[1] = '.';
+	while (true) {
+		char c = s_pDecDigits[i % 10];
+		*p-- = c;
+		i /= 10;
+		if (0 == i) break;
+	}
+	if (sgn) {
+		*p-- = '-';
+	}
+	dbgmsg(p + 1);
+}
+
+void dbgmsg_eol() { nxSys::dbgmsg("\n"); }
 
 FILE* fopen_w_txt(const char* fpath) {
 	return x_fopen(fpath, "w");

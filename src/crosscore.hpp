@@ -251,6 +251,11 @@ void dbgmsg(const char*);
 
 void dbgmsg_u32(const uint32_t x);
 void dbgmsg_i32(const int32_t x);
+void dbgmsg_u32_hex(const uint32_t x);
+void dbgmsg_u64_hex(const uint64_t x);
+void dbgmsg_ptr(const void* p);
+void dbgmsg_f32(const float x, const int nfrc = 0);
+void dbgmsg_eol();
 
 FILE* fopen_w_txt(const char* fpath);
 FILE* fopen_w_bin(const char* fpath);
