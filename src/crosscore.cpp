@@ -127,7 +127,12 @@
 #	endif
 #endif
 
-#if !XD_TSK_NATIVE
+#if XD_TSK_NATIVE
+#	if !(defined(XD_TSK_NATIVE_WINDOWS) || defined(XD_TSK_NATIVE_PTHREAD))
+#		undef XD_THREADFUNCS_ENABLED
+#		define XD_THREADFUNCS_ENABLED 0
+#	endif
+#else
 #	if XD_THREADFUNCS_ENABLED
 #		include <thread>
 #		include <mutex>
