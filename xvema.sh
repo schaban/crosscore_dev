@@ -69,5 +69,8 @@ OPTI_FLGS="-march=native -O3 -ffast-math -ftree-vectorize -flto"
 VEMA_FLGS="-DXD_USE_VEMA -DVEMA_NO_CLIB $VEMA_ARCH $VEMA_MTX_MODE"
 $_CC_ -std=c99 $OPTI_FLGS $VEMA_FLGS $VEMA_DIR/vema.c -g -c -o $VEMA_DIR/vema.o
 $_CXX_ -std=c++11 $OPTI_FLGS $VEMA_FLGS -DOGLSYS_ES=0 -DOGLSYS_CL=0 -DDRW_NO_VULKAN=1 -DXD_TSK_NATIVE=1 -g -I src -I inc -I $VEMA_DIR -DX11 `ls src/*.cpp` $VEMA_DIR/vema.o -o $X_EXE -ldl -lX11 -lpthread
-objdump -d $X_EXE > $X_EXE.txt
+if [ -f $X_EXE ]; then
+	objdump -d $X_EXE > $X_EXE.txt
+	cp -v src/cmd/roof.sh $OUT_DIR
+fi
 ls -ho --color=always $X_EXE
