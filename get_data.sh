@@ -19,6 +19,9 @@ case `uname -s` in
 	Darwin | MINGW* | CYGWIN*)
 		DL_MODE="CURL"
 	;;
+	OpenBSD)
+		DL_MODE="WGET_STD"
+	;;
 	*)
 		if [ -x "`command -v curl`" ]; then
 			DL_MODE="CURL"
