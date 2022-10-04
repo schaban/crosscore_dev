@@ -15,9 +15,12 @@ PROG_SRCS="`ls src/*.cpp`"
 
 DEF_CXX="g++"
 
+LS_OPTS="-lho"
+
 case `uname -s` in
 	Linux)
 		PROG_LIBS="$PROG_LIBS -ldl"
+		LS_OPTS="-ho --color=always"
 	;;
 	OpenBSD)
 		PROG_INCS="$PROG_INCS -I/usr/X11R6/include"
@@ -50,5 +53,5 @@ if [ -f $PROG_PATH ]; then
 	cp -v src/cmd/lot_low.sh $PROG_DIR
 	MSG="Done."
 fi
-ls -ho --color=always $PROG_PATH
+ls $LS_OPTS $PROG_PATH
 echo $MSG
