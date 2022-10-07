@@ -8,6 +8,7 @@ DEMO_PROG_BEGIN
 
 static cxStopWatch s_execStopWatch;
 static float s_medianExecMillis = -1.0f;
+static int s_exerep = 1;
 
 static struct STAGE {
 	Pkg* pPkg;
@@ -158,6 +159,9 @@ static void init() {
 	s_execStopWatch.alloc(120);
 	Scene::enable_split_move(nxApp::get_bool_opt("split_move", false));
 	nxCore::dbg_msg("Scene::split_move: %s\n", Scene::is_split_move_enabled() ? "Yes" : "No");
+	s_exerep = nxCalc::clamp(nxApp::get_int_opt("exerep", 1), 1, 100);
+	nxCore::dbg_msg("exerep: %d\n", s_exerep);
+	nxCore::dbg_msg("Scene::speed: %.2f\n", Scene::speed());
 }
 
 static struct ViewWk {
@@ -279,11 +283,17 @@ static void profile_end() {
 	}
 }
 
+static void scn_exec() {
+	for (int i = 0; i < s_exerep; ++i) {
+		Scene::exec();
+	}
+}
+
 static void loop(void* pLoopCtx) {
 	SmpCharSys::start_frame();
 	set_scene_ctx();
 	profile_start();
-	Scene::exec();
+	scn_exec();
 	view_exec();
 	Scene::visibility();
 	profile_end();
