@@ -1373,6 +1373,7 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 
 	s_pAltGLSL = nxApp::get_opt("alt_glsl");
 
+	s_useMipmaps = !nxApp::get_bool_opt("mip_disable", false);
 	s_useVtxLighting = nxApp::get_bool_opt("vl", false);
 
 	if (!s_pGLSLBinLoadPath) {
