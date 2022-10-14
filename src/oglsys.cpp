@@ -1666,7 +1666,10 @@ void OGLSysGlb::init_ogl() {
 	if (mpXDisplay) {
 		mGLX.init();
 		GLint viAttrs[] = {
-			GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None
+			GLX_RGBA,
+			GLX_DEPTH_SIZE, 24,
+			GLX_DOUBLEBUFFER,
+			None
 		};
 		XVisualInfo* pVI = mGLX.mpfnGLXChooseVisual(mpXDisplay, 0, viAttrs);
 		mGLX.mCtx = mGLX.mpfnGLXCreateContext(mpXDisplay, pVI, NULL, GL_TRUE);
@@ -1722,9 +1725,14 @@ void OGLSysGlb::init_ogl() {
 
 	const GLubyte* pExts = glGetString(GL_EXTENSIONS);
 	if (pExts) {
+		bool dumpExts = get_int_opt("oglsys_dump_exts", 0) != 0;
 		int iext = 0;
 		int iwk = 0;
 		bool extsDone = false;
+		char extsDumpStr[64];
+		if (dumpExts) {
+			dbg_msg("%s\n", "OGL Extensions:");
+		}
 		while (!extsDone) {
 			GLubyte extc = pExts[iwk];
 			extsDone = extc == 0;
@@ -1733,6 +1741,17 @@ void OGLSysGlb::init_ogl() {
 				const GLubyte* pExtStr = &pExts[iext];
 				iext = iwk + 1;
 				if (extLen > 1) {
+					if (dumpExts) {
+						int dumpLen = int(sizeof(extsDumpStr) - 1);
+						if (extLen < dumpLen) {
+							dumpLen = extLen;
+						}
+						for (int i = 0; i < dumpLen; ++i) {
+							extsDumpStr[i] = (char)pExtStr[i];
+						}
+						extsDumpStr[dumpLen] = 0;
+						dbg_msg(" %s\n", extsDumpStr);
+					}
 					handle_ogl_ext(pExtStr, extLen);
 				}
 			}
