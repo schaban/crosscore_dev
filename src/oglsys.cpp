@@ -2698,6 +2698,10 @@ namespace OGLSys {
 		}
 	}
 
+	bool is_es() {
+		return (OGLSYS_ES != 0);
+	}
+
 	void* get_window() {
 #if defined(OGLSYS_ANDROID)
 		return GLG.mpNativeWnd;

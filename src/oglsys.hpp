@@ -298,6 +298,8 @@ namespace OGLSys {
 	void flush();
 	void finish();
 
+	bool is_es();
+
 	void* get_window();
 	void* get_display();
 	void* get_instance();
