@@ -28,4 +28,5 @@ fi
 echo "OK"
 cp -v src/cmd/roof.sh $MAC_EXE_DIR
 cp -v src/cmd/roof_low.sh $MAC_EXE_DIR
+cp -v src/cmd/lot_low.sh $MAC_EXE_DIR
 ls -Go $MAC_EXE
