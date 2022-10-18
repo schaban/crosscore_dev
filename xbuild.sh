@@ -38,7 +38,7 @@ CXX=${CXX:-$DEF_CXX}
 
 DISASM_OPTS=""
 case `uname -m` in
-	x86_64 | amd64 | i386)
+	x86_64 | amd64 | i386 | i686)
 		DISASM_OPTS="-M intel"
 	;;
 esac
