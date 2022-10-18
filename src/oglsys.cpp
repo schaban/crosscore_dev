@@ -1529,9 +1529,25 @@ void OGLSysGlb::init_ogl() {
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
 		EGL_NONE
 	};
+	EGLint cfgAttrsMSAA[] = {
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_ALPHA_SIZE, OGLSYS_ES_ALPHA_SIZE,
+		EGL_DEPTH_SIZE, OGLSYS_ES_DEPTH_SIZE,
+		EGL_SAMPLE_BUFFERS, 1,
+		EGL_SAMPLES, (EGLint)mNumMSAASamples,
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+		EGL_NONE
+	};
+	EGLint* pCfgAttrs = cfgAttrs;
+	if (mNumMSAASamples > 0) {
+		pCfgAttrs = cfgAttrsMSAA;
+	}
 	bool useGLES2 = false;
 	EGLint ncfg = 0;
-	flg = !!eglChooseConfig(mEGL.display, cfgAttrs, &mEGL.config, 1, &ncfg);
+	flg = !!eglChooseConfig(mEGL.display, pCfgAttrs, &mEGL.config, 1, &ncfg);
 	if (!flg) {
 		static EGLint cfgAttrs2[] = {
 			EGL_RED_SIZE, 8,
