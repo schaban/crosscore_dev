@@ -1,6 +1,14 @@
 #!/bin/sh
 
-PROG_DIR=bin/`uname -s`_`uname -m`
+SYS_NAME=`uname -s`
+SYS_ARCH=`uname -m`
+
+if [ "$SYS_NAME" = "Darwin" ]; then
+	./mac_build.sh $*
+	exit
+fi
+
+PROG_DIR=bin/${SYS_NAME}_${SYS_ARCH}
 PROG_NAME=crosscore_demo
 PROG_PATH=$PROG_DIR/$PROG_NAME
 
