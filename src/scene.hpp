@@ -109,6 +109,7 @@ public:
 	const char* get_batch_mtl_name(const int ibat) const;
 
 	void set_base_color_scl(const float r, const float g, const float b);
+	void set_base_color_scl(const cxColor& c);
 	void set_base_color_scl(const float s);
 	void set_shadow_offs_bias(const float bias);
 	void set_shadow_weight_bias(const float bias);

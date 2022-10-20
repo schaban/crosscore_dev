@@ -2690,6 +2690,13 @@ void ScnObj::set_base_color_scl(const float r, const float g, const float b) {
 	}
 }
 
+void ScnObj::set_base_color_scl(const cxColor& c) {
+	Draw::MdlParam* pParam = get_obj_mdl_params(*this);
+	if (pParam) {
+		pParam->baseColorScl.set(c.r, c.g, c.b);
+	}
+}
+
 void ScnObj::set_base_color_scl(const float s) {
 	set_base_color_scl(s, s, s);
 }
