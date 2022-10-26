@@ -43,4 +43,4 @@ Another sample program and a [walkthrough](https://github.com/schaban/draw-walkt
 of implementing a very simple OpenGL renderer.
 (Work in progress!)
 
-![draw-walkthrough](https://schaban.github.io/pic/draw_wt.jpg)
+[![draw-walkthrough](https://schaban.github.io/pic/draw_wt.jpg)](https://github.com/schaban/draw-walkthrough)
