@@ -2,7 +2,7 @@
 
 ~ **crosscore** is a portable C++ library for graphics programming ~
 
-![roof chars](https://github.com/schaban/schaban.github.io/raw/main/pic/cross_chars.png)
+![roof chars](https://schaban.github.io/pic/cross_chars.png)
 
 The library itself is independent from rendering interfaces such as OpenGL or Vulkan,
 instead it is conceived as a set of tools to help with creating experimental renderers.\
@@ -37,3 +37,10 @@ that is using this library<br>
 &#x2606; [**Ostinato**](https://github.com/glebnovodran/ostinato) &#x2606;
 
 [![Ostinato](https://schaban.github.io/pic/ostinato_poster_alt.png)](https://github.com/glebnovodran/ostinato)
+
+***
+Another sample program and a [walkthrough](https://github.com/schaban/draw-walkthrough)
+of implementing a very simple OpenGL renderer.
+(Work in progress!)
+
+![draw-walkthrough](https://schaban.github.io/pic/draw_wt.jpg)
