@@ -2718,6 +2718,14 @@ namespace OGLSys {
 		return (OGLSYS_ES != 0);
 	}
 
+	bool is_web() {
+#if defined(OGLSYS_WEB)
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	void* get_window() {
 #if defined(OGLSYS_ANDROID)
 		return GLG.mpNativeWnd;

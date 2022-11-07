@@ -299,6 +299,7 @@ namespace OGLSys {
 	void finish();
 
 	bool is_es();
+	bool is_web();
 
 	void* get_window();
 	void* get_display();
