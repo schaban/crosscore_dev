@@ -75,6 +75,7 @@ static const char* s_pGLSLBinSavePath = nullptr;
 static const char* s_pGLSLBinLoadPath = nullptr;
 
 static const char* s_pAltGLSL = nullptr;
+static const char* s_pExtGLSL = nullptr;
 
 static bool s_glslNoBaseTex = false;
 static bool s_glslNoFog = false;
@@ -470,6 +471,8 @@ struct GPUProg {
 	SmpLink mSmpLink;
 	VtxFmt mVtxFmt;
 	GLuint mVAO;
+	GLint mExtLoc;
+	size_t mExtNum;
 
 	template<typename T> struct CachedParam {
 		T mVal;
@@ -614,6 +617,8 @@ struct GPUProg {
 		mParamLink.reset();
 		mSmpLink.reset();
 		mCache.reset();
+		mExtLoc = -1;
+		mExtNum = 0;
 		if (!is_valid()) return;
 
 		VTX_LINK(Pos);
@@ -679,6 +684,20 @@ struct GPUProg {
 		SMP_LINK(Spec);
 		SMP_LINK(Surf);
 		SMP_LINK(Shadow);
+
+		const char* pExtArgsName = "gpExtArgs";
+		GLint extLoc = glGetUniformLocation(mProgId, pExtArgsName);
+		if (extLoc >= 0) {
+			char extElem[128];
+			mExtLoc = extLoc;
+			for (int i = 0; i < 64; ++i) {
+				XD_SPRINTF(XD_SPRINTF_BUF(extElem, sizeof(extElem)), "%s[%d]", pExtArgsName, i);
+				if (glGetUniformLocation(mProgId, pExtArgsName) < extLoc) {
+					break;
+				}
+				++mExtNum;
+			}
+		}
 
 		glUseProgram(mProgId);
 		SET_TEX_UNIT(Base);
@@ -1372,6 +1391,7 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 	s_glslNoCC = (s_pGLSLBinSavePath || s_pGLSLBinLoadPath) ? false : nxApp::get_bool_opt("nocc", false);
 
 	s_pAltGLSL = nxApp::get_opt("alt_glsl");
+	s_pExtGLSL = nxApp::get_opt("ext_glsl");
 
 	s_useMipmaps = !nxApp::get_bool_opt("mip_disable", false);
 	s_useVtxLighting = nxApp::get_bool_opt("vl", false);
