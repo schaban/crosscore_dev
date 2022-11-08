@@ -197,10 +197,12 @@ namespace Draw {
 		} glb;
 
 		struct Ext {
-			void* pData;
+			xt_float4* pArgs;
+			size_t numArgs;
 
 			void reset() {
-				pData = nullptr;
+				pArgs = nullptr;
+				numArgs = 0;
 			}
 		} ext;
 
