@@ -6633,6 +6633,13 @@ public:
 	void scan(TokenFunc& func);
 };
 
+class cxLexer : public cxXqcLexer {
+public:
+	cxLexer() {
+		disable_keywords();
+	}
+};
+
 
 namespace nxApp {
 
