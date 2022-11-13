@@ -52,6 +52,7 @@ static bool s_viewUpdateFlg = true;
 
 static bool s_shadowUniform = true;
 static bool s_shadowUpdateFlg = true;
+static bool s_smapDisabled = false;
 static float s_smapViewSize = 30.0f;
 static float s_smapViewDist = 50.0f;
 static float s_smapMargin = 30.0f;
@@ -361,6 +362,8 @@ void init(const ScnCfg& cfg) {
 	if (s_pDraw) {
 		s_pDraw->init(cfg.shadowMapSize, s_pRsrcMgr, &s_font);
 	}
+
+	s_smapDisabled = (cfg.shadowMapSize <= 0);
 
 	set_quad_gamma(2.2f);
 
@@ -2931,7 +2934,7 @@ void ScnObj::update_visibility() {
 			int nbat = mpMdlWk->get_batches_num();
 			size_t bitMemSize = XD_BIT_ARY_SIZE(uint8_t, nbat);
 			uint32_t* pCastBits = (uint32_t*)mpMdlWk->mpExtMem;
-			if (mDisableShadowCast) {
+			if (mDisableShadowCast || s_smapDisabled) {
 				nxCore::mem_fill(pCastBits, 0xFF, bitMemSize);
 			} else {
 				nxCore::mem_fill(pCastBits, 0, bitMemSize);
