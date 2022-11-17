@@ -370,6 +370,7 @@ char* str_dup(const char* pSrc, const char* pTag = "xStr");
 size_t str_len(const char* pStr);
 int64_t parse_i64(const char* pStr);
 double parse_f64(const char* pStr);
+uint64_t parse_u64_hex(const char* pStr);
 int str_fmt(char* pBuf, size_t bufSize, const char* pFmt, ...);
 
 typedef int (*xt_sortcmp_func)(const void*, const void*, void*);

@@ -1766,6 +1766,35 @@ XD_NOINLINE double parse_f64(const char* pStr) {
 	return res;
 }
 
+XD_NOINLINE uint64_t parse_u64_hex(const char* pStr) {
+	uint64_t val = 0;
+	if (pStr) {
+		size_t len = str_len(pStr);
+		if (len <= 16) {
+			const char* p0 = pStr;
+			const char* p = pStr + len - 1;
+			int s = 0;
+			while (p >= p0) {
+				char c = *p;
+				int64_t d = 0;
+				if (c >= '0' && c <= '9') {
+					d = c - '0';
+				} else if (c >= 'a' && c <= 'f') {
+					d = c - 'a' + 10;
+				} else if (c >= 'A' && c <= 'F') {
+					d = c - 'A' + 10;
+				} else {
+					return 0;
+				}
+				val |= d << s;
+				s += 4;
+				--p;
+			}
+		}
+	}
+	return val;
+}
+
 XD_NOINLINE int str_fmt(char* pBuf, size_t bufSize, const char* pFmt, ...) {
 	if (!pBuf || bufSize < 1) return -1;
 	va_list argLst;
@@ -14301,7 +14330,11 @@ XD_NOINLINE int cxCmdLine::get_int_opt(const char* pName, const int defVal) cons
 	const char* pValStr = get_opt(pName);
 	int res = defVal;
 	if (pValStr) {
-		res = int(nxCore::parse_i64(pValStr));
+		if (pValStr[0] && pValStr[1] && (pValStr[0] == '0' && pValStr[1] == 'x')) {
+			res = int(nxCore::parse_u64_hex(pValStr + 2));
+		} else {
+			res = int(nxCore::parse_i64(pValStr));
+		}
 	}
 	return res;
 }
