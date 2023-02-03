@@ -9044,14 +9044,17 @@ void sxGeometryData::calc_tangents(cxVec* pTng, bool flip, const char* pAttrName
 			} else {
 				triUVs[j].set(0.0f, 0.0f);
 			}
-			cxVec dp1 = triPts[1] - triPts[0];
-			cxVec dp2 = triPts[2] - triPts[0];
-			xt_texcoord dt1;
-			dt1.set(triUVs[1].u - triUVs[0].u, triUVs[1].v - triUVs[0].v);
-			xt_texcoord dt2;
-			dt2.set(triUVs[2].u - triUVs[0].u, triUVs[2].v - triUVs[0].v);
-			float d = nxCalc::rcp0(dt1.u*dt2.v - dt1.v*dt2.u);
-			cxVec tu = (dp1*dt2.v - dp2*dt1.v) * d;
+		}
+		cxVec dp1 = triPts[1] - triPts[0];
+		cxVec dp2 = triPts[2] - triPts[0];
+		xt_texcoord dt1;
+		dt1.set(triUVs[1].u - triUVs[0].u, triUVs[1].v - triUVs[0].v);
+		xt_texcoord dt2;
+		dt2.set(triUVs[2].u - triUVs[0].u, triUVs[2].v - triUVs[0].v);
+		float d = nxCalc::rcp0(dt1.u*dt2.v - dt1.v*dt2.u);
+		cxVec tu = (dp1*dt2.v - dp2*dt1.v) * d;
+		for (int j = 0; j < 3; ++j) {
+			int pid = tri.get_vtx_pnt_id(j);
 			pTng[pid] = tu;
 		}
 	}
