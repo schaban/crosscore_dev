@@ -1569,6 +1569,10 @@ XD_FORCEINLINE static int x_strcompare_sub(const char* pStr1, const char* pStr2)
 	return res;
 }
 
+int str_cmp(const char* pStrA, const char* pStrB) {
+	return x_strcompare_sub(pStrA, pStrB);
+}
+
 bool str_eq(const char* pStrA, const char* pStrB) {
 	bool res = false;
 	if (pStrA && pStrB) {
