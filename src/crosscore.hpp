@@ -4838,6 +4838,7 @@ struct sxCompiledExpression {
 
 	class ExecIfc {
 	public:
+		virtual ~ExecIfc() {}
 		virtual Stack* get_stack() { return nullptr; }
 		virtual void set_result(const float val) {}
 		virtual float ch(const String& path) { return 0.0f; }
