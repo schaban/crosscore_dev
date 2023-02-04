@@ -2797,13 +2797,16 @@ void ScnObj::exec_motion(const sxMotionData* pMot, const float frameAdd) {
 	nxSys::atomic_add(&mMotExecSync, 1);
 }
 
-void ScnObj::sync_motion() {
+void ScnObj::sync_motion(const uint32_t maxWait) {
 	if (!s_splitMoveFlg && s_pBgd && s_pBgd->get_active_workers_num() > 1) {
 		int32_t* p = &mMotExecSync;
 		uint32_t cnt = 0;
 		while (true) {
 			int32_t val = nxSys::atomic_add(p, 0);
 			if (val) break;
+			if (maxWait != 0) {
+				if (cnt > maxWait) break;
+			}
 			++cnt;
 		}
 	}

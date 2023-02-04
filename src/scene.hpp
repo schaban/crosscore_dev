@@ -148,7 +148,7 @@ public:
 	float get_motion_frame() const;
 	void set_motion_frame(const float frame);
 	void exec_motion(const sxMotionData* pMot, const float frameAdd);
-	void sync_motion();
+	void sync_motion(const uint32_t maxWait = 0);
 	void init_motion_blend(const int duration);
 	void exec_motion_blend();
 	void set_motion_uniform_scl(const float scl);
