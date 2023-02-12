@@ -117,7 +117,11 @@
 #else
 #	define _USE_MATH_DEFINES
 #	include <math.h>
+#	if defined(__INTEL_LLVM_COMPILER)
+	template<typename T> inline T mth_isnan(T x) { return false; }
+#	else
 #	define mth_isnan isnan
+#	endif
 #	define mth_frexpf frexpf
 #	define mth_ldexpf ldexpf
 #	define mth_floorf floorf
