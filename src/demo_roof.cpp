@@ -145,6 +145,7 @@ enum class eScenarioState {
 #define SCENARIO_TXT_BUF_SIZE (32 * 1024)
 #define SCENARIO_MAX_VARS 128
 #define SCENARIO_MAX_EXECS 10
+#define SCENARIO_WARN_EXECS ((SCENARIO_MAX_EXECS) - 1)
 
 static double get_running_time_secs() {
 	double us = s_runningTimeMicros;
@@ -304,6 +305,12 @@ float SCENARIO_WK::eval_expr(const char* pExprName) {
 	return val;
 }
 
+XD_NOINLINE static void check_exec_count(const int cnt) {
+	if (cnt >= SCENARIO_WARN_EXECS) {
+		nxCore::dbg_msg("WARN: scenario exec count = %d\n", cnt);
+	}
+}
+
 
 static int adj_counter_to_speed(const int count) {
 	int res = count;
@@ -312,6 +319,7 @@ static int adj_counter_to_speed(const int count) {
 	}
 	return res;
 }
+
 
 //
 // chr
@@ -828,6 +836,7 @@ static bool actr_dlg_next(ScnObj* pObj) {
 			}
 		}
 	}
+	check_exec_count(execCnt);
 	return contFlg;
 }
 
@@ -2116,6 +2125,7 @@ static void scenario_exec_examine(SCENARIO_WK* pWk) {
 		}
 		pWk->mStateNow = eScenarioState::CTRL;
 	}
+	check_exec_count(execCnt);
 }
 
 static void scenario_exec_talk(SCENARIO_WK* pWk) {
