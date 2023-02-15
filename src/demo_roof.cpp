@@ -4,6 +4,17 @@
 #include "dynrig.hpp"
 #include "oglsys.hpp"
 
+#if defined(XD_SYS_LINUX) && defined(XOUPIPE_TEST)
+#	define ROOF_XPIPE 1
+#	include <sys/types.h>
+#	include <sys/stat.h>
+#	include <endian.h>
+#	include <fcntl.h>
+#	include <unistd.h>
+#else
+#	define ROOF_XPIPE 0
+#endif
+
 #define SAMPLING_PERIOD (120*2)
 
 
@@ -116,6 +127,14 @@ static struct KBD_CTRL {
 	bool ck_trg(int id) const { return !!((mNow & (mNow ^ mOld)) & (1ULL << id)); }
 	bool ck_chg(int id) const { return !!((mNow ^ mOld) & (1ULL << id)); }
 } s_kbdCtrl;
+
+static struct PIPE_WK {
+	FILE* pOut;
+
+	void init() {
+		pOut = nullptr;
+	}
+} s_pipeWk = {};
 
 struct VIEW_WK {
 	cxVec prevPos;
@@ -1418,6 +1437,7 @@ static void init() {
 	nxCore::dbg_msg("Scene::split_move: %s\n", Scene::is_split_move_enabled() ? "Yes" : "No");
 
 	s_kbdCtrl.init();
+	s_pipeWk.init();
 }
 
 static void set_fog() {
@@ -2234,6 +2254,98 @@ static void prim_test() {
 	}
 }
 
+
+#if ROOF_XPIPE
+static const uint8_t H_ESC = 170;
+
+static void xpipe_reset() {
+	FILE* pOut = s_pipeWk.pOut;
+	if (!pOut) return;
+	for (int i = 0; i < 4; ++i) {
+		::fputc(H_ESC, pOut);
+		::fputc(0, pOut);
+	}
+	::fflush(pOut);
+}
+
+static void xpipe_u8(uint8_t val) {
+	FILE* pOut = s_pipeWk.pOut;
+	if (!pOut) return;
+	if (val == H_ESC) {
+		::fputc(H_ESC, pOut);
+	}
+	::fputc(val, pOut);
+}
+
+static void xpipe_u64(uint64_t val) {
+	FILE* pOut = s_pipeWk.pOut;
+	if (!pOut) return;
+	for (uint32_t i = 0; i < 8; ++i) {
+		uint8_t c = uint8_t(val >> ((7-i) << 3));
+		xpipe_u8(c);
+	}
+}
+
+static void xpipe_f64(double val) {
+	uint64_t uval = 0;
+	nxCore::mem_copy(&uval, &val, sizeof(uval));
+	xpipe_u64(uval);
+}
+
+static void xpipe_init() {
+	if (s_pipeWk.pOut) return;
+	const char* pPipeName = "/tmp/chop.pipe";
+	mode_t prevMsk = ::umask(0);
+	::mkfifo(pPipeName, 0666);
+	::umask(prevMsk);
+	nxCore::dbg_msg("Waiting for CHOP pipe...\n");
+	FILE* pOut = ::fopen(pPipeName, "wb");
+	if (pOut) {
+		s_pipeWk.pOut = pOut;
+		nxCore::dbg_msg("CHOP pipe ready...\n");
+		const char* pChanName = "data";
+		uint64_t chanNameTok = 0;
+		nxCore::mem_copy(&chanNameTok, pChanName, sizeof(uint64_t));
+		chanNameTok = ::htobe64(chanNameTok);
+		xpipe_reset();
+		xpipe_u64(3); // Cmd Type 3
+		xpipe_u64(1); // 1 name
+		xpipe_u64(1); // 1 token
+		xpipe_u64(chanNameTok);
+		xpipe_reset();
+		::fflush(pOut);
+	}
+}
+
+static void xpipe_exec() {
+	xpipe_init();
+	FILE* pOut = s_pipeWk.pOut;
+	if (!pOut) return;
+	VIEW_WK* pView = s_pViewWk;
+	if (!pView) return;
+	ScnObj* pObj = Scene::find_obj(pView->tgtMode ? "Zoe" : "Den");
+	if (!pObj) {
+		pObj = Scene::find_obj("Den");
+	}
+	if (!pObj) return;
+	int itgt = pObj->find_skel_node_id("n_Center");
+	if (!pObj->ck_skel_id(itgt)) return;
+	cxMtx wm = pObj->calc_skel_world_mtx(itgt);
+	xpipe_reset();
+	xpipe_u64(1); // Cmd Type 1
+	xpipe_u64(1); // # chans
+	float val = wm.get_translation().y;
+	xpipe_f64(val);
+	xpipe_reset();
+}
+#endif
+
+static void xpipe_test() {
+#if ROOF_XPIPE
+	xpipe_exec();
+#endif
+}
+
 static void loop(void* pLoopCtx) {
 	static double usStart = 0.0;
 	static double usEnd = 0.0;
@@ -2321,6 +2433,7 @@ static void loop(void* pLoopCtx) {
 	if (s_adapt) {
 		usStart = nxSys::time_micros();
 	}
+	xpipe_test();
 }
 
 static void reset() {
