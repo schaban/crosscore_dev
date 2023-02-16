@@ -130,9 +130,11 @@ static struct KBD_CTRL {
 
 static struct PIPE_WK {
 	FILE* pOut;
+	size_t nchan;
 
 	void init() {
 		pOut = nullptr;
+		nchan = 0;
 	}
 } s_pipeWk = {};
 
@@ -2303,17 +2305,24 @@ static void xpipe_init() {
 	if (pOut) {
 		s_pipeWk.pOut = pOut;
 		nxCore::dbg_msg("CHOP pipe ready...\n");
-		const char* pChanName = "data";
-		uint64_t chanNameTok = 0;
-		nxCore::mem_copy(&chanNameTok, pChanName, sizeof(uint64_t));
-		chanNameTok = ::htobe64(chanNameTok);
+		static const char* chanNames[] = {
+			"tx", "ty", "tz"
+		};
+		size_t nchan = XD_ARY_LEN(chanNames);
 		xpipe_reset();
-		xpipe_u64(3); // Cmd Type 3
-		xpipe_u64(1); // 1 name
-		xpipe_u64(1); // 1 token
-		xpipe_u64(chanNameTok);
+		xpipe_u64(3);     // Cmd Type 3
+		xpipe_u64(nchan); // # names
+		for (size_t i = 0; i < nchan; ++i) {
+			const char* pChanName = chanNames[i];
+			uint64_t chanNameTok = 0;
+			nxCore::mem_copy(&chanNameTok, pChanName, sizeof(uint64_t));
+			chanNameTok = ::htobe64(chanNameTok);
+			xpipe_u64(1); // 1 token per name
+			xpipe_u64(chanNameTok);
+		}
 		xpipe_reset();
 		::fflush(pOut);
+		s_pipeWk.nchan = nchan;
 	}
 }
 
@@ -2321,6 +2330,7 @@ static void xpipe_exec() {
 	xpipe_init();
 	FILE* pOut = s_pipeWk.pOut;
 	if (!pOut) return;
+	size_t nchan = s_pipeWk.nchan;
 	VIEW_WK* pView = s_pViewWk;
 	if (!pView) return;
 	ScnObj* pObj = Scene::find_obj(pView->tgtMode ? "Zoe" : "Den");
@@ -2333,9 +2343,11 @@ static void xpipe_exec() {
 	cxMtx wm = pObj->calc_skel_world_mtx(itgt);
 	xpipe_reset();
 	xpipe_u64(1); // Cmd Type 1
-	xpipe_u64(1); // # chans
-	float val = wm.get_translation().y;
-	xpipe_f64(val);
+	xpipe_u64(nchan); // # chans
+	cxVec pos = wm.get_translation();
+	xpipe_f64(pos.x);
+	xpipe_f64(pos.y);
+	xpipe_f64(pos.z);
 	xpipe_reset();
 }
 #endif
