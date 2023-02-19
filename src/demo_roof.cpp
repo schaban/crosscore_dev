@@ -2296,12 +2296,15 @@ static void xpipe_f64(double val) {
 
 static void xpipe_init() {
 	if (s_pipeWk.pOut) return;
-	const char* pPipeName = "/tmp/chop.pipe";
+	const char* pPipePath = nxApp::get_opt("xpipe_out");
+	if (!pPipePath) {
+		pPipePath = "/tmp/chop.pipe";
+	}
 	mode_t prevMsk = ::umask(0);
-	::mkfifo(pPipeName, 0666);
+	::mkfifo(pPipePath, 0666);
 	::umask(prevMsk);
-	nxCore::dbg_msg("Waiting for CHOP pipe...\n");
-	FILE* pOut = ::fopen(pPipeName, "wb");
+	nxCore::dbg_msg("Waiting for CHOP pipe @ %s...\n", pPipePath);
+	FILE* pOut = ::fopen(pPipePath, "wb");
 	if (pOut) {
 		s_pipeWk.pOut = pOut;
 		nxCore::dbg_msg("CHOP pipe ready...\n");
