@@ -326,7 +326,7 @@ static struct OGLSysGlb {
 	SDL_Window* mpSDLWnd;
 	SDL_Renderer* mpSDLRdr;
 	SDL_GLContext mSDLGLCtx;
-	void(*mpWebLoop)(void*);
+	void (*mpWebLoop)(void*);
 	void* mpWebLoopCtx;
 #endif
 
@@ -877,7 +877,8 @@ static struct OGLSysGlb {
 static void web_kbd(const SDL_Event& evt) {
 	bool* pState = nullptr;
 	int idx = -1;
-	switch (evt.key.keysym.sym) {
+	SDL_Keycode sym = evt.key.keysym.sym;
+	switch (sym) {
 		case SDLK_UP:
 			pState = GLG.mKbdState.ctrl;
 			idx = KBD_CTRL_UP;
@@ -923,6 +924,10 @@ static void web_kbd(const SDL_Event& evt) {
 			idx = KBD_CTRL_ENTER;
 			break;
 		default:
+			if ((uint32_t)sym >= 'a' && (uint32_t)sym <= 'z') {
+				pState = GLG.mKbdState.alpha;
+				idx = (int)sym - 'a';
+			}
 			break;
 	}
 	if (pState && idx >= 0) {
