@@ -67,6 +67,7 @@ static struct KBD_CTRL {
 		BACK,
 		ENTER,
 		SPACE,
+		F3,
 		NUM_KEYS
 	};
 	uint64_t mNow;
@@ -119,6 +120,7 @@ static struct KBD_CTRL {
 		KEY_GET(BACK);
 		KEY_GET(ENTER);
 		KEY_GET(SPACE);
+		KEY_GET(F3);
 		mNow = mask;
 	}
 
@@ -2052,7 +2054,6 @@ static void scenario_exec_ctrl(SCENARIO_WK* pWk) {
 	}
 }
 
-#if 0
 static void print_scenario_vars(SCENARIO_WK* pWk) {
 	if (!pWk) return;
 	nxCore::dbg_msg("%s", "Scenario vars:\n");
@@ -2060,7 +2061,6 @@ static void print_scenario_vars(SCENARIO_WK* pWk) {
 		nxCore::dbg_msg(" [%d]: %s = %f\n", i, pWk->mpVarNames[i], pWk->mVars[i]);
 	}
 }
-#endif
 
 static bool scenario_eval_exec(SCENARIO_WK* pWk, const char* pExec) {
 	bool execFlg = false;
@@ -2384,6 +2384,9 @@ static void loop(void* pLoopCtx) {
 			double millis = us / 1000.0;
 			nxCore::dbg_msg("(median exec time %.4f millis)\n", millis);
 		}
+	}
+	if (s_kbdCtrl.ck_trg(KBD_CTRL::F3)) {
+		print_scenario_vars(s_pScenarioWk);
 	}
 	Scene::frame_begin(cxColor(0.7f, 0.72f, 0.73f));
 	Scene::draw();
