@@ -24,8 +24,9 @@ PROG_SRCS="`ls src/*.cpp`"
 DEF_CXX="g++"
 
 LS_OPTS="-lho"
+CP_OPTS="-v"
 
-case `uname -s` in
+case $SYS_NAME in
 	Linux)
 		PROG_LIBS="$PROG_LIBS -ldl"
 		LS_OPTS="-ho --color=always"
@@ -40,12 +41,15 @@ case `uname -s` in
 		PROG_LIBS="$PROG_LIBS -L/usr/local/lib"
 		DEF_CXX="clang++"
 	;;
+	SunOS)
+		CP_OPTS=""
+	;;
 esac
 
 CXX=${CXX:-$DEF_CXX}
 
 DISASM_OPTS=""
-case `uname -m` in
+case $SYS_ARCH in
 	x86_64 | amd64 | i386 | i686)
 		DISASM_OPTS="-M intel"
 	;;
@@ -56,9 +60,9 @@ $CXX $CXX_OPTS $PROG_OPTS $PROG_INCS $PROG_SRCS $PROG_LIBS -o $PROG_PATH $*
 MSG="Failed."
 if [ -f $PROG_PATH ]; then
 	objdump $DISASM_OPTS -dC $PROG_PATH > $PROG_PATH.txt
-	cp -v src/cmd/roof.sh $PROG_DIR
-	cp -v src/cmd/roof_low.sh $PROG_DIR
-	cp -v src/cmd/lot_low.sh $PROG_DIR
+	cp $CP_OPTS src/cmd/roof.sh $PROG_DIR
+	cp $CP_OPTS src/cmd/roof_low.sh $PROG_DIR
+	cp $CP_OPTS src/cmd/lot_low.sh $PROG_DIR
 	MSG="Done."
 fi
 ls $LS_OPTS $PROG_PATH
