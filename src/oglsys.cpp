@@ -927,6 +927,9 @@ static void web_kbd(const SDL_Event& evt) {
 			if ((uint32_t)sym >= 'a' && (uint32_t)sym <= 'z') {
 				pState = GLG.mKbdState.alpha;
 				idx = (int)sym - 'a';
+			} else if (sym >= SDLK_F1 && sym <= SDLK_F12) {
+				pState = GLG.mKbdState.func;
+				idx = (uint32_t)sym - (uint32_t)SDLK_F1;
 			}
 			break;
 	}
