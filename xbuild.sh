@@ -50,7 +50,7 @@ CXX=${CXX:-$DEF_CXX}
 
 DISASM_OPTS=""
 case $SYS_ARCH in
-	x86_64 | amd64 | i386 | i686)
+	x86_64 | amd64 | i386 | i686 | i86pc)
 		DISASM_OPTS="-M intel"
 	;;
 esac
