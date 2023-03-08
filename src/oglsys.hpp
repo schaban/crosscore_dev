@@ -39,6 +39,14 @@
 #	define OGLSYS_FREEBSD
 #elif defined(__linux__)
 #	define OGLSYS_LINUX
+#elif defined(__sun__)
+#	define OGLSYS_SUNOS
+#	if defined(__svr4__)
+#		define OGLSYS_SOLARIS
+#	endif
+#	if defined(__illumos__)
+#		define OGLSYS_ILLUMOS
+#	endif
 #endif
 
 #if defined(ANDROID)

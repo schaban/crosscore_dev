@@ -1689,13 +1689,24 @@ void OGLSysGlb::init_ogl() {
 #elif defined(OGLSYS_X11)
 	if (mpXDisplay) {
 		mGLX.init();
+#	if defined(OGLSYS_ILLUMOS)
+		GLint viAttrs[] = {
+			GLX_RGBA,
+			GLX_DEPTH_SIZE, 16,
+			GLX_DOUBLEBUFFER,
+			None
+		};
+		dbg_msg("!!! Illumos tmp fix: 16-bit depth !!!\n");
+#else
 		GLint viAttrs[] = {
 			GLX_RGBA,
 			GLX_DEPTH_SIZE, 24,
 			GLX_DOUBLEBUFFER,
 			None
 		};
-		XVisualInfo* pVI = mGLX.mpfnGLXChooseVisual(mpXDisplay, 0, viAttrs);
+#endif
+		GLint* pViAttrs = viAttrs;
+		XVisualInfo* pVI = mGLX.mpfnGLXChooseVisual(mpXDisplay, 0, pViAttrs);
 		mGLX.mCtx = mGLX.mpfnGLXCreateContext(mpXDisplay, pVI, NULL, GL_TRUE);
 		if (mGLX.mCtx) {
 			mGLX.mpfnGLXMakeCurrent(mpXDisplay, mXWnd, mGLX.mCtx);
