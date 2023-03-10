@@ -42,6 +42,14 @@
 #elif defined(__NetBSD__)
 #	define XD_SYS_BSD
 #	define XD_SYS_NETBSD
+#elif defined(__sun__)
+#	define XD_SYS_SUNOS
+#	if defined(__svr4__)
+#		define XD_SYS_SOLARIS
+#	endif
+#	if defined(__illumos__)
+#		define XD_SYS_ILLUMOS
+#	endif
 #else
 #	define XD_SYS_NONE
 #endif

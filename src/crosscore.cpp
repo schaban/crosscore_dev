@@ -115,6 +115,12 @@
 #	endif
 #	include <unistd.h>
 #	include <time.h>
+#elif defined(XD_SYS_ILLUMOS)
+#	if XD_TSK_NATIVE
+#		define XD_TSK_NATIVE_PTHREAD
+#	endif
+#	include <unistd.h>
+#	include <time.h>
 #elif !defined(XD_SYS_NONE)
 #	undef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 0
