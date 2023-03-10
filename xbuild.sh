@@ -42,6 +42,7 @@ case $SYS_NAME in
 		DEF_CXX="clang++"
 	;;
 	SunOS)
+		PROG_LIBS="$PROG_LIBS -static-libgcc -static-libstdc++"
 		CP_OPTS=""
 	;;
 esac
