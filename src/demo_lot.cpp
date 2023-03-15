@@ -162,6 +162,8 @@ static void init() {
 	s_exerep = nxCalc::clamp(nxApp::get_int_opt("exerep", 1), 1, 100);
 	nxCore::dbg_msg("exerep: %d\n", s_exerep);
 	nxCore::dbg_msg("Scene::speed: %.2f\n", Scene::speed());
+	int ncpus = nxSys::num_active_cpus();
+	nxCore::dbg_msg("num active CPUs: %d\n", ncpus);
 }
 
 static struct ViewWk {
