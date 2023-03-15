@@ -573,7 +573,7 @@ XD_NOINLINE void sleep_millis(uint32_t millis) {
 
 XD_NOINLINE int num_active_cpus() {
 	int ncpu = 1;
-#if defined(XD_SYS_LINUX) || defined(XD_SYS_FREEBSD)
+#if defined(XD_SYS_LINUX) || defined(XD_SYS_FREEBSD) || defined(XD_SYS_SUNOS)
 	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(XD_SYS_OPENBSD)
 	int cmd[] = { CTL_HW, HW_NCPUONLINE };
