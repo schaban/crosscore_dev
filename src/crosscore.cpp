@@ -159,6 +159,12 @@
 #	include <sys/sysctl.h>
 #endif
 
+#ifdef XD_SYS_SUNOS
+#	include <sys/types.h>
+#	include <sys/processor.h>
+#	include <unistd.h>
+#endif
+
 
 const uint32_t sxValuesData::KIND = XD_FOURCC('X', 'V', 'A', 'L');
 const uint32_t sxRigData::KIND = XD_FOURCC('X', 'R', 'I', 'G');
@@ -2475,6 +2481,47 @@ void cxBrigade::auto_affinity() {
 			CPU_ZERO(&mask);
 			CPU_SET(cpuNo, &mask);
 			pthread_setaffinity_np(pWrk->mThread, sizeof(mask), &mask);
+			++cpuNo;
+		}
+		if (cpuNo >= ncpu) {
+			cpuNo = cpuMin;
+		}
+	}
+#elif defined(XD_TSK_NATIVE_PTHREAD) && defined(XD_SYS_SUNOS)
+	if (mWrkNum < 2) return;
+	if (!mppWrk) return;
+	int cpuLst[256];
+	int ncpu = nxSys::num_active_cpus();
+	if (ncpu > XD_ARY_LEN(cpuLst)) {
+		nxCore::dbg_msg("auto_affinity: too many active cpus: %d\n", ncpu);
+		return;
+	}
+	for (int i = 0; i < XD_ARY_LEN(cpuLst); ++i) { cpuLst[i] = -1; }
+	int cidMax = sysconf(_SC_CPUID_MAX);
+	nxCore::dbg_msg("auto_affinity: ncpu = %d, max cpuId = %d\n", ncpu, cidMax);
+	int icpu = 0;
+	for (int cid = 0; cid <= cidMax; ++cid) {
+		if (p_online(cid, P_STATUS) != -1) {
+			nxCore::dbg_msg("auto_affinity: cpu %d is online\n", cid);
+			cpuLst[icpu] = cid;
+			++icpu;
+		}
+	}
+	nxCore::dbg_msg("auto_affinity: %d cpus online\n", icpu);
+	int cpuMin = 0;
+	int cpuNo = cpuMin;
+	for (int i = 0; i < mWrkNum; ++i) {
+		sxWorker* pWrk = mppWrk[i];
+		if (pWrk) {
+			processorid_t cid = cpuLst[cpuNo];
+			processorid_t oid = -1;
+			id_t lwpid = (id_t)pWrk->mThread;
+			int res = processor_bind(P_LWPID, lwpid, cid, &oid);
+			if (res == 0) {
+				nxCore::dbg_msg("auto_affinity: lwp %d, %d -> %d\n", lwpid, oid, cid);
+			} else {
+				nxCore::dbg_msg("auto_affinity: failed for lwp %d, cid %d\n", lwpid, cid);
+			}
 			++cpuNo;
 		}
 		if (cpuNo >= ncpu) {
