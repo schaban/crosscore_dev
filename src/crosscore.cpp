@@ -475,8 +475,7 @@ XD_NOINLINE void dbgmsg_u32_hex(const uint32_t x) { t_dbgmsg_hex(x); }
 XD_NOINLINE void dbgmsg_u64_hex(const uint64_t x) { t_dbgmsg_hex(x); }
 
 void dbgmsg_ptr(const void* p) {
-	const uintptr_t x = (const uintptr_t)p;
-	t_dbgmsg_hex(x);
+	t_dbgmsg_hex((uintptr_t)p);
 }
 
 XD_NOINLINE void dbgmsg_f32(const float x, const int nfrc) {
