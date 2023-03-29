@@ -5859,10 +5859,25 @@ protected:
 	int mThreshold;
 	int mSize;
 	Slot* mpSlots;
+	sxLock* mpMemLock;
+
+	void mem_lock_acq() {
+		if (mpMemLock) {
+			nxSys::lock_acquire(mpMemLock);
+		}
+	}
+
+	void mem_lock_rel() {
+		if (mpMemLock) {
+			nxSys::lock_release(mpMemLock);
+		}
+	}
 
 	void set_new_tbl(Slot* pSlots) {
 		if (mpSlots) {
+			mem_lock_acq();
 			nxCore::mem_free(mpSlots);
+			mem_lock_rel();
 		}
 		mpSlots = pSlots;
 		mThreshold = nxCalc::min(int(float(mSize) * mLoadFactor), mSize - 1);
@@ -5870,7 +5885,9 @@ protected:
 
 	Slot* alloc_tbl(int newSize = 0) {
 		size_t size = (newSize <= 0 ? mSize : newSize) * sizeof(Slot);
+		mem_lock_acq();
 		Slot* pSlots = reinterpret_cast<Slot*>(nxCore::mem_alloc(size, "xStrMap:Slots"));
+		mem_lock_rel();
 		if (pSlots) {
 			nxCore::mem_zero(pSlots, size);
 		}
@@ -5980,6 +5997,7 @@ protected:
 		capacity = nxCalc::max(capacity, 16);
 		mLoadFactor = 0.75f * nxCalc::max(loadScl, 0.1f);
 		mSize = nxCalc::prime(int(float(capacity) / mLoadFactor));
+		mpMemLock = nullptr;
 		set_new_tbl(alloc_tbl());
 	}
 
@@ -6051,6 +6069,14 @@ public:
 			}
 		}
 		return pKey;
+	}
+
+	void set_mem_lock(sxLock* pLock) {
+		mpMemLock = pLock;
+	}
+
+	sxLock* get_mem_lock() {
+		return mpMemLock;
 	}
 
 	static cxStrMap* create(const char* pTag = XD_STRMAP_TAG, int capacity = 0, float loadScl = 1.0f) {
