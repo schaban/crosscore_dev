@@ -291,6 +291,7 @@ void alloc_global_heap(const size_t globalHeapSize);
 void free_global_heap();
 void purge_global_heap();
 cxHeap* get_global_heap();
+sxLock* get_glb_mem_lock();
 void* glb_mem_alloc(const size_t size, const uint32_t tag);
 void glb_mem_free(void* pMem);
 

@@ -847,6 +847,10 @@ cxHeap* get_global_heap() {
 	return s_pGlobalHeap;
 }
 
+sxLock* get_glb_mem_lock() {
+	return s_pGlbMemLock;
+}
+
 static void glb_mem_lock_acq() {
 	if (s_pGlbMemLock) {
 		nxSys::lock_acquire(s_pGlbMemLock);
