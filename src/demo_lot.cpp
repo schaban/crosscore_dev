@@ -1,4 +1,5 @@
 #include "crosscore.hpp"
+#include "oglsys.hpp"
 #include "scene.hpp"
 #include "demo.hpp"
 #include "smprig.hpp"
@@ -149,7 +150,6 @@ static void init_chars() {
 	}
 }
 
-
 static void init() {
 	//Scene::alloc_global_heap(1024 * 1024 * 2);
 	Scene::alloc_local_heaps(1024 * 1024 * 2);
@@ -261,6 +261,10 @@ static void draw_2d() {
 	Scene::print(sx, sy, cxColor(0.1f, 0.75f, 0.1f, 1.0f), str);
 	sx += 120.0f;
 
+	if (OGLSys::is_dummy()) {
+		nxCore::dbg_msg("\x1B[G[\x1B[1m\x1B[42m\x1B[93m %s", str);
+	}
+
 	float exe = s_medianExecMillis;
 	if (exe <= 0.0f) {
 		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s--", exeStr);
@@ -268,6 +272,10 @@ static void draw_2d() {
 		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.4f millis", exeStr, exe);
 	}
 	Scene::print(sx, sy, cxColor(0.5f, 0.4f, 0.1f, 1.0f), str);
+
+	if (OGLSys::is_dummy()) {
+		nxCore::dbg_msg("  %s \x1B[0m]   ", str);
+	}
 }
 
 static void profile_start() {
