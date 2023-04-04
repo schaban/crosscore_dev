@@ -2750,6 +2750,14 @@ namespace OGLSys {
 #endif
 	}
 
+	bool is_dummy() {
+#if defined(OGLSYS_DUMMY)
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	void* get_window() {
 #if defined(OGLSYS_ANDROID)
 		return GLG.mpNativeWnd;

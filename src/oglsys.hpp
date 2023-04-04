@@ -308,6 +308,7 @@ namespace OGLSys {
 
 	bool is_es();
 	bool is_web();
+	bool is_dummy();
 
 	void* get_window();
 	void* get_display();
