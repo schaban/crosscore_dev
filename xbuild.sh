@@ -45,6 +45,9 @@ case $SYS_NAME in
 		PROG_LIBS="$PROG_LIBS -static-libgcc -static-libstdc++"
 		CP_OPTS=""
 	;;
+	Haiku)
+		PROG_LIBS=""
+	;;
 esac
 
 DL_CMD=""
@@ -92,6 +95,7 @@ case $SYS_ARCH in
 esac
 
 echo "Compiling with $CXX..."
+rm -f $PROG_PATH
 $CXX $CXX_OPTS $VEMA_OPTS $PROG_OPTS $PROG_INCS $VEMA_SRCS $PROG_SRCS $PROG_LIBS -o $PROG_PATH $*
 MSG="Failed."
 if [ -f $PROG_PATH ]; then
