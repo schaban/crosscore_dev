@@ -10,6 +10,7 @@ DEMO_PROG_BEGIN
 static cxStopWatch s_execStopWatch;
 static float s_medianExecMillis = -1.0f;
 static int s_exerep = 1;
+static int s_dummyFPS = 0;
 
 static struct STAGE {
 	Pkg* pPkg;
@@ -165,6 +166,7 @@ static void init() {
 	nxCore::dbg_msg("Scene::speed: %.2f\n", Scene::speed());
 	int ncpus = nxSys::num_active_cpus();
 	nxCore::dbg_msg("num active CPUs: %d\n", ncpus);
+	s_dummyFPS = nxApp::get_int_opt("dummyfps", 0);
 }
 
 static struct ViewWk {
@@ -360,7 +362,31 @@ static void scn_exec() {
 	}
 }
 
+static double s_dummyglTStamp = 0.0;
+
+static void dummygl_begin() {
+	if (OGLSys::is_dummy() && s_dummyFPS > 0) {
+		s_dummyglTStamp = nxSys::time_micros();
+	}
+}
+
+static void dummygl_end() {
+	if (OGLSys::is_dummy() && s_dummyFPS > 0) {
+		double usStart = s_dummyglTStamp;
+		double usEnd = nxSys::time_micros();
+		double refMillis = 1000.0 / double(s_dummyFPS);
+		double frameMillis = (usEnd - usStart) / 1000.0;
+		if (frameMillis < refMillis) {
+			double sleepMillis = ::mth_round(refMillis - frameMillis);
+			if (sleepMillis > 0.0) {
+				nxSys::sleep_millis((uint32_t)sleepMillis);
+			}
+		}
+	}
+}
+
 static void loop(void* pLoopCtx) {
+	dummygl_begin();
 	SmpCharSys::start_frame();
 	set_scene_ctx();
 	profile_start();
@@ -372,6 +398,7 @@ static void loop(void* pLoopCtx) {
 	Scene::draw();
 	draw_2d();
 	Scene::frame_end();
+	dummygl_end();
 }
 
 static void reset() {
