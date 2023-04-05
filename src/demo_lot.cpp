@@ -29,7 +29,8 @@ static void init_stage() {
 	s_stage.pCol = nullptr;
 	if (pPkg) {
 		Scene::for_all_pkg_models(pPkg, add_stg_obj, &s_stage);
-		SmpCharSys::set_collision(pPkg->find_collision("col"));
+		s_stage.pCol = pPkg->find_collision("col");
+		SmpCharSys::set_collision(s_stage.pCol);
 	}
 }
 
@@ -221,6 +222,65 @@ static void set_scene_ctx() {
 	Scene::set_linear_bias(-0.025f);
 }
 
+#define D_MINIMAP_W 24
+#define D_MINIMAP_H 18
+
+static char s_minimap[(D_MINIMAP_W + 1)*D_MINIMAP_H + 1];
+static int s_minimapFlg = false;
+
+struct MINIMAP_WK {
+	cxAABB bbox;
+	char* pMap;
+	int w;
+	int h;
+};
+
+static bool minimap_obj_func(ScnObj* pObj, void* pWkMem) {
+	SmpChar* pChr = SmpCharSys::char_from_obj(pObj);
+	if (pChr) {
+		MINIMAP_WK* pWk = (MINIMAP_WK*)pWkMem;
+		if (pWk) {
+			cxVec wpos = pObj->get_world_pos();
+			cxVec rel = wpos - pWk->bbox.get_min_pos();
+			cxVec sv = pWk->bbox.get_size_vec();
+			cxVec isv = nxVec::rcp0(sv);
+			float x = nxCalc::saturate(rel.x * isv.x);
+			float z = nxCalc::saturate(rel.z * isv.z);
+			int ix = (int)(mth_roundf(x * float(D_MINIMAP_W - 1)));
+			int iy = (int)(mth_roundf(z * float(D_MINIMAP_H - 1)));
+			if (pWk->pMap) {
+				int idx = iy*(D_MINIMAP_W + 1) + ix;
+				pWk->pMap[idx] = '*';
+			}
+		}
+	}
+	return true;
+}
+
+static void print_minimap() {
+	sxCollisionData* pCol = s_stage.pCol;
+	if (!pCol) return;
+	MINIMAP_WK wk;
+	wk.bbox = pCol->mBBox;
+	wk.w = D_MINIMAP_W;
+	wk.h = D_MINIMAP_H;
+	wk.pMap = s_minimap;
+	nxCore::mem_zero(s_minimap, sizeof(s_minimap));
+	char* pDst = wk.pMap;
+	for (int y = 0; y < D_MINIMAP_H; ++y) {
+		for (int x = 0; x < D_MINIMAP_W; ++x) {
+			*pDst++ = '.';
+		}
+		*pDst++ = '\n';
+	}
+	Scene::for_each_obj(minimap_obj_func, &wk);
+	if (s_minimapFlg) {
+		nxCore::dbg_msg("\x1B[%dA\x1B[G", D_MINIMAP_H);
+	}
+	nxCore::dbg_msg("%s", s_minimap);
+	s_minimapFlg = true;
+}
+
 static void draw_2d() {
 	char str[512];
 	const char* fpsStr = "FPS: ";
@@ -262,6 +322,7 @@ static void draw_2d() {
 	sx += 120.0f;
 
 	if (OGLSys::is_dummy()) {
+		print_minimap();
 		nxCore::dbg_msg("\x1B[G[\x1B[1m\x1B[42m\x1B[93m %s", str);
 	}
 
