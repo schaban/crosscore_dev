@@ -3168,7 +3168,11 @@ xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
 #else
 
 #ifndef XD_XMTX_CONCAT_VEC
+#if defined(__GNUC__) && !defined(__clang__)
+#	define XD_XMTX_CONCAT_VEC 1
+#else
 #	define XD_XMTX_CONCAT_VEC 0
+#endif
 #endif
 
 xt_xmtx xmtx_concat(const xt_xmtx& a, const xt_xmtx& b) {
