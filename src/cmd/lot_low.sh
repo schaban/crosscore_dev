@@ -18,6 +18,9 @@ case $SYSNAME in
 		echo "$NCPUS CPUs on $NCORES cores"
 		NWRK=$NCPUS
 	;;
+	Haiku)
+		NWRK=0
+	;;
 esac
 PROGDIR=`dirname $0`
 $PROGDIR/crosscore_demo -nwrk:$NWRK -demo:lot -mode:1 -draw:ogl -bump:0 -spec:0 -w:720 -h:480 -smap:256 -tlod_bias:0 -vl:1 -lowq:1 -adapt:1 $*
