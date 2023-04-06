@@ -97,6 +97,20 @@ struct SmpChar {
 		mWallTouchDuration = 0.0;
 	}
 
+	template<typename T> void set_ptr_wk(const int idx, T* p) {
+		if (mpObj && idx >= 0) {
+			mpObj->set_ptr_wk(idx + 2, p);
+		}
+	}
+
+	template<typename T> T* get_ptr_wk(const int idx) {
+		T* p = nullptr;
+		if (mpObj && idx >= 0) {
+			p = mpObj->get_ptr_wk<T>(idx);
+		}
+		return p;
+	}
+
 	void obj_adj();
 	void wall_adj();
 	void ground_adj();
