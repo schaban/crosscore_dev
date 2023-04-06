@@ -121,6 +121,11 @@
 #	endif
 #	include <unistd.h>
 #	include <time.h>
+#elif defined(XD_SYS_HAIKU)
+#	include <kernel/OS.h>
+#	include <time.h>
+#	undef XD_TSK_NATIVE
+#	define XD_TSK_NATIVE 0
 #elif !defined(XD_SYS_NONE)
 #	undef XD_TSK_NATIVE
 #	define XD_TSK_NATIVE 0
@@ -589,6 +594,10 @@ XD_NOINLINE int num_active_cpus() {
 	nxCore::mem_zero(&si, sizeof(SYSTEM_INFO));
 	GetSystemInfo(&si);
 	ncpu = (int)si.dwNumberOfProcessors;
+#elif defined(XD_SYS_HAIKU)
+	system_info si;
+	get_system_info(&si);
+	ncpu = si.cpu_count;
 #endif
 	return ncpu;
 }

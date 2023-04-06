@@ -50,6 +50,8 @@
 #	if defined(__illumos__)
 #		define XD_SYS_ILLUMOS
 #	endif
+#elif defined(__HAIKU__)
+#	define XD_SYS_HAIKU
 #else
 #	define XD_SYS_NONE
 #endif
