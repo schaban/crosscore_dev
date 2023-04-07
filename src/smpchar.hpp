@@ -106,7 +106,7 @@ struct SmpChar {
 	template<typename T> T* get_ptr_wk(const int idx) {
 		T* p = nullptr;
 		if (mpObj && idx >= 0) {
-			p = mpObj->get_ptr_wk<T>(idx);
+			p = mpObj->get_ptr_wk<T>(idx + 2);
 		}
 		return p;
 	}
