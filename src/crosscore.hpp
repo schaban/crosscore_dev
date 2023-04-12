@@ -5816,14 +5816,15 @@ private:
 	cxStrStore* mpNext;
 	size_t mSize;
 	size_t mPtr;
+	sxLock* mpMemLock;
 
 	cxStrStore() {}
 
 public:
 	char* add(const char* pStr);
 
-	static cxStrStore* create(const char* pTag = XD_STRSTORE_TAG);
-	static void destroy(cxStrStore* pStore);
+	static cxStrStore* create(const char* pTag = XD_STRSTORE_TAG, sxLock* pMemLock = nullptr);
+	static void destroy(cxStrStore* pStore, const bool useMemLock = true);
 };
 
 #define XD_STRMAP_TAG "xStrMap"

@@ -14275,23 +14275,29 @@ void cxModelWork::destroy(cxModelWork* pWk) {
 
 #define XD_STRSTORE_ALLOC_SIZE size_t(4096)
 
-cxStrStore* cxStrStore::create(const char* pTag) {
+cxStrStore* cxStrStore::create(const char* pTag, sxLock* pMemLock) {
 	const size_t defSize = XD_STRSTORE_ALLOC_SIZE;
 	size_t size = sizeof(cxStrStore) + defSize;
+	if (pMemLock) { nxSys::lock_acquire(pMemLock); }
 	cxStrStore* pStore = reinterpret_cast<cxStrStore*>(nxCore::mem_alloc(size, pTag ? pTag : XD_STRSTORE_TAG));
+	if (pMemLock) { nxSys::lock_release(pMemLock); }
 	if (pStore) {
 		pStore->mSize = defSize;
 		pStore->mpNext = nullptr;
 		pStore->mPtr = 0;
+		pStore->mpMemLock = pMemLock;
 	}
 	return pStore;
 }
 
-void cxStrStore::destroy(cxStrStore* pStore) {
+XD_NOINLINE void cxStrStore::destroy(cxStrStore* pStore, const bool useMemLock) {
 	cxStrStore* p = pStore;
 	while (p) {
+		sxLock* pMemLock = useMemLock ? p->mpMemLock : nullptr;
 		cxStrStore* pNext = p->mpNext;
+		if (pMemLock) { nxSys::lock_acquire(pMemLock); }
 		nxCore::mem_free(p);
+		if (pMemLock) { nxSys::lock_release(pMemLock); }
 		p = pNext;
 	}
 }
@@ -14311,11 +14317,15 @@ char* cxStrStore::add(const char* pStr) {
 				cxStrStore* pNext = pStore->mpNext;
 				if (!pNext) {
 					size_t size = sizeof(cxStrStore) + nxCalc::max(XD_STRSTORE_ALLOC_SIZE, len);
+					sxLock* pMemLock = pStore->mpMemLock;
+					if (pMemLock) { nxSys::lock_acquire(pMemLock); }
 					pNext = reinterpret_cast<cxStrStore*>(nxCore::mem_alloc(size, XD_STRSTORE_TAG));
+					if (pMemLock) { nxSys::lock_release(pMemLock); }
 					if (pNext) {
 						pNext->mSize = size;
 						pNext->mpNext = nullptr;
 						pNext->mPtr = 0;
+						pNext->mpMemLock = pStore->mpMemLock;
 					} else {
 						break;
 					}
