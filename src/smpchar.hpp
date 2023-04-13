@@ -60,6 +60,9 @@ struct SmpChar {
 	double mWallTouchStartTime;
 	double mWallTouchDuration;
 
+	bool is_f() const;
+	bool is_m() const;
+
 	void set_motion(sxMotionData* pMot) {
 		if (mpObj) {
 			mpObj->mpMoveMot = pMot ? pMot : mMotLib.pStand;
@@ -132,6 +135,8 @@ namespace SmpCharSys {
 	SmpChar* char_from_obj(ScnObj* pObj);
 	ScnObj* add_f(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl = nullptr);
 	ScnObj* add_m(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl = nullptr);
+	bool obj_is_f(ScnObj* pObj);
+	bool obj_is_m(ScnObj* pObj);
 
 	void set_collision(sxCollisionData* pCol);
 	sxCollisionData* get_collision();

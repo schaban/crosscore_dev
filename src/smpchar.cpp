@@ -43,6 +43,31 @@ void SmpChar::MotLib::init(const Pkg* pPkg) {
 }
 
 
+static bool char_pkg_ck(const SmpChar* pChr, const char* pPkgName) {
+	bool res = false;
+	if (pChr && pPkgName) {
+		ScnObj* pObj = pChr->mpObj;
+		if (pObj) {
+			sxModelData* pMdl = pObj->get_model_data();
+			if (pMdl) {
+				Pkg* pPkg = Scene::find_pkg_for_data(pMdl);
+				if (pPkg) {
+					res = nxCore::str_eq(pPkg->get_name(), pPkgName);
+				}
+			}
+		}
+	}
+	return res;
+}
+
+bool SmpChar::is_f() const {
+	return char_pkg_ck(this, "smp_f");
+}
+
+bool SmpChar::is_m() const {
+	return char_pkg_ck(this, "smp_m");
+}
+
 double SmpChar::get_act_time() const {
 	return SmpCharSys::get_current_time() - mActionStartTime;
 }
@@ -387,8 +412,31 @@ static ScnObj* add_char(const Pkg* pPkg, const SmpChar::Descr& descr, SmpChar::C
 	return pObj;
 }
 
-ScnObj* add_f(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl) { return add_char(s_wk.mpPkgF, descr, ctrl); }
-ScnObj* add_m(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl) { return add_char(s_wk.mpPkgM, descr, ctrl); }
+ScnObj* add_f(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl) {
+	return add_char(s_wk.mpPkgF, descr, ctrl);
+}
+
+ScnObj* add_m(const SmpChar::Descr& descr, SmpChar::CtrlFunc ctrl) {
+	return add_char(s_wk.mpPkgM, descr, ctrl);
+}
+
+bool obj_is_f(ScnObj* pObj) {
+	bool res = false;
+	SmpChar* pChr = char_from_obj(pObj);
+	if (pChr) {
+		res = pChr->is_f();
+	}
+	return res;
+}
+
+bool obj_is_m(ScnObj* pObj) {
+	bool res = false;
+	SmpChar* pChr = char_from_obj(pObj);
+	if (pChr) {
+		res = pChr->is_m();
+	}
+	return res;
+}
 
 void set_collision(sxCollisionData* pCol) {
 	s_wk.mpCol = pCol;
