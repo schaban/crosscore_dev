@@ -171,6 +171,9 @@ static void init_sys() {
 	sysIfc.fn_fsize = rom_fsize;
 #endif
 	nxSys::init(&sysIfc);
+
+	bool memInfoCk = nxApp::get_bool_opt("mem_info_ck", false);
+	nxCore::mem_info_check_enable(memInfoCk);
 }
 
 static void reset_sys() {

@@ -1142,6 +1142,7 @@ static sxMemInfo* s_pMemTail = nullptr;
 static uint32_t s_allocCount = 0;
 static uint64_t s_allocBytes = 0;
 static uint64_t s_allocPeakBytes = 0;
+static bool s_memInfoCkEnabled = false;
 
 sxMemInfo* mem_info_from_addr(void* pMem) {
 	sxMemInfo* pMemInfo = nullptr;
@@ -1167,14 +1168,18 @@ void* mem_addr_from_info(sxMemInfo* pInfo) {
 sxMemInfo* find_mem_info(void* pMem) {
 	sxMemInfo* pMemInfo = nullptr;
 	sxMemInfo* pCkInfo = mem_info_from_addr(pMem);
-	sxMemInfo* pWkInfo = s_pMemHead;
-	while (pWkInfo) {
-		if (pWkInfo == pCkInfo) {
-			pMemInfo = pWkInfo;
-			pWkInfo = nullptr;
-		} else {
-			pWkInfo = pWkInfo->mpNext;
+	if (s_memInfoCkEnabled) {
+		sxMemInfo* pWkInfo = s_pMemHead;
+		while (pWkInfo) {
+			if (pWkInfo == pCkInfo) {
+				pMemInfo = pWkInfo;
+				pWkInfo = nullptr;
+			} else {
+				pWkInfo = pWkInfo->mpNext;
+			}
 		}
+	} else {
+		pMemInfo = pCkInfo;
 	}
 	return pMemInfo;
 }
@@ -1313,6 +1318,10 @@ const char* mem_tag(void* pMem) {
 		pTag = (const char*)XD_INCR_PTR(pMemInfo, sizeof(sxMemInfo));
 	}
 	return pTag;
+}
+
+void mem_info_check_enable(const bool flg) {
+	s_memInfoCkEnabled = flg;
 }
 
 void mem_dbg() {

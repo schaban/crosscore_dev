@@ -362,6 +362,7 @@ void* mem_resize(void* pMem, float factor, int alignment = 0x10);
 void mem_free(void* pMem);
 size_t mem_size(void* pMem);
 const char* mem_tag(void* pMem);
+void mem_info_check_enable(const bool flg);
 void mem_dbg();
 uint64_t mem_allocated_bytes();
 uint64_t mem_peak_bytes();
