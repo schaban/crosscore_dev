@@ -11,6 +11,7 @@ static cxStopWatch s_execStopWatch;
 static float s_medianExecMillis = -1.0f;
 static int s_exerep = 1;
 static int s_dummyFPS = 0;
+static int s_minimapMode = 0;
 
 static struct STAGE {
 	Pkg* pPkg;
@@ -167,6 +168,7 @@ static void init() {
 	int ncpus = nxSys::num_active_cpus();
 	nxCore::dbg_msg("num active CPUs: %d\n", ncpus);
 	s_dummyFPS = nxApp::get_int_opt("dummyfps", 0);
+	s_minimapMode = nxApp::get_int_opt("minimap_mode", 0);
 }
 
 static struct ViewWk {
@@ -228,7 +230,7 @@ static void set_scene_ctx() {
 #define D_MINIMAP_H 18
 
 static char s_minimap[(D_MINIMAP_W + 1)*D_MINIMAP_H + 1];
-static int s_minimapFlg = false;
+static bool s_minimapFlg = false;
 
 struct MINIMAP_WK {
 	cxAABB bbox;
@@ -252,7 +254,16 @@ static bool minimap_obj_func(ScnObj* pObj, void* pWkMem) {
 			int iy = (int)(mth_roundf(z * float(D_MINIMAP_H - 1)));
 			if (pWk->pMap) {
 				int idx = iy*(D_MINIMAP_W + 1) + ix;
-				pWk->pMap[idx] = '*';
+				char sym = '*';
+				if (s_minimapMode != 0) {
+					sym = ' ';
+					if (SmpCharSys::obj_is_f(pObj)) {
+						sym = 'f';
+					} else if (SmpCharSys::obj_is_m(pObj)) {
+						sym = 'm';
+					}
+				}
+				pWk->pMap[idx] = sym;
 			}
 		}
 	}
@@ -260,7 +271,7 @@ static bool minimap_obj_func(ScnObj* pObj, void* pWkMem) {
 }
 
 static void print_minimap() {
-	sxCollisionData* pCol = s_stage.pCol;
+	sxCollisionData* pCol = SmpCharSys::get_collision();
 	if (!pCol) return;
 	MINIMAP_WK wk;
 	wk.bbox = pCol->mBBox;
