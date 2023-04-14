@@ -15312,8 +15312,10 @@ struct sxXqcTmpStr {
 	char* mpBuf;
 	size_t mSize;
 	size_t mCursor;
+	sxLock* mpMemLock;
 
 	sxXqcTmpStr() {
+		mpMemLock = nullptr;
 		mpBuf = mBuf;
 		mSize = BUF_SIZE;
 		start();
@@ -15327,9 +15329,31 @@ struct sxXqcTmpStr {
 		mCursor = 0;
 	}
 
+	void set_mem_lock(sxLock* pLock) {
+		mpMemLock = pLock;
+	}
+
+	sxLock* get_mem_lock() {
+		return mpMemLock;
+	}
+
+	void mem_lock_acq() {
+		if (mpMemLock) {
+			nxSys::lock_acquire(mpMemLock);
+		}
+	}
+
+	void mem_lock_rel() {
+		if (mpMemLock) {
+			nxSys::lock_release(mpMemLock);
+		}
+	}
+
 	void reset() {
 		if (mpBuf != mBuf) {
+			mem_lock_acq();
 			nxCore::mem_free(mpBuf);
+			mem_lock_rel();
 			mpBuf = nullptr;
 		}
 		mCursor = 0;
@@ -15338,11 +15362,13 @@ struct sxXqcTmpStr {
 	void put(char ch) {
 		if (mCursor >= mSize - 1) {
 			size_t newSize = (size_t)(mSize * 1.5f);
+			mem_lock_acq();
 			char* pNewBuf = (char*)nxCore::mem_alloc(newSize, "Xqc::tstr");
 			nxCore::mem_copy(pNewBuf, mpBuf, mCursor);
 			if (mpBuf != mBuf) {
 				nxCore::mem_free(mpBuf);
 			}
+			mem_lock_rel();
 			mpBuf = pNewBuf;
 			mSize = newSize;
 		}
@@ -15431,13 +15457,14 @@ int cxXqcLexer::read_char() {
 	return ch;
 }
 
-void cxXqcLexer::scan(TokenFunc& func) {
+XD_NOINLINE void cxXqcLexer::scan(TokenFunc& func, sxLock* pMemLock) {
 	if (!mpText || mTextSize < 1) {
 		nxCore::dbg_msg("Xquic has no text to scan.\n");
 		return;
 	}
 	Token tok;
 	sxXqcTmpStr tstr;
+	tstr.set_mem_lock(pMemLock);
 	int ch = 0;
 	bool errFlg = false;
 	bool readFlg = true;

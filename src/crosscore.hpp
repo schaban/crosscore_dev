@@ -6675,7 +6675,7 @@ public:
 	void reset();
 	void disable_keywords();
 	void set_text(const char* pText, const size_t textSize);
-	void scan(TokenFunc& func);
+	void scan(TokenFunc& func, sxLock* pMemLock = nullptr);
 };
 
 class cxLexer : public cxXqcLexer {
