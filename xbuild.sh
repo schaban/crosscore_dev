@@ -16,9 +16,9 @@ if [ ! -d $PROG_DIR ]; then mkdir -p $PROG_DIR; fi
 
 CXX_OPTS="-std=c++11 -ffast-math -ftree-vectorize -pthread"
 
-PROG_OPTS="-DX11"
+PROG_OPTS=${XBUILD_ALT_DEFS:-"-DX11"}
+PROG_LIBS=${XBUILD_ALT_LIBS:-"-lX11"}
 PROG_INCS="-I src -I inc"
-PROG_LIBS="-lX11"
 PROG_SRCS="`ls src/*.cpp`"
 
 DEF_CXX="g++"
@@ -46,7 +46,7 @@ case $SYS_NAME in
 		CP_OPTS=""
 	;;
 	Haiku)
-		PROG_LIBS=""
+		CXX_OPTS="$CXX_OPTS -fvisibility=hidden"
 	;;
 esac
 
