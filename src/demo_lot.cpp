@@ -13,6 +13,50 @@ static int s_exerep = 1;
 static int s_dummyFPS = 0;
 static int s_minimapMode = 0;
 
+struct AVG_SAMPLES {
+	double* mpSmps;
+	int mNum;
+	int mCur;
+	double mAvg;
+
+	void init(const int num) {
+		mCur = 0;
+		mNum = num;
+		mpSmps = nullptr;
+		if (num > 1) {
+			mpSmps = (double*)nxCore::mem_alloc(num * sizeof(double), "Avg:smps");
+		}
+		mAvg = -1.0f;
+	}
+
+	void reset() {
+		if (mpSmps) {
+			nxCore::mem_free(mpSmps);
+			mpSmps = nullptr;
+		}
+	}
+
+	void add_smp(const double val) {
+		if (val <= 0.0) return;
+		if (!mpSmps) return;
+		if (mCur < mNum) {
+			mpSmps[mCur++] = val;
+			if (mCur >= mNum) {
+				double sum = 0.0;
+				for (int i = 0; i < mNum; ++i) {
+					sum += mpSmps[i];
+				}
+				double s = nxCalc::rcp0(double(mNum));
+				mAvg = sum * s;
+				mCur = 0;
+			}
+		}
+	}
+};
+
+static AVG_SAMPLES s_avgFPS = {};
+static AVG_SAMPLES s_avgEXE = {};
+
 static struct STAGE {
 	Pkg* pPkg;
 	sxCollisionData* pCol;
@@ -169,6 +213,9 @@ static void init() {
 	nxCore::dbg_msg("num active CPUs: %d\n", ncpus);
 	s_dummyFPS = nxApp::get_int_opt("dummyfps", 0);
 	s_minimapMode = nxApp::get_int_opt("minimap_mode", 0);
+	int numAvgSmps = nxApp::get_int_opt("avg_smps", 0);
+	s_avgFPS.init(numAvgSmps);
+	s_avgEXE.init(numAvgSmps);
 }
 
 static struct ViewWk {
@@ -305,6 +352,9 @@ static void draw_2d() {
 		Scene::set_ref_scr_size(refSizeY, refSizeX);
 	}
 
+	double avgFPS = s_avgFPS.mAvg;
+	double avgExe = s_avgEXE.mAvg;
+
 	float sx = 10.0f;
 	float sy = Scene::get_ref_scr_height() - 20.0f;
 
@@ -316,7 +366,7 @@ static void draw_2d() {
 	btex[3].set(0.0f, 1.0f);
 	float bx = 4.0f;
 	float by = 4.0f;
-	float bw = 280.0f;
+	float bw = 280.0f + (avgExe > 0.0 ? 78.0f : 0.0f);
 	float bh = 12.0f;
 	cxColor bclr(0.0f, 0.0f, 0.0f, 0.75f);
 	bpos[0].set(sx - bx, sy - by);
@@ -329,10 +379,17 @@ static void draw_2d() {
 	if (fps <= 0.0f) {
 		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s--", fpsStr);
 	} else {
-		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.2f", fpsStr, fps);
+		if (avgFPS > 0.0) {
+			XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.2f (%.1f)", fpsStr, fps, avgFPS);
+		} else {
+			XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.2f", fpsStr, fps);
+		}
 	}
 	Scene::print(sx, sy, cxColor(0.1f, 0.75f, 0.1f, 1.0f), str);
 	sx += 120.0f;
+	if (avgFPS > 0.0) {
+		sx += 40.0f;
+	}
 
 	if (OGLSys::is_dummy()) {
 		print_minimap();
@@ -343,7 +400,11 @@ static void draw_2d() {
 	if (exe <= 0.0f) {
 		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s--", exeStr);
 	} else {
-		XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.4f millis", exeStr, exe);
+		if (avgExe > 0.0) {
+			XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.3f (%.2f) millis", exeStr, exe, avgExe);
+		} else {
+			XD_SPRINTF(XD_SPRINTF_BUF(str, sizeof(str)), "%s%.4f millis", exeStr, exe);
+		}
 	}
 	Scene::print(sx, sy, cxColor(0.5f, 0.4f, 0.1f, 1.0f), str);
 
@@ -362,6 +423,8 @@ static void profile_end() {
 		s_execStopWatch.reset();
 		double millis = us / 1000.0;
 		s_medianExecMillis = float(millis);
+		s_avgEXE.add_smp(millis);
+		s_avgFPS.add_smp(SmpCharSys::get_fps());
 		Scene::thermal_info();
 		Scene::battery_info();
 	}
@@ -415,6 +478,8 @@ static void loop(void* pLoopCtx) {
 static void reset() {
 	SmpCharSys::reset();
 	s_execStopWatch.free();
+	s_avgFPS.reset();
+	s_avgEXE.reset();
 }
 
 DEMO_REGISTER(lot);
