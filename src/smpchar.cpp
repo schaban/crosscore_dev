@@ -438,6 +438,26 @@ bool obj_is_m(ScnObj* pObj) {
 	return res;
 }
 
+int act_id_from_name(const char* pActName) {
+	int id = -1;
+	if (pActName) {
+		if (nxCore::str_eq(pActName, "STAND") || nxCore::str_eq(pActName, "ACT_STAND")) {
+			id = SmpChar::ACT_STAND;
+		} else if (nxCore::str_eq(pActName, "TURN_L") || nxCore::str_eq(pActName, "ACT_TURN_L")) {
+			id = SmpChar::ACT_TURN_L;
+		} else if (nxCore::str_eq(pActName, "TURN_R") || nxCore::str_eq(pActName, "ACT_TURN_R")) {
+			id = SmpChar::ACT_TURN_R;
+		} else if (nxCore::str_eq(pActName, "WALK") || nxCore::str_eq(pActName, "ACT_WALK")) {
+			id = SmpChar::ACT_WALK;
+		} else if (nxCore::str_eq(pActName, "RETREAT") || nxCore::str_eq(pActName, "ACT_RETREAT")) {
+			id = SmpChar::ACT_RETREAT;
+		} else if (nxCore::str_eq(pActName, "RUN") || nxCore::str_eq(pActName, "ACT_RUN")) {
+			id = SmpChar::ACT_RUN;
+		}
+	}
+	return id;
+}
+
 void set_collision(sxCollisionData* pCol) {
 	s_wk.mpCol = pCol;
 }

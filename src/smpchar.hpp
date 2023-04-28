@@ -138,6 +138,8 @@ namespace SmpCharSys {
 	bool obj_is_f(ScnObj* pObj);
 	bool obj_is_m(ScnObj* pObj);
 
+	int act_id_from_name(const char* pActName);
+
 	void set_collision(sxCollisionData* pCol);
 	sxCollisionData* get_collision();
 
