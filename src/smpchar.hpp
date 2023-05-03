@@ -13,6 +13,7 @@ struct SmpChar {
 	};
 
 	typedef void (*CtrlFunc)(SmpChar*);
+	typedef float (*MoodUpdateFunc)(SmpChar*, double nowTime, double prevTime);
 
 	struct Descr {
 		const char* pName;
@@ -101,6 +102,8 @@ struct SmpChar {
 		mWallTouchCount = 0;
 		mWallTouchDuration = 0.0;
 	}
+
+	void mood_update(MoodUpdateFunc func = nullptr);
 
 	template<typename T> void set_ptr_wk(const int idx, T* p) {
 		if (mpObj && idx >= 0) {

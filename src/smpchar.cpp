@@ -7,6 +7,10 @@
 #include "smpchar.hpp"
 
 
+namespace SmpCharSys {
+	static double get_sys_time_millis();
+}
+
 void SmpChar::Rig::init(SmpChar* pChar) {
 	mpChar = nullptr;
 	mpObj = nullptr;
@@ -89,6 +93,14 @@ void SmpChar::change_act(const int newAct, const double durationSecs) {
 void SmpChar::add_deg_y(const float dy) {
 	if (!mpObj) return;
 	mpObj->add_world_deg_y(dy * SmpCharSys::get_motion_speed() * 2.0f);
+}
+
+void SmpChar::mood_update(MoodUpdateFunc func) {
+	double prevTime = mMoodTimer;
+	mMoodTimer = SmpCharSys::get_sys_time_millis();
+	if (func) {
+		mMood = func(this, mMoodTimer, prevTime);
+	}
 }
 
 static bool char_obj_adj_for_each(ScnObj* pObj, void* pCharMem) {
