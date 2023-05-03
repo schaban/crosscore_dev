@@ -12,6 +12,8 @@ static float s_medianExecMillis = -1.0f;
 static int s_exerep = 1;
 static int s_dummyFPS = 0;
 static int s_minimapMode = 0;
+static float s_moodPeriod = -1.0f;
+static bool s_moodVis = false;
 
 struct AVG_SAMPLES {
 	double* mpSmps;
@@ -80,8 +82,36 @@ static void init_stage() {
 	}
 }
 
+static double calc_mood_arg(double nowTime) {
+	double s = nowTime / 1000.0;
+	double p = s_moodPeriod;
+	return nxCalc::saturate(::fmod(s, p) / p);
+}
+
+static float char_mood_update_func(SmpChar* pChar, double nowTime, double prevTime) {
+	double t = calc_mood_arg(nowTime);
+	double x = t * double(XD_PI) * 2.0;
+	double x2 = x*x;
+	double x4 = x2*x2;
+	double x6 = x4*x2;
+	double x8 = x4*x4;
+	double x10 = x8*x2;
+	double x12 = x10*x2;
+	double x14 = x12*x2;
+	double x16 = x8*x8;
+	double y = 1.0 - 1.0/4*x2 + 1.0/48*x4 - 1.0/1440*x6 + 1.0/80640*x8 - 1.0/7257600*x10 + 1.0/958003200*x12 - 1.0/174356582400*x14 + 1.0/41845579776000*x16;
+	return float(y);
+}
+
 static void char_roam_ctrl(SmpChar* pChar) {
 	if (!pChar) return;
+	if (s_moodPeriod > 0.0f) {
+		pChar->mood_update(char_mood_update_func);
+		if (s_moodVis && pChar->mpObj) {
+			float moodc = pChar->mMood;
+			pChar->mpObj->set_base_color_scl(moodc, moodc, moodc);
+		}
+	}
 	double objTouchDT = pChar->get_obj_touch_duration_secs();
 	double wallTouchDT = pChar->get_wall_touch_duration_secs();
 	switch (pChar->mAction) {
@@ -131,12 +161,12 @@ static void char_roam_ctrl(SmpChar* pChar) {
 static void init_chars() {
 	SmpChar::Descr descr;
 	descr.reset();
-	bool disableSl = nxApp::get_bool_opt("scl_off", false);
+	bool disableScl = nxApp::get_bool_opt("scl_off", false);
 
 	float x = -5.57f;
 	for (int i = 0; i < 10; ++i) {
 		descr.variation = i;
-		if (disableSl) {
+		if (disableScl) {
 			descr.scale = 1.0f;
 		} else {
 			if (!(i & 1)) {
@@ -155,7 +185,7 @@ static void init_chars() {
 	cxVec add = q.apply(cxVec(0.7f, 0.0f, 0.0f));
 	for (int i = 0; i < 10; ++i) {
 		descr.variation = i;
-		if (disableSl) {
+		if (disableScl) {
 			descr.scale = 1.0f;
 		} else {
 			if (!(i & 1)) {
@@ -216,6 +246,9 @@ static void init() {
 	int numAvgSmps = nxApp::get_int_opt("avg_smps", 0);
 	s_avgFPS.init(numAvgSmps);
 	s_avgEXE.init(numAvgSmps);
+	s_moodPeriod = nxApp::get_float_opt("mood_period", -1.0f);
+	nxCore::dbg_msg("mood period: %f\n", s_moodPeriod);
+	s_moodVis = nxApp::get_bool_opt("mood_vis", false);
 }
 
 static struct ViewWk {
