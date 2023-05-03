@@ -404,6 +404,8 @@ static ScnObj* add_char(const Pkg* pPkg, const SmpChar::Descr& descr, SmpChar::C
 			pChar->mAction = SmpChar::ACT_STAND;
 			pChar->mActionStartTime = s_wk.mFixedFreq ? 0.0 : get_sys_time_millis();
 			pChar->set_act_duration_seconds(0.5f);
+			pChar->mMood = 0.5f;
+			pChar->mMoodTimer = get_sys_time_millis();
 		}
 	}
 	if (pObj) {

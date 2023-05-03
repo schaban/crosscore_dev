@@ -59,6 +59,8 @@ struct SmpChar {
 	double mObjTouchDuration;
 	double mWallTouchStartTime;
 	double mWallTouchDuration;
+	double mMoodTimer;
+	float mMood;
 
 	bool is_f() const;
 	bool is_m() const;
