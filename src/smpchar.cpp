@@ -99,7 +99,7 @@ void SmpChar::mood_update(MoodUpdateFunc func) {
 	double prevTime = mMoodTimer;
 	mMoodTimer = SmpCharSys::get_sys_time_millis();
 	if (func) {
-		mMood = func(this, mMoodTimer, prevTime);
+		mMood = nxCalc::saturate(func(this, mMoodTimer, prevTime));
 	}
 }
 
