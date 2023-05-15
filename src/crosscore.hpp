@@ -5823,6 +5823,7 @@ private:
 
 public:
 	char* add(const char* pStr);
+	void purge();
 
 	static cxStrStore* create(const char* pTag = XD_STRSTORE_TAG, sxLock* pMemLock = nullptr);
 	static void destroy(cxStrStore* pStore, const bool useMemLock = true);

@@ -14346,6 +14346,13 @@ char* cxStrStore::add(const char* pStr) {
 	return pRes;
 }
 
+void cxStrStore::purge() {
+	cxStrStore* p = this;
+	while (p) {
+		p->mPtr = 0;
+		p = p->mpNext;
+	}
+}
 
 void cxCmdLine::ctor(int argc, char* argv[]) {
 	mpStore = nullptr;
