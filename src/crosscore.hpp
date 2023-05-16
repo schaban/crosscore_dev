@@ -6062,6 +6062,13 @@ public:
 		}
 	}
 
+	void purge() {
+		if (!mpSlots) return;
+		if (mSize <= 0) return;
+		nxCore::mem_zero(mpSlots, mSize * sizeof(Slot));
+		mInUse = 0;
+	}
+
 	const char* find_key_for_val(T val) {
 		const char* pKey = nullptr;
 		for (int i = 0; i < mSize; ++i) {
