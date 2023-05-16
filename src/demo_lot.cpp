@@ -85,7 +85,12 @@ static void init_stage() {
 static double calc_mood_arg(double nowTime) {
 	double s = nowTime / 1000.0;
 	double p = s_moodPeriod;
-	return nxCalc::saturate(::fmod(s, p) / p);
+	double res = 0.0;
+	if (p > 0.0) {
+		double w = (double)(int)(s / p);
+		res = (s - (w * p)) / p;
+	}
+	return nxCalc::saturate(res);
 }
 
 static float char_mood_update_func(SmpChar* pChar, double nowTime, double prevTime) {
