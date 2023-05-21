@@ -119,6 +119,9 @@ struct SmpChar {
 		return p;
 	}
 
+	const sxJobContext* get_job_ctx() const;
+	cxHeap* get_local_heap();
+
 	void obj_adj();
 	void wall_adj();
 	void ground_adj();

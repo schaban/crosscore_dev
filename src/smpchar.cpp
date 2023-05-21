@@ -103,6 +103,18 @@ void SmpChar::mood_update(MoodUpdateFunc func) {
 	}
 }
 
+const sxJobContext* SmpChar::get_job_ctx() const {
+	const sxJobContext* pJobCtx = nullptr;
+	if (mpObj) {
+		pJobCtx = mpObj->mpJobCtx;
+	}
+	return pJobCtx;
+}
+
+XD_NOINLINE cxHeap* SmpChar::get_local_heap() {
+	return Scene::get_job_local_heap(get_job_ctx());
+}
+
 static bool char_obj_adj_for_each(ScnObj* pObj, void* pCharMem) {
 	if (!pObj) return true;
 	SmpChar* pChar = (SmpChar*)pCharMem;
