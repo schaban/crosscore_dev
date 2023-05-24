@@ -15413,6 +15413,7 @@ cxXqcLexer::cxXqcLexer() {
 	mTextSize = 0;
 	reset();
 	mDisableKwd = false;
+	mLineCommentCh = 0;
 }
 
 void cxXqcLexer::reset() {
@@ -15424,6 +15425,10 @@ void cxXqcLexer::reset() {
 
 void cxXqcLexer::disable_keywords() {
 	mDisableKwd = true;
+}
+
+void cxXqcLexer::set_line_comment_char(char ch) {
+	mLineCommentCh = ch;
 }
 
 void cxXqcLexer::set_text(const char* pText, const size_t textSize) {
@@ -15488,7 +15493,25 @@ XD_NOINLINE void cxXqcLexer::scan(TokenFunc& func, sxLock* pMemLock) {
 		}
 		readFlg = true;
 
-		if (ch == '/') {
+		if (mLineCommentCh != 0) {
+			if (ch == mLineCommentCh) {
+				if (mCursor < mTextSize) {
+					int line = mLoc.line;
+					int next = read_char();
+					while (next >= 0 && line == mLoc.line) {
+						next = read_char();
+					}
+					ch = next;
+					readFlg = false;
+					if (next < 0) break;
+					continue;
+				} else {
+					ch = -1;
+					readFlg = false;
+					break;
+				}
+			}
+		} else if (ch == '/') {
 			if (mCursor < mTextSize) {
 				int next = mpText[mCursor];
 				if (next == '/') {

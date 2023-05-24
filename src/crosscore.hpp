@@ -6674,6 +6674,7 @@ protected:
 	Location mLoc;
 	Location mPrevLoc;
 	bool mDisableKwd;
+	char mLineCommentCh;
 
 	int read_char();
 
@@ -6682,6 +6683,7 @@ public:
 
 	void reset();
 	void disable_keywords();
+	void set_line_comment_char(char ch);
 	void set_text(const char* pText, const size_t textSize);
 	void scan(TokenFunc& func, sxLock* pMemLock = nullptr);
 };
