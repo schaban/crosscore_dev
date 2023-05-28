@@ -60,6 +60,7 @@ struct SmpChar {
 	double mObjTouchDuration;
 	double mWallTouchStartTime;
 	double mWallTouchDuration;
+	double mCtrlDt;
 	double mMoodTimer;
 	float mMood;
 

@@ -362,7 +362,9 @@ static void char_exec_func(ScnObj* pObj) {
 	SmpChar* pChar = char_from_obj(pObj);
 	if (!pChar) return;
 	if (pChar->mCtrlFunc) {
+		double ctrlStart = nxSys::time_micros();
 		pChar->mCtrlFunc(pChar);
+		pChar->mCtrlDt = nxSys::time_micros() - ctrlStart;
 	}
 	pObj->move(SmpCharSys::get_motion_speed());
 }
@@ -425,6 +427,7 @@ static ScnObj* add_char(const Pkg* pPkg, const SmpChar::Descr& descr, SmpChar::C
 			pChar->mWallTouchStartTime = 0.0;
 			pChar->mWallTouchDuration = 0.0;
 			pChar->mCtrlFunc = ctrl;
+			pChar->mCtrlDt = 0.0;
 			pChar->mAction = SmpChar::ACT_STAND;
 			pChar->mActionStartTime = s_wk.mFixedFreq ? 0.0 : get_sys_time_millis();
 			pChar->set_act_duration_seconds(0.5f);
