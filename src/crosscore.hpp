@@ -380,6 +380,7 @@ uint32_t str_hash32(const char* pStr);
 uint16_t str_hash16(const char* pStr);
 int str_cmp(const char* pStrA, const char* pStrB);
 bool str_eq(const char* pStrA, const char* pStrB);
+bool str_eq_x(const char* pStrA, const char* pStrB);
 bool str_starts_with(const char* pStr, const char* pPrefix);
 bool str_ends_with(const char* pStr, const char* pPostfix);
 char* str_dup(const char* pSrc, const char* pTag = "xStr");

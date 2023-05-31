@@ -1614,6 +1614,18 @@ bool str_eq(const char* pStrA, const char* pStrB) {
 	return res;
 }
 
+bool str_eq_x(const char* pStrA, const char* pStrB) {
+	bool res = false;
+	if (pStrA && pStrB) {
+		if (pStrA == pStrB) {
+			res = true;
+		} else {
+			res = x_strcompare_sub(pStrA, pStrB) == 0;
+		}
+	}
+	return res;
+}
+
 bool str_starts_with(const char* pStr, const char* pPrefix) {
 	if (pStr && pPrefix) {
 		size_t len = nxCore::str_len(pPrefix);
