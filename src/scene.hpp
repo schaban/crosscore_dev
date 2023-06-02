@@ -255,6 +255,9 @@ void unload_pkg(Pkg* pPkg);
 void unload_all_pkgs();
 void release_texture(sxTextureData* pTex);
 
+void* load_bin_file(const char* pRelPath, size_t* pSize = nullptr, const char* pExtrPath = nullptr, const bool unpack = true);
+void unload_bin_file(void* pMem);
+
 sxData* load_data_file(const char* pRelPath);
 void unload_data_file(sxData* pData);
 sxImageData* load_img(const char* pRelPath);
