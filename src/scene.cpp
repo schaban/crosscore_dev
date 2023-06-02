@@ -554,7 +554,7 @@ void release_texture(sxTextureData* pTex) {
 	}
 }
 
-void* load_bin_file(const char* pRelPath, size_t* pSize, const char* pExtrPath, const bool unpack) {
+void* load_bin_file(const char* pRelPath, size_t* pSize, const char* pExtrPath, const char* pFileExt, const bool unpack) {
 	void* pBin = nullptr;
 	size_t binSize = 0;
 	if (pRelPath) {
@@ -566,15 +566,26 @@ void* load_bin_file(const char* pRelPath, size_t* pSize, const char* pExtrPath, 
 		if (pExtrPath) {
 			pathSize += nxCore::str_len(pExtrPath) + 1;
 		}
+		if (pFileExt) {
+			pathSize += nxCore::str_len(pFileExt) + 1;
+		}
 		if (pathSize > bufSize) {
-			pPath = (char*)nxCore::mem_alloc(pathSize, "Scn:data_path");
+			pPath = (char*)nxCore::mem_alloc(pathSize, "Scn:file_path");
 			bufSize = pathSize;
 		}
 		if (pPath && bufSize > 0) {
 			if (pExtrPath) {
-				XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s/%s", pDataPath, pExtrPath, pRelPath);
+				if (pFileExt) {
+					XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s/%s.%s", pDataPath, pExtrPath, pRelPath, pFileExt);
+				} else {
+					XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s/%s", pDataPath, pExtrPath, pRelPath);
+				}
 			} else {
-				XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s", pDataPath, pRelPath);
+				if (pFileExt) {
+					XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s.%s", pDataPath, pRelPath, pFileExt);
+				} else {
+					XD_SPRINTF(XD_SPRINTF_BUF(pPath, bufSize), "%s/%s", pDataPath, pRelPath);
+				}
 			}
 		}
 		pBin = nxCore::bin_load(pPath, &binSize, false, unpack);
