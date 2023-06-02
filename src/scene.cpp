@@ -623,8 +623,10 @@ XD_NOINLINE char* load_text_cstr(const char* pRelPath, size_t* pSize, const char
 	return pText;
 }
 
-XD_NOINLINE void unload_text_cstr(void* pMem) {
-	nxCore::mem_free(pMem);
+XD_NOINLINE void unload_text_cstr(char* pStr) {
+	if (pStr) {
+		nxCore::mem_free(pStr);
+	}
 }
 
 sxData* load_data_file(const char* pRelPath) {

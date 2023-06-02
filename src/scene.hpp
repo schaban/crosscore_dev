@@ -258,7 +258,7 @@ void release_texture(sxTextureData* pTex);
 void* load_bin_file(const char* pRelPath, size_t* pSize = nullptr, const char* pExtrPath = nullptr, const char* pFileExt = nullptr, const bool unpack = true);
 void unload_bin_file(void* pMem);
 char* load_text_cstr(const char* pRelPath, size_t* pSize = nullptr, const char* pExtrPath = nullptr, const char* pFileExt = nullptr, const bool unpack = true);
-void unload_text_cstr(void* pMem);
+void unload_text_cstr(char* pStr);
 
 sxData* load_data_file(const char* pRelPath);
 void unload_data_file(sxData* pData);
