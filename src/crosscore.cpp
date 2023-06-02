@@ -15518,8 +15518,6 @@ XD_NOINLINE void cxXqcLexer::scan(TokenFunc& func, sxLock* pMemLock) {
 					if (next < 0) break;
 					continue;
 				} else {
-					ch = -1;
-					readFlg = false;
 					break;
 				}
 			}
