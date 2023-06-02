@@ -603,6 +603,30 @@ XD_NOINLINE void unload_bin_file(void* pMem) {
 	nxCore::bin_unload(pMem);
 }
 
+XD_NOINLINE char* load_text_cstr(const char* pRelPath, size_t* pSize, const char* pExtrPath, const char* pFileExt, const bool unpack) {
+	char* pText = nullptr;
+	size_t size = 0;
+	if (pRelPath) {
+		void* pSrc = load_bin_file(pRelPath, &size, pExtrPath, pFileExt, unpack);
+		if (pSrc && size > 0) {
+			pText = (char*)nxCore::mem_alloc(size + 1, "Scn:text_cstr");
+			if (pText) {
+				nxCore::mem_copy(pText, pSrc, size);
+				pText[size] = (char)0;
+			}
+		}
+		unload_bin_file(pSrc);
+	}
+	if (pSize) {
+		*pSize = size;
+	}
+	return pText;
+}
+
+XD_NOINLINE void unload_text_cstr(void* pMem) {
+	nxCore::mem_free(pMem);
+}
+
 sxData* load_data_file(const char* pRelPath) {
 	sxData* pData = nullptr;
 	if (pRelPath) {
