@@ -107,6 +107,20 @@
 #	endif
 #endif // !OGLSYS_ES
 
+#ifndef DUMMYGL_WINKBD
+#	define DUMMYGL_WINKBD 0
+#	if defined(OGLSYS_DUMMY)
+#		if defined(WIN32) || defined(_WIN32) || defined(_WIN64)
+#			undef DUMMYGL_WINKBD
+#			define DUMMYGL_WINKBD 1
+#			define WIN32_LEAN_AND_MEAN 1
+#			undef NOMINMAX
+#			define NOMINMAX
+#			include <Windows.h>
+#		endif
+#	endif
+#endif
+
 #if (!defined(OGLSYS_WINDOWS) && !defined(OGLSYS_DUMMY) && !defined(OGLSYS_APPLE) && !defined(OGLSYS_ANDROID)) || (defined(OGLSYS_DUMMY) && OGLSYS_CL && defined(OGLSYS_LINUX))
 #include <dlfcn.h>
 namespace OGLSys {
@@ -2714,6 +2728,11 @@ namespace OGLSys {
 			if (GLG.mKbdState.func[3]) { /* [F4] */
 				done = true;
 			}
+#if DUMMYGL_WINKBD
+			if (::GetAsyncKeyState(VK_ESCAPE) & 1) {
+				done = true;
+			}
+#endif
 			if (pLoop) {
 				pLoop(pLoopCtx);
 			}
