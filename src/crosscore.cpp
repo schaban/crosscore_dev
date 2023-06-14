@@ -98,6 +98,10 @@
 #	endif
 #endif
 
+#ifndef XD_CLOCK_MODE
+#	define XD_CLOCK_MODE 0
+#endif
+
 #if defined(XD_SYS_WINDOWS)
 #	undef _WIN32_WINNT
 #	define _WIN32_WINNT 0x0500
@@ -545,11 +549,17 @@ XD_NOINLINE double time_micros() {
 		auto t = high_resolution_clock::now();
 		ms = (double)duration_cast<nanoseconds>(t.time_since_epoch()).count() * 1.0e-3;
 #	else
-		struct timespec t;
+#		if XD_CLOCK_MODE == 1
+		timespec t;
+		clock_gettime(CLOCK_MONOTONIC_RAW, &t);
+		ms = (double)t.tv_nsec*1.0e-3 + (double)t.tv_sec*1.0e6;
+#		else
+		timespec t;
 		if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) {
 			clock_gettime(CLOCK_REALTIME, &t);
 		}
 		ms = (double)t.tv_nsec*1.0e-3 + (double)t.tv_sec*1.0e6;
+#		endif
 #	endif
 #endif
 	}
