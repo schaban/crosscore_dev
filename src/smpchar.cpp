@@ -6,6 +6,33 @@
 #include "smprig.hpp"
 #include "smpchar.hpp"
 
+#if defined(SMPCHAR_DIRECT_CTRLDT)
+static uint64_t get_tsc_u64() {
+#if defined(__GNUC__) && defined(__x86_64__)
+	uint32_t tl;
+	uint32_t th;
+	asm volatile ("rdtsc" : "=a" (tl), "=d" (th));
+	uint64_t t = (uint64_t)th;
+	t <<= 32;
+	t |= tl;
+	return t;
+#else
+	return 0;
+#endif
+}
+
+static double s_tscScl = 0.0;
+
+static double get_tsc_micros() {
+	double t = double(get_tsc_u64());
+	t *= s_tscScl;
+	t *= 1000.0f;
+	return t;
+}
+#	define SMPCHAR_CTRL_MICROS() get_tsc_micros()
+#else
+#	define SMPCHAR_CTRL_MICROS() nxSys::time_micros()
+#endif
 
 namespace SmpCharSys {
 	static double get_sys_time_millis();
@@ -307,6 +334,15 @@ static const char* s_pCharTag = "SmpChar";
 void init() {
 	if (s_initFlg) return;
 	s_wk.init();
+#if defined(SMPCHAR_DIRECT_CTRLDT)
+	double t0 = double(get_tsc_u64());
+	const uint32_t cmillis = 10;
+	nxSys::sleep_millis(cmillis);
+	double dt = double(get_tsc_u64()) - t0;
+	dt /= double(cmillis);
+	nxCore::dbg_msg("ctrldt scale: %.3f\n", dt);
+	s_tscScl = nxCalc::rcp0(dt);
+#endif
 	s_initFlg = true;
 }
 
@@ -362,9 +398,9 @@ static void char_exec_func(ScnObj* pObj) {
 	SmpChar* pChar = char_from_obj(pObj);
 	if (!pChar) return;
 	if (pChar->mCtrlFunc) {
-		double ctrlStart = nxSys::time_micros();
+		double ctrlStart = SMPCHAR_CTRL_MICROS();
 		pChar->mCtrlFunc(pChar);
-		pChar->mCtrlDt = nxSys::time_micros() - ctrlStart;
+		pChar->mCtrlDt = SMPCHAR_CTRL_MICROS() - ctrlStart;
 	}
 	pObj->move(SmpCharSys::get_motion_speed());
 }
