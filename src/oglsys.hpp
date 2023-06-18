@@ -299,6 +299,7 @@ namespace OGLSys {
 	void init(const OGLSysCfg& cfg);
 	void reset();
 	void stop();
+	void quit();
 	void swap();
 	void loop(void (*pLoop)(void*), void* pLoopCtx = nullptr);
 	bool valid();

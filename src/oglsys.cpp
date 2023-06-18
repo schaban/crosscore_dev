@@ -365,6 +365,8 @@ static struct OGLSysGlb {
 	bool mHideSysIcons;
 	bool mWithoutCtx;
 
+	bool mQuitFlg;
+
 	GLint mDefFBO;
 	GLint mMaxTexSize;
 
@@ -2482,6 +2484,10 @@ namespace OGLSys {
 		GLG.stop_ogl();
 	}
 
+	void quit() {
+		GLG.mQuitFlg = true;
+	}
+
 	void swap() {
 #if OGLSYS_ES
 		if (GLG.mExts.pfnDiscardFramebuffer && GLG.mExts.discardFB) {
@@ -2508,6 +2514,9 @@ namespace OGLSys {
 		MSG msg;
 		bool done = false;
 		while (!done) {
+			if (GLG.mQuitFlg) {
+				break;
+			}
 			if (PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE)) {
 				if (GetMessage(&msg, NULL, 0, 0)) {
 					TranslateMessage(&msg);
@@ -2599,6 +2608,9 @@ namespace OGLSys {
 		XEvent evt;
 		bool done = false;
 		while (!done) {
+			if (GLG.mQuitFlg) {
+				break;
+			}
 			int kcode = 0;
 			KeySym ksym;
 			KeySym* pKeySym = nullptr;
@@ -2722,6 +2734,9 @@ namespace OGLSys {
 #else
 		bool done = false;
 		while (!done) {
+			if (GLG.mQuitFlg) {
+				break;
+			}
 #			if defined(OGLSYS_LINUX_INPUT)
 			oglsys_linux_input();
 #			endif
