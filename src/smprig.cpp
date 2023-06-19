@@ -50,20 +50,23 @@ void SmpRig::init(ScnObj* pObj, sxValuesData* pVals) {
 		tbl[i].pJnt->reset();
 	}
 	mAnkleHeight = 0.01f;
+	bool disableSupJnt = nxApp::get_bool_opt("sjnt_off", false);
 	if (pVals) {
 		sxValuesData::Group rigGrp = pVals->find_grp("rig");
 		if (rigGrp.is_valid()) {
-			for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
-				int idst = pObj->find_skel_node_id(tbl[i].pDstName);
-				int isrc = pObj->find_skel_node_id(tbl[i].pSrcName);
-				int ival = rigGrp.find_val_idx(tbl[i].pName);
-				if (pObj->ck_skel_id(idst) && pObj->ck_skel_id(isrc) && rigGrp.ck_val_idx(ival)) {
-					SupJnt* pJnt = tbl[i].pJnt;
-					pJnt->param = rigGrp.get_val_f3(ival);
-					pJnt->idst = uint8_t(idst);
-					pJnt->isrc = uint8_t(isrc);
-					pJnt->axis = tbl[i].axis;
-					pJnt->enabled = true;
+			if (!disableSupJnt) {
+				for (size_t i = 0; i < XD_ARY_LEN(tbl); ++i) {
+					int idst = pObj->find_skel_node_id(tbl[i].pDstName);
+					int isrc = pObj->find_skel_node_id(tbl[i].pSrcName);
+					int ival = rigGrp.find_val_idx(tbl[i].pName);
+					if (pObj->ck_skel_id(idst) && pObj->ck_skel_id(isrc) && rigGrp.ck_val_idx(ival)) {
+						SupJnt* pJnt = tbl[i].pJnt;
+						pJnt->param = rigGrp.get_val_f3(ival);
+						pJnt->idst = uint8_t(idst);
+						pJnt->isrc = uint8_t(isrc);
+						pJnt->axis = tbl[i].axis;
+						pJnt->enabled = true;
+					}
 				}
 			}
 			int ival = rigGrp.find_val_idx("AnkleHeight");
