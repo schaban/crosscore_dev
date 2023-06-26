@@ -197,6 +197,12 @@
 #	endif
 #endif
 
+#if defined(__GNUC__) 
+#	define XD_EXPECT(_exp, _val) __builtin_expect((long)(_exp), (long)(_val))
+#else
+#	define XD_EXPECT(_exp, _val) (_exp)
+#endif
+
 #ifndef XD_USE_LA
 #	define XD_USE_LA 1
 #endif
