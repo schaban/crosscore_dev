@@ -176,8 +176,6 @@ static void obj_dtor(ScnObj* pObj) {
 	pObj->mpMotWk = nullptr;
 	cxModelWork::destroy(pObj->mpMdlWk);
 	pObj->mpMdlWk = nullptr;
-	nxCore::mem_free(pObj->mpBatJobs);
-	pObj->mpBatJobs = nullptr;
 }
 
 namespace Scene {
@@ -1609,13 +1607,6 @@ ScnObj* add_obj(sxModelData* pMdl, const char* pName) {
 				Draw::MdlParam* pMdlParam = get_obj_mdl_params(*pObj);
 				if (pMdlParam) {
 					pMdlParam->reset();
-				}
-				pObj->mpBatJobs = (sxJob*)nxCore::mem_alloc(sizeof(sxJob) * nbat);
-				if (pObj->mpBatJobs) {
-					for (int i = 0; i < nbat; ++i) {
-						pObj->mpBatJobs[i].mpData = pObj;
-						pObj->mpBatJobs[i].mParam = i;
-					}
 				}
 				if (pObj->mpMdlWk && s_pRsrcMgr) {
 					cxResourceManager::GfxIfc gfxIfc = s_pRsrcMgr->get_gfx_ifc();

@@ -70,7 +70,6 @@ public:
 	BatchCallbackFunc mBatchPostDrawFunc;
 	sxMotionData* mpMoveMot;
 	sxValuesData* mpVals;
-	sxJob* mpBatJobs;
 	Priority mPriority;
 	uint32_t mTag;
 	bool mDisableDraw;
