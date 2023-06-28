@@ -2403,6 +2403,27 @@ bool wall_touch(const sxJobContext* pJobCtx, sxCollisionData* pCol, const cxVec&
 	return wall_adj_base(pJobCtx, pCol, newPos, oldPos, radius, nullptr, wallSlopeLim);
 }
 
+bool col_hit_stop(sxCollisionData* pCol, const cxVec& newPos, const cxVec& oldPos, const float radius, cxVec* pAdjPos) {
+	bool flg = false;
+	cxVec apos = newPos;
+	if (pCol) {
+		cxVec npos = newPos;
+		sxCollisionData::NearestHit hit = pCol->nearest_hit(cxLineSeg(oldPos, npos));
+		if (hit.count > 0) {
+			if (radius <= 0.0f) {
+				apos = oldPos;
+			} else {
+				apos = hit.pos - (newPos - oldPos).get_normalized()*radius;
+			}
+			flg = true;
+		}
+	}
+	if (pAdjPos) {
+		*pAdjPos = apos;
+	}
+	return flg;
+}
+
 static bool sph_sph_sub(const cxSphere& movSph, const cxVec& vel, const cxSphere& staticSph, cxVec* pSepVec, float margin) {
 	cxVec sepVec(0.0f);
 	bool flg = movSph.overlaps(staticSph);
