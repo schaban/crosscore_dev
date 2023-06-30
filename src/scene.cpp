@@ -2915,6 +2915,14 @@ void ScnObj::exec_motion_blend() {
 	}
 }
 
+float ScnObj::get_blend_count() const {
+	float cnt = 0.0f;
+	if (mpMotWk) {
+		cnt = mpMotWk->mBlendCount;
+	}
+	return cnt;
+}
+
 void ScnObj::set_motion_uniform_scl(const float scl) {
 	if (mpMotWk) {
 		mpMotWk->mUniformScale = scl;

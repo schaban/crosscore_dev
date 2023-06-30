@@ -150,6 +150,7 @@ public:
 	void sync_motion(const uint32_t maxWait = 0);
 	void init_motion_blend(const int duration);
 	void exec_motion_blend();
+	float get_blend_count() const;
 	void set_motion_uniform_scl(const float scl);
 	float get_motion_uniform_scl() const;
 	void set_motion_height_offs(const float offs);
