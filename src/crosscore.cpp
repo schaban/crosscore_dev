@@ -5166,6 +5166,152 @@ bool tri_aabb_overlap(const cxVec vtx[3], const cxVec& bmin, const cxVec& bmax) 
 	return ::mth_fabsf(s) <= r;
 }
 
+bool obb_obb_overlap(const cxMtx& m1, const cxMtx& m2) {
+	cxVec vx1 = m1.get_row_vec(0);
+	cxVec vy1 = m1.get_row_vec(1);
+	cxVec vz1 = m1.get_row_vec(2);
+	cxVec t1 = m1.get_translation();
+	cxVec r1(vx1.mag(), vy1.mag(), vz1.mag());
+	r1.scl(0.5f);
+
+	cxVec vx2 = m2.get_row_vec(0);
+	cxVec vy2 = m2.get_row_vec(1);
+	cxVec vz2 = m2.get_row_vec(2);
+	cxVec t2 = m2.get_translation();
+	cxVec r2(vx2.mag(), vy2.mag(), vz2.mag());
+	r2.scl(0.5f);
+
+	cxVec v = t2 - t1;
+	if (v.mag2() <= nxCalc::sq(r1.min_elem() + r2.min_elem())) {
+		return true;
+	}
+
+	vx1.normalize();
+	vy1.normalize();
+	vz1.normalize();
+	vx2.normalize();
+	vy2.normalize();
+	vz2.normalize();
+
+	cxVec dv[3];
+	dv[0].set(vx1.dot(vx2), vx1.dot(vy2), vx1.dot(vz2));
+	dv[0].abs();
+	dv[1].set(vy1.dot(vx2), vy1.dot(vy2), vy1.dot(vz2));
+	dv[1].abs();
+	dv[2].set(vz1.dot(vx2), vz1.dot(vy2), vz1.dot(vz2));
+	dv[2].abs();
+
+	cxVec tv;
+	cxVec cv;
+
+	tv.set(v.dot(vx1), v.dot(vy1), v.dot(vz1));
+	tv.abs();
+	cv.set(r2.dot(dv[0]), r2.dot(dv[1]), r2.dot(dv[2]));
+	cv.add(r1);
+	if (tv.x > cv.x) return false;
+	if (tv.y > cv.y) return false;
+	if (tv.z > cv.z) return false;
+
+	float t;
+	t = dv[0].y; dv[0].y = dv[1].x; dv[1].x = t;
+	t = dv[0].z; dv[0].z = dv[2].x; dv[2].x = t;
+	t = dv[1].z; dv[1].z = dv[2].y; dv[2].y = t;
+
+	tv.set(v.dot(vx2), v.dot(vy2), v.dot(vz2));
+	tv.abs();
+	cv.set(r1.dot(dv[0]), r1.dot(dv[1]), r1.dot(dv[2]));
+	cv.add(r2);
+	if (tv.x > cv.x) return false;
+	if (tv.y > cv.y) return false;
+	if (tv.z > cv.z) return false;
+
+	dv[0].cross(vx1, vx2);
+	dv[1].cross(vx1, vy2);
+	dv[2].cross(vx1, vz2);
+	tv.set(dv[0].dot(vx1), dv[0].dot(vy1), dv[0].dot(vz1));
+	tv.abs();
+	float x = r1.dot(tv);
+	tv.set(dv[0].dot(vx2), dv[0].dot(vy2), dv[0].dot(vz2));
+	tv.abs();
+	x += r2.dot(tv);
+	tv.set(dv[1].dot(vx1), dv[1].dot(vy1), dv[1].dot(vz1));
+	tv.abs();
+	float y = r1.dot(tv);
+	tv.set(dv[1].dot(vx2), dv[1].dot(vy2), dv[1].dot(vz2));
+	tv.abs();
+	y += r2.dot(tv);
+	tv.set(dv[2].dot(vx1), dv[2].dot(vy1), dv[2].dot(vz1));
+	tv.abs();
+	float z = r1.dot(tv);
+	tv.set(dv[2].dot(vx2), dv[2].dot(vy2), dv[2].dot(vz2));
+	tv.abs();
+	z += r2.dot(tv);
+	cv.set(x, y, z);
+	tv.set(v.dot(dv[0]), v.dot(dv[1]), v.dot(dv[2]));
+	tv.abs();
+	if (tv.x > cv.x) return false;
+	if (tv.y > cv.y) return false;
+	if (tv.z > cv.z) return false;
+
+	dv[0].cross(vy1, vx2);
+	dv[1].cross(vy1, vy2);
+	dv[2].cross(vy1, vz2);
+	tv.set(dv[0].dot(vx1), dv[0].dot(vy1), dv[0].dot(vz1));
+	tv.abs();
+	x = r1.dot(tv);
+	tv.set(dv[0].dot(vx2), dv[0].dot(vy2), dv[0].dot(vz2));
+	tv.abs();
+	x += r2.dot(tv);
+	tv.set(dv[1].dot(vx1), dv[1].dot(vy1), dv[1].dot(vz1));
+	tv.abs();
+	y = r1.dot(tv);
+	tv.set(dv[1].dot(vx2), dv[1].dot(vy2), dv[1].dot(vz2));
+	tv.abs();
+	y += r2.dot(tv);
+	tv.set(dv[2].dot(vx1), dv[2].dot(vy1), dv[2].dot(vz1));
+	tv.abs();
+	z = r1.dot(tv);
+	tv.set(dv[2].dot(vx2), dv[2].dot(vy2), dv[2].dot(vz2));
+	tv.abs();
+	z += r2.dot(tv);
+	cv.set(x, y, z);
+	tv.set(v.dot(dv[0]), v.dot(dv[1]), v.dot(dv[2]));
+	tv.abs();
+	if (tv.x > cv.x) return false;
+	if (tv.y > cv.y) return false;
+	if (tv.z > cv.z) return false;
+
+	dv[0].cross(vz1, vx2);
+	dv[1].cross(vz1, vy2);
+	dv[2].cross(vz1, vz2);
+	tv.set(dv[0].dot(vx1), dv[0].dot(vy1), dv[0].dot(vz1));
+	tv.abs();
+	x = r1.dot(tv);
+	tv.set(dv[0].dot(vx2), dv[0].dot(vy2), dv[0].dot(vz2));
+	tv.abs();
+	x += r2.dot(tv);
+	tv.set(dv[1].dot(vx1), dv[1].dot(vy1), dv[1].dot(vz1));
+	tv.abs();
+	y = r1.dot(tv);
+	tv.set(dv[1].dot(vx2), dv[1].dot(vy2), dv[1].dot(vz2));
+	tv.abs();
+	y += r2.dot(tv);
+	tv.set(dv[2].dot(vx1), dv[2].dot(vy1), dv[2].dot(vz1));
+	tv.abs();
+	z = r1.dot(tv);
+	tv.set(dv[2].dot(vx2), dv[2].dot(vy2), dv[2].dot(vz2));
+	tv.abs();
+	z += r2.dot(tv);
+	cv.set(x, y, z);
+	tv.set(v.dot(dv[0]), v.dot(dv[1]), v.dot(dv[2]));
+	tv.abs();
+	if (tv.x > cv.x) return false;
+	if (tv.y > cv.y) return false;
+	if (tv.z > cv.z) return false;
+
+	return true;
+}
+
 float sph_region_weight(const cxVec& pos, const cxVec& center, const float attnStart, const float attnEnd) {
 	float wght = 0.0f;
 	float dist = nxVec::dist(pos, center);
