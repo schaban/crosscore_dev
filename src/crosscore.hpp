@@ -6467,6 +6467,9 @@ public:
 	xt_xmtx calc_node_world_xform(const int inode, xt_xmtx* pParentXform = nullptr) const;
 	cxMtx calc_node_world_mtx(const int inode, cxMtx* pParentMtx = nullptr) const;
 
+	cxMtx calc_motion_world_mtx(const int inode);
+	void update_world_to_node(const int inode);
+
 	void reset_node_local_xform(const int inode);
 	void set_node_local_xform(const int inode, const xt_xmtx& lm);
 	void set_node_local_tx(const int inode, const float x);

@@ -14061,6 +14061,41 @@ cxMtx cxMotionWork::calc_node_world_mtx(const int inode, cxMtx* pParentMtx) cons
 	return nxMtx::mtx_from_xmtx(worldXform);
 }
 
+cxMtx cxMotionWork::calc_motion_world_mtx(const int inode) {
+	cxMtx wm;
+	if (mUniformScale != 1.0f) {
+		if (ck_node_id(inode)) {
+			update_world_to_node(inode);
+			wm = nxMtx::mtx_from_xmtx(mpXformsW[inode]);
+		} else {
+			wm.identity();
+		}
+	} else {
+		wm = calc_node_world_mtx(inode);
+	}
+	return wm;
+}
+
+void cxMotionWork::update_world_to_node(const int inode) {
+	if (!mpMdlData) return;
+	int nskel = mpMdlData->mSklNum;
+	if (inode < 0 || inode >= nskel) return;
+	const int32_t* pParents = mpMdlData->get_skel_parents_ptr();
+	for (int i = 0; i < inode; ++i) {
+		int iparent = pParents[i];
+		if (iparent >= 0 && iparent < nskel) {
+			mpXformsW[i] = nxMtx::xmtx_concat(mpXformsL[i], mpXformsW[iparent]);
+		} else {
+			mpXformsW[i] = mpXformsL[i];
+			if (mUniformScale != 1.0f) {
+				cxMtx sm;
+				sm.mk_scl(mUniformScale);
+				mpXformsW[i] = nxMtx::xmtx_from_mtx(sm * nxMtx::mtx_from_xmtx(mpXformsW[i]));
+			}
+		}
+	}
+}
+
 void cxMotionWork::reset_node_local_xform(const int inode) {
 	if (ck_node_id(inode) && mpXformsL) {
 		mpXformsL[inode] = mpMdlData->get_skel_local_xform(inode);

@@ -3160,6 +3160,16 @@ cxMtx ScnObj::calc_skel_world_mtx(const int iskl, cxMtx* pNodeParentMtx) const {
 	return nxMtx::mtx_from_xmtx(wm);
 }
 
+cxMtx ScnObj::calc_motion_world_mtx(const int iskl) const {
+	cxMtx wm;
+	if (mpMotWk) {
+		wm = mpMotWk->calc_motion_world_mtx(iskl);
+	} else {
+		wm.identity();
+	}
+	return wm;
+}
+
 cxQuat ScnObj::get_skel_local_quat(const int iskl, const bool clean) const {
 	cxMtx lm = get_skel_local_mtx(iskl);
 	if (clean) {
