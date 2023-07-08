@@ -1999,6 +1999,16 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	bool isShadowCast = (mode == Draw::DRWMODE_SHADOW_CAST);
 	bool isDiscard = (mode == Draw::DRWMODE_DISCARD);
 
+	if (!isShadowCast && pParam && pParam->pExtIfc) {
+		if (pParam->pExtIfc->draw_batch) {
+			prepare_model(pMdl);
+			set_def_framebuf();
+			OGLSys::enable_msaa(true);
+			pParam->pExtIfc->draw_batch(pWk, ibat, mode, pCtx, (uintptr_t)s_shadowTex);
+			return;
+		}
+	}
+
 	const sxModelData::Batch* pBat = pMdl->get_batch_ptr(ibat);
 	const sxModelData::Material* pMtl = pMdl->get_material(pBat->mMtlId);
 	if (pWk->mVariation != 0) {

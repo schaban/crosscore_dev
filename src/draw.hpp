@@ -47,20 +47,6 @@ namespace Draw {
 
 	inline float clip_gamma(const float gamma) { return nxCalc::max(gamma, 0.01f); }
 
-	struct MdlParam {
-		xt_float3 baseColorScl;
-		float shadowOffsBias;
-		float shadowWeightBias;
-		float shadowDensScl;
-
-		void reset() {
-			baseColorScl.fill(1.0f);
-			shadowOffsBias = 0.0f;
-			shadowWeightBias = 0.0f;
-			shadowDensScl = 1.0f;
-		}
-	};
-
 	struct Context {
 		sxView view;
 
@@ -231,6 +217,25 @@ namespace Draw {
 			return recvFlg;
 		}
 
+	};
+
+	struct MdlParam {
+		struct ExtIfc {
+			void (*draw_batch)(cxModelWork* pWk, const int ibat, const Mode mode, const Context* pCtx, uintptr_t stexHandle);
+		};
+		ExtIfc* pExtIfc;
+		xt_float3 baseColorScl;
+		float shadowOffsBias;
+		float shadowWeightBias;
+		float shadowDensScl;
+
+		void reset() {
+			pExtIfc = nullptr;
+			baseColorScl.fill(1.0f);
+			shadowOffsBias = 0.0f;
+			shadowWeightBias = 0.0f;
+			shadowDensScl = 1.0f;
+		}
 	};
 
 	struct PrimGeom {
