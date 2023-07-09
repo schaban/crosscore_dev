@@ -24,7 +24,7 @@ goto :EOF
 	echo %2
 	echo GPU_SHADER(%~n2, vert) >> %SHADERS%
 	copy /BY %src% %dst% > nul
-	%GLSL% %dst%
+	if not x%GLSL%==x (%GLSL% %dst%)
 goto :EOF
 
 :frag
@@ -37,7 +37,7 @@ goto :EOF
 	echo %1
 	echo GPU_SHADER(%~n1, frag) >> %SHADERS%
 	copy /BY %src% %dst% > nul
-	%GLSL% %dst%
+	if not x%GLSL%==x (%GLSL% %dst%)
 goto :EOF
 
 :start
