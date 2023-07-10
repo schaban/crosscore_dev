@@ -13896,6 +13896,21 @@ void cxMotionWork::apply_motion(const sxMotionData* pMotData, const float frameA
 	}
 }
 
+void cxMotionWork::copy_local(const cxMotionWork* pSrcWk, const sxMotionData* pSrcMotData) {
+	if (!pSrcWk) return;
+	if (!pSrcMotData) return;
+	if (!mpMdlData) return;
+	if (mpMdlData != pSrcWk->mpMdlData) return;
+	for (uint32_t i = 0; i < pSrcMotData->mNodeNum; ++i) {
+		const char* pMotNodeName = pSrcMotData->get_node_name(i);
+		int iskel = mpMdlData->find_skel_node_id(pMotNodeName);
+		if (mpMdlData->ck_skel_id(iskel)) {
+			xt_xmtx xform = pSrcWk->mpXformsL[iskel];
+			mpXformsL[iskel] = xform;
+		}
+	}
+}
+
 xt_xmtx cxMotionWork::eval_skel_node_chain_xform(const sxMotionData* pMotData, const int inode, const int itop, const float frame) {
 	xt_xmtx xm;
 	xm.identity();

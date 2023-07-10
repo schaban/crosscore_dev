@@ -6453,6 +6453,7 @@ public:
 	int find_node_id(const char* pName) const { return mpMdlData ? mpMdlData->find_skel_node_id(pName) : -1; }
 
 	void apply_motion(const sxMotionData* pMotData, const float frameAdd, float* pLoopFlg = nullptr);
+	void copy_local(const cxMotionWork* pSrcWk, const sxMotionData* pSrcMotData);
 
 	xt_xmtx eval_skel_node_chain_xform(const sxMotionData* pMotData, const int inode, const int itop, const float frame);
 
