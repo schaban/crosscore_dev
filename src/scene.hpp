@@ -29,6 +29,8 @@ struct ScnCfg {
 #define SCN_OBJ_SPARE_VARS_NUM 16
 #define SCN_OBJ_SPARE_PTRS_NUM 8
 
+#define SCN_OBJ_MAX_EXT_MOTS 4
+
 struct ScnObj {
 public:
 	typedef void (*MoveFunc)(ScnObj*);
@@ -56,6 +58,7 @@ public:
 	char* mpName;
 	cxModelWork* mpMdlWk;
 	cxMotionWork* mpMotWk;
+	cxMotionWork* mpExtMotWk[SCN_OBJ_MAX_EXT_MOTS];
 	const sxJobContext* mpJobCtx;
 	MoveFunc mBeforeMotionFunc;
 	MoveFunc mAfterMotionFunc;
@@ -155,6 +158,12 @@ public:
 	float get_motion_uniform_scl() const;
 	void set_motion_height_offs(const float offs);
 	float get_motion_height_offs() const;
+
+	void add_ext_motion_work(const int idx);
+	void del_ext_motion_work(const int idx);
+	float get_ext_motion_frame(const int idx) const;
+	void set_ext_motion_frame(const int idx, const float frame);
+	void exec_ext_motion(const int idx, const sxMotionData* pMot, const float frameAdd);
 
 	void update_world();
 	void update_skin();

@@ -176,6 +176,12 @@ static void obj_dtor(ScnObj* pObj) {
 	pObj->mpMotWk = nullptr;
 	cxModelWork::destroy(pObj->mpMdlWk);
 	pObj->mpMdlWk = nullptr;
+	for (int i = 0; i < SCN_OBJ_MAX_EXT_MOTS; ++i) {
+		if (pObj->mpExtMotWk[i]) {
+			cxMotionWork::destroy(pObj->mpExtMotWk[i]);
+			pObj->mpExtMotWk[i] = nullptr;
+		}
+	}
 }
 
 namespace Scene {
@@ -2949,6 +2955,51 @@ float ScnObj::get_motion_height_offs() const {
 		offs = mpMotWk->mHeightOffs;
 	}
 	return offs;
+}
+
+void ScnObj::add_ext_motion_work(const int idx) {
+	if (idx >= 0 && idx < SCN_OBJ_MAX_EXT_MOTS) {
+		del_ext_motion_work(idx);
+		if (mpMdlWk) {
+			mpExtMotWk[idx] = cxMotionWork::create(mpMdlWk->mpData);
+		}
+	}
+}
+
+void ScnObj::del_ext_motion_work(const int idx) {
+	if (idx >= 0 && idx < SCN_OBJ_MAX_EXT_MOTS) {
+		cxMotionWork::destroy(mpExtMotWk[idx]);
+		mpExtMotWk[idx] = nullptr;
+	}
+}
+
+float ScnObj::get_ext_motion_frame(const int idx) const {
+	float frame = 0.0f;
+	if (idx >= 0 && idx < SCN_OBJ_MAX_EXT_MOTS) {
+		if (mpExtMotWk[idx]) {
+			frame = mpExtMotWk[idx]->mFrame;
+		}
+	}
+	return frame;
+}
+
+void ScnObj::set_ext_motion_frame(const int idx, const float frame) {
+	if (idx >= 0 && idx < SCN_OBJ_MAX_EXT_MOTS) {
+		if (mpExtMotWk[idx]) {
+			mpExtMotWk[idx]->mFrame = frame;
+		}
+	}
+}
+
+void ScnObj::exec_ext_motion(const int idx, const sxMotionData* pMot, const float frameAdd) {
+	if (idx >= 0 && idx < SCN_OBJ_MAX_EXT_MOTS) {
+		if (pMot && mpExtMotWk[idx]) {
+			mpExtMotWk[idx]->apply_motion(pMot, frameAdd);
+			if (mpMotWk) {
+				mpMotWk->copy_local(mpExtMotWk[idx], pMot);
+			}
+		}
+	}
 }
 
 void ScnObj::update_world() {
