@@ -219,9 +219,17 @@ namespace Draw {
 
 	};
 
+	struct MtlContext {
+		const sxModelData::Material* pMtl;
+		uintptr_t baseTex;
+		uintptr_t bumpTex;
+		uintptr_t surfTex;
+		uintptr_t shadowTex;
+	};
+
 	struct MdlParam {
 		struct ExtIfc {
-			void (*draw_batch)(cxModelWork* pWk, const int ibat, const Mode mode, const Context* pCtx, uintptr_t stexHandle);
+			void (*draw_batch)(cxModelWork* pWk, const int ibat, const Mode mode, const Context* pCtx, const MtlContext& mtlCtx);
 		};
 		ExtIfc* pExtIfc;
 		xt_float3 baseColorScl;

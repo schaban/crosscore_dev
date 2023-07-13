@@ -1978,6 +1978,52 @@ static GPUProg* prog_sel(const cxModelWork* pWk, const int ibat, const sxModelDa
 	return pProg;
 }
 
+static GLuint get_base_tex_handle(cxModelWork* pWk, const sxModelData::Material* pMtl) {
+	GLuint htex = 0;
+	if (s_pRsrcMgr) {
+		sxModelData* pMdl = pWk->mpData;
+		int tid = pMtl->mBaseTexId;
+		if (tid >= 0) {
+			sxModelData::TexInfo* pTexInfo = pMdl->get_tex_info(tid);
+			GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
+			if (*pTexHandle == 0) {
+				const char* pTexName = pMdl->get_tex_name(tid);
+				sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
+				*pTexHandle = get_tex_handle(pTex);
+			}
+			htex = *pTexHandle;
+		}
+	}
+	if (!htex) {
+		htex = OGLSys::get_white_tex();
+	}
+	return htex;
+}
+
+static GLuint get_tid_tex_handle(cxModelWork* pWk, const int tid) {
+	GLuint htex = 0;
+	if (s_pRsrcMgr && tid >= 0) {
+		sxModelData* pMdl = pWk->mpData;
+		sxModelData::TexInfo* pTexInfo = pMdl->get_tex_info(tid);
+		GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
+		if (*pTexHandle == 0) {
+			const char* pTexName = pMdl->get_tex_name(tid);
+			sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
+			*pTexHandle = get_tex_handle(pTex);
+			htex = *pTexHandle;
+		}
+	}
+	return htex;
+}
+
+static GLuint get_bump_tex_handle(cxModelWork* pWk, const sxModelData::Material* pMtl) {
+	return get_tid_tex_handle(pWk, pMtl->mBumpTexId);
+}
+
+static GLuint get_surf_tex_handle(cxModelWork* pWk, const sxModelData::Material* pMtl) {
+	return get_tid_tex_handle(pWk, pMtl->mSurfTexId);
+}
+
 
 #define NFLT_JMTX (MAX_JNT_PER_BATCH * 3 * 4)
 #define NFLT_JMAP (MAX_JNT)
@@ -1999,16 +2045,6 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	bool isShadowCast = (mode == Draw::DRWMODE_SHADOW_CAST);
 	bool isDiscard = (mode == Draw::DRWMODE_DISCARD);
 
-	if (!isShadowCast && pParam && pParam->pExtIfc) {
-		if (pParam->pExtIfc->draw_batch) {
-			prepare_model(pMdl);
-			set_def_framebuf();
-			OGLSys::enable_msaa(true);
-			pParam->pExtIfc->draw_batch(pWk, ibat, mode, pCtx, (uintptr_t)s_shadowTex);
-			return;
-		}
-	}
-
 	const sxModelData::Batch* pBat = pMdl->get_batch_ptr(ibat);
 	const sxModelData::Material* pMtl = pMdl->get_material(pBat->mMtlId);
 	if (pWk->mVariation != 0) {
@@ -2020,6 +2056,36 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 		}
 	}
 	if (!pMtl) return;
+
+	if (!isShadowCast && pParam && pParam->pExtIfc) {
+		if (pParam->pExtIfc->draw_batch) {
+			prepare_model(pMdl);
+			set_def_framebuf();
+			OGLSys::enable_msaa(true);
+			if (isDiscard && !pMtl->mFlags.forceBlend) {
+				set_opaq();
+			} else {
+				if (pMtl->mFlags.alpha) {
+					set_semi();
+				} else {
+					set_opaq();
+				}
+			}
+			if (pMtl->mFlags.dblSided) {
+				set_dbl_sided();
+			} else {
+				set_face_cull();
+			}
+			Draw::MtlContext mtlCtx;
+			mtlCtx.pMtl = pMtl;
+			mtlCtx.baseTex = (uintptr_t)get_base_tex_handle(pWk, pMtl);
+			mtlCtx.bumpTex = (uintptr_t)get_bump_tex_handle(pWk, pMtl);
+			mtlCtx.surfTex = (uintptr_t)get_surf_tex_handle(pWk, pMtl);
+			mtlCtx.shadowTex = (uintptr_t)s_shadowTex;
+			pParam->pExtIfc->draw_batch(pWk, ibat, mode, pCtx, mtlCtx);
+			return;
+		}
+	}
 
 	GPUProg* pProg = prog_sel(pWk, ibat, pMtl, mode, pCtx);
 	if (!pProg) return;
@@ -2204,23 +2270,7 @@ static void batch(cxModelWork* pWk, const int ibat, const Draw::Mode mode, const
 	pProg->set_inv_gamma(pCtx->cc.get_inv_gamma());
 
 	if (pProg->mSmpLink.Base >= 0) {
-		GLuint htex = 0;
-		if (s_pRsrcMgr) {
-			int tid = pMtl->mBaseTexId;
-			if (tid >= 0) {
-				sxModelData::TexInfo* pTexInfo = pMdl->get_tex_info(tid);
-				GLuint* pTexHandle = pTexInfo->get_wk<GLuint>();
-				if (*pTexHandle == 0) {
-					const char* pTexName = pMdl->get_tex_name(tid);
-					sxTextureData* pTex = pWk->find_texture(s_pRsrcMgr, pTexName);
-					*pTexHandle = get_tex_handle(pTex);
-				}
-				htex = *pTexHandle;
-			}
-		}
-		if (!htex) {
-			htex = OGLSys::get_white_tex();
-		}
+		GLuint htex = get_base_tex_handle(pWk, pMtl);
 		glActiveTexture(GL_TEXTURE0 + Draw::TEXUNIT_Base);
 		glBindTexture(GL_TEXTURE_2D, htex);
 	}
