@@ -6786,6 +6786,118 @@ void eval_sh3_ary8(float* pCoefs, float x[8], float y[8], float z[8], const floa
 } // nxSH
 
 
+cxDiffuseSH::cxDiffuseSH() {
+	nxSH::calc_consts(XD_DIFFSH_ORDER, mConsts);
+	clear_coefs();
+	mpImg = nullptr;
+	mImgW = 0;
+	mImgH = 0;
+	mpHemi = nullptr;
+}
+
+void cxDiffuseSH::clear_coefs() {
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) { mCoefsR[i] = 0.0f; }
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) { mCoefsG[i] = 0.0f; }
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) { mCoefsB[i] = 0.0f; }
+}
+
+void cxDiffuseSH::operator()(const int x, const int y, const float dx, const float dy, const float dz, const float dw) {
+	cxColor c(0.0f);
+	if (mpImg) {
+		c = mpImg[y*mImgW + x];
+	} else if (mpHemi) {
+		c = mpHemi->eval(cxVec(dx, dy, dz));
+	}
+	float ctmp[XD_DIFFSH_NUMCOEFFS];
+#if XD_DIFFSH_ORDER == 3
+	nxSH::eval_sh3(ctmp, dx, dy, dz, mConsts);
+#else
+	nxSH::eval(XD_DIFFSH_ORDER, ctmp, dx, dy, dz, mConsts);
+#endif
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		ctmp[i] *= dw;
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsR[i] += c.r * ctmp[i];
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsG[i] += c.g * ctmp[i];
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsB[i] += c.b * ctmp[i];
+	}
+}
+
+void cxDiffuseSH::exec_pano_scan(const int w, const int h) {
+	float scl = nxCalc::panorama_scan(*this, w, h);
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsR[i] *= scl;
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsG[i] *= scl;
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsB[i] *= scl;
+	}
+}
+
+XD_NOINLINE void cxDiffuseSH::from_img(const cxColor* pImg, const int width, const int height) {
+	clear_coefs();
+	if (!pImg) return;
+	if (width <= 0) return;
+	if (height <= 0) return;
+	mpImg = pImg;
+	mImgW = width;
+	mImgH = height;
+	exec_pano_scan(mImgW, mImgH);
+	mpImg = nullptr;
+	mImgW = 0;
+	mImgH = 0;
+}
+
+XD_NOINLINE void cxDiffuseSH::from_hemi(const sxHemisphereLight* pHemi, const int width, const int height) {
+	clear_coefs();
+	if (!pHemi) return;
+	int w = nxCalc::max(width, 8);
+	int h = nxCalc::max(height, 4);
+	mpHemi = pHemi;
+	exec_pano_scan(w, h);
+	mpHemi = nullptr;
+}
+
+XD_NOINLINE cxColor cxDiffuseSH::eval(const cxVec& v, const float scale) const {
+	float wgt[XD_DIFFSH_ORDER];
+#if XD_DIFFSH_ORDER > 3
+	nxSH::calc_weights(wgt, XD_DIFFSH_ORDER, 3.0f, scale);
+#else
+	nxSH::get_diff_weights(wgt, XD_DIFFSH_ORDER, scale);
+#endif
+	float vcoefs[XD_DIFFSH_NUMCOEFFS];
+#if XD_DIFFSH_ORDER == 3
+	nxSH::eval_sh3(vcoefs, v.x, v.y, v.z, mConsts);
+#else
+	nxSH::eval(XD_DIFFSH_ORDER, vcoefs, v.x, v.y, v.z, mConsts);
+#endif
+	float shc[XD_DIFFSH_NUMCOEFFS];
+	float r = 0.0f;
+	nxSH::apply_weights(shc, XD_DIFFSH_ORDER, mCoefsR, wgt);
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		r += vcoefs[i] * shc[i];
+	}
+	float g = 0.0f;
+	nxSH::apply_weights(shc, XD_DIFFSH_ORDER, mCoefsG, wgt);
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		g += vcoefs[i] * shc[i];
+	}
+	float b = 0.0f;
+	nxSH::apply_weights(shc, XD_DIFFSH_ORDER, mCoefsB, wgt);
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		b += vcoefs[i] * shc[i];
+	}
+	return cxColor(r, g, b);
+}
+
+
 namespace nxDataUtil {
 
 exAnimChan anim_chan_from_str(const char* pStr) {

@@ -6208,6 +6208,37 @@ void eval_sh3_ary8(float* pCoefs, float x[8], float y[8], float z[8], const floa
 
 } // nxSH
 
+
+#define XD_DIFFSH_ORDER 3
+#define XD_DIFFSH_NUMCOEFFS ((XD_DIFFSH_ORDER) * (XD_DIFFSH_ORDER))
+
+class cxDiffuseSH {
+protected:
+	float mConsts[nxSH::calc_consts_num(XD_DIFFSH_ORDER)];
+	const cxColor* mpImg;
+	int mImgW;
+	int mImgH;
+	const sxHemisphereLight* mpHemi;
+
+	void clear_coefs();
+	void exec_pano_scan(const int w, const int h);
+
+public:
+	float mCoefsR[XD_DIFFSH_NUMCOEFFS];
+	float mCoefsG[XD_DIFFSH_NUMCOEFFS];
+	float mCoefsB[XD_DIFFSH_NUMCOEFFS];
+
+	cxDiffuseSH();
+
+	void operator()(const int x, const int y, const float dx, const float dy, const float dz, const float dw);
+
+	void from_img(const cxColor* pImg, const int width, const int height);
+	void from_hemi(const sxHemisphereLight* pHemi, const int width = 0, const int height = 0);
+
+	cxColor eval(const cxVec& v, const float scale = 1.0f) const;
+};
+
+
 namespace nxDataUtil {
 
 exAnimChan anim_chan_from_str(const char* pStr);
