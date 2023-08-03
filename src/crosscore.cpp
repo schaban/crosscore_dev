@@ -6783,6 +6783,26 @@ void eval_sh3_ary8(float* pCoefs, float x[8], float y[8], float z[8], const floa
 	eval_t<float, float, 8>(3, pCoefs, x, y, z, pConsts);
 }
 
+cxVec extract_dominant_dir_rgb(const float* pCoefsR, const float* pCoefsG, const float* pCoefsB) {
+	cxVec dir;
+	if (!pCoefsR || !pCoefsG || !pCoefsB) {
+		dir.zero();
+		return dir;
+	}
+	int idx = calc_ary_idx(1, 1);
+	cxColor cx(pCoefsR[idx], pCoefsG[idx], pCoefsB[idx]);
+	idx = calc_ary_idx(1, -1);
+	cxColor cy(pCoefsR[idx], pCoefsG[idx], pCoefsB[idx]);
+	idx = calc_ary_idx(1, 0);
+	cxColor cz(pCoefsR[idx], pCoefsG[idx], pCoefsB[idx]);
+	float lx = cx.luminance();
+	float ly = cy.luminance();
+	float lz = cz.luminance();
+	dir.set(-lx, -ly, lz);
+	dir.normalize();
+	return dir;
+}
+
 } // nxSH
 
 
@@ -6895,6 +6915,21 @@ XD_NOINLINE cxColor cxDiffuseSH::eval(const cxVec& v, const float scale) const {
 		b += vcoefs[i] * shc[i];
 	}
 	return cxColor(r, g, b);
+}
+
+cxVec cxDiffuseSH::extract_dominant_dir() const {
+	return nxSH::extract_dominant_dir_rgb(mCoefsR, mCoefsG, mCoefsB);
+}
+
+void cxDiffuseSH::apply_to_hemi(sxHemisphereLight* pHemi, const float scale) const {
+	if (!pHemi) return;
+	cxVec up = extract_dominant_dir();
+	cxColor upper = eval(up, scale);
+	cxColor lower = eval(up.neg_val(), scale);
+	pHemi->reset();
+	pHemi->set_upvec(up);
+	pHemi->mUpper.set(upper.r, upper.g, upper.b);
+	pHemi->mLower.set(lower.r, lower.g, lower.b);
 }
 
 
