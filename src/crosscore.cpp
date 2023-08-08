@@ -6813,6 +6813,7 @@ cxDiffuseSH::cxDiffuseSH() {
 	mImgW = 0;
 	mImgH = 0;
 	mpHemi = nullptr;
+	mpFunc = nullptr;
 }
 
 void cxDiffuseSH::clear_coefs() {
@@ -6827,6 +6828,8 @@ void cxDiffuseSH::operator()(const int x, const int y, const float dx, const flo
 		c = mpImg[y*mImgW + x];
 	} else if (mpHemi) {
 		c = mpHemi->eval(cxVec(dx, dy, dz));
+	} else if (mpFunc) {
+		c = (*mpFunc)(x, y, cxVec(dx, dy, dz));
 	}
 	float ctmp[XD_DIFFSH_NUMCOEFFS];
 #if XD_DIFFSH_ORDER == 3
@@ -6883,6 +6886,15 @@ XD_NOINLINE void cxDiffuseSH::from_hemi(const sxHemisphereLight* pHemi, const in
 	mpHemi = pHemi;
 	exec_pano_scan(w, h);
 	mpHemi = nullptr;
+}
+
+XD_NOINLINE void cxDiffuseSH::from_func(EnvFunc& func, const int width, const int height) {
+	clear_coefs();
+	int w = nxCalc::max(width, 8);
+	int h = nxCalc::max(height, 4);
+	mpFunc = &func;
+	exec_pano_scan(w, h);
+	mpFunc = nullptr;
 }
 
 XD_NOINLINE cxColor cxDiffuseSH::eval(const cxVec& v, const float scale) const {

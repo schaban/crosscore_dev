@@ -6215,12 +6215,21 @@ cxVec extract_dominant_dir_rgb(const float* pCoefsR, const float* pCoefsG, const
 #define XD_DIFFSH_NUMCOEFFS ((XD_DIFFSH_ORDER) * (XD_DIFFSH_ORDER))
 
 class cxDiffuseSH {
+public:
+	class EnvFunc {
+	public:
+		EnvFunc() {}
+		virtual ~EnvFunc() {}
+		virtual cxColor operator()(const int x, const int y, const cxVec& vec) { return cxColor(0.0f); }
+	};
+
 protected:
 	float mConsts[nxSH::calc_consts_num(XD_DIFFSH_ORDER)];
 	const cxColor* mpImg;
 	int mImgW;
 	int mImgH;
 	const sxHemisphereLight* mpHemi;
+	EnvFunc* mpFunc;
 
 	void clear_coefs();
 	void exec_pano_scan(const int w, const int h);
@@ -6236,6 +6245,7 @@ public:
 
 	void from_img(const cxColor* pImg, const int width, const int height);
 	void from_hemi(const sxHemisphereLight* pHemi, const int width = 0, const int height = 0);
+	void from_func(EnvFunc& func, const int width = 32, const int height = 16);
 
 	cxColor eval(const cxVec& v, const float scale = 1.0f) const;
 
