@@ -6929,6 +6929,18 @@ XD_NOINLINE cxColor cxDiffuseSH::eval(const cxVec& v, const float scale) const {
 	return cxColor(r, g, b);
 }
 
+void cxDiffuseSH::combine(const cxDiffuseSH& other, const float wghtThis, const float wghtOther) {
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsR[i] = mCoefsR[i]*wghtThis + other.mCoefsR[i]*wghtOther;
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsG[i] = mCoefsG[i]*wghtThis + other.mCoefsG[i]*wghtOther;
+	}
+	for (int i = 0; i < XD_DIFFSH_NUMCOEFFS; ++i) {
+		mCoefsB[i] = mCoefsB[i]*wghtThis + other.mCoefsB[i]*wghtOther;
+	}
+}
+
 cxVec cxDiffuseSH::extract_dominant_dir() const {
 	return nxSH::extract_dominant_dir_rgb(mCoefsR, mCoefsG, mCoefsB);
 }

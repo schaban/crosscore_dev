@@ -6249,6 +6249,8 @@ public:
 
 	cxColor eval(const cxVec& v, const float scale = 1.0f) const;
 
+	void combine(const cxDiffuseSH& other, const float wghtThis, const float wghtOther);
+
 	cxVec extract_dominant_dir() const;
 	void apply_to_hemi(sxHemisphereLight* pHemi, const float scale = 1.0f) const;
 };
