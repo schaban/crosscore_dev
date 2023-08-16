@@ -9,6 +9,10 @@
 #	include "mac_ifc.h"
 #endif
 
+#ifndef XD_MAIN_DEF_NWRK
+#	define XD_MAIN_DEF_NWRK 4
+#endif
+
 #ifdef OGLSYS_VIVANTE_FB
 static const bool c_defBump = false;
 static const bool c_defSpec = false;
@@ -246,7 +250,7 @@ static void init_scn(const char* pAppPath) {
 	}
 	scnCfg.pAppPath = pAppPath;
 	scnCfg.shadowMapSize = nxApp::get_int_opt("smap", 1024 * defSmapScl);
-	scnCfg.numWorkers = nxApp::get_int_opt("nwrk", 4);
+	scnCfg.numWorkers = nxApp::get_int_opt("nwrk", XD_MAIN_DEF_NWRK);
 	scnCfg.useBump = nxApp::get_bool_opt("bump", c_defBump);
 	scnCfg.useSpec = nxApp::get_bool_opt("spec", c_defSpec);
 	nxCore::dbg_msg("#workers: %d\n", scnCfg.numWorkers);
