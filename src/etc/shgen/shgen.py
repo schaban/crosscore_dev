@@ -2,10 +2,10 @@
 
 import sys
 import os
-import imp
 import re
 import random
 import inspect
+import importlib as imp
 from math import *
 from decimal import *
 from array import array
