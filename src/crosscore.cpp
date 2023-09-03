@@ -6783,6 +6783,10 @@ void eval_sh3_ary8(float* pCoefs, float x[8], float y[8], float z[8], const floa
 	eval_t<float, float, 8>(3, pCoefs, x, y, z, pConsts);
 }
 
+void eval_sh6(float* pCoefs, float x, float y, float z, const float* pConsts) {
+	eval_t<float, float, 1>(6, pCoefs, &x, &y, &z, pConsts);
+}
+
 cxVec extract_dominant_dir_rgb(const float* pCoefsR, const float* pCoefsG, const float* pCoefsB) {
 	cxVec dir;
 	if (!pCoefsR || !pCoefsG || !pCoefsB) {
