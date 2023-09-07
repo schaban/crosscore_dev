@@ -1,3 +1,5 @@
+// g++ -pthread -I ../.. ../../crosscore.cpp xgeo2pano.cpp -o xgeo2pano -O3 -flto -march=native
+
 #include "crosscore.hpp"
 
 #define USE_PANO_SCAN 0
@@ -232,8 +234,10 @@ int main(int argc, char* argv[]) {
 
 	auto pGeo = nxData::load_as<sxGeometryData>(pInGeoPath);
 	WK.init(pGeo);
-
+	double t0 = nxSys::time_micros();
 	WK.exec();
+	double dt = nxSys::time_micros() - t0;
+	nxCore::dbg_msg("exec dt: %f millis\n", dt * 1e-3f);
 
 	const char* pOutImgPath = nxApp::get_opt("out");
 	if (!pOutImgPath) {
