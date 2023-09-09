@@ -1,5 +1,6 @@
-// g++ -pthread -I ../.. ../../crosscore.cpp perf_mtx_nn_mul.cpp -o perf_mtx_nn_mul -O3 -flto -march=native -D_MTX_N_=100
-// ./perf_mtx_nn_mul -nmuls:1000
+// g++ -pthread -I ../.. ../../crosscore.cpp perf_nnmul.cpp -o perf_nnmul -O3 -flto -march=native -D_MTX_N_=100
+// (AArch: -mcpu=native)
+// ./perf_nnmul -nmuls:1000
 
 #include "crosscore.hpp"
 
