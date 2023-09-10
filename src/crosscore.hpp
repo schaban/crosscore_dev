@@ -6206,6 +6206,8 @@ void eval_sh3(float* pCoefs, float x, float y, float z, const float* pConsts);
 void eval_sh3_ary4(float* pCoefs, float x[4], float y[4], float z[4], const float* pConsts);
 void eval_sh3_ary8(float* pCoefs, float x[8], float y[8], float z[8], const float* pConsts);
 void eval_sh6(float* pCoefs, float x, float y, float z, const float* pConsts);
+void eval_sh6_ary4(float* pCoefs, float x[4], float y[4], float z[4], const float* pConsts);
+void eval_sh6_ary8(float* pCoefs, float x[8], float y[8], float z[8], const float* pConsts);
 
 cxVec extract_dominant_dir_rgb(const float* pCoefsR, const float* pCoefsG, const float* pCoefsB);
 
