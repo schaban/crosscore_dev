@@ -9,5 +9,5 @@ case $SYS_ARCH in
 esac
 
 if [ "$#" -gt 0 ]; then
-	objdump $DISASM_OPTS -dC $1 > $1.txt
+	objdump $DISASM_OPTS -SC $1 > $1.txt
 fi
