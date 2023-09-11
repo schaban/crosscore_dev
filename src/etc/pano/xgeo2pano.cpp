@@ -1,4 +1,4 @@
-// g++ -pthread -I ../.. ../../crosscore.cpp xgeo2pano.cpp -o xgeo2pano -O3 -flto -march=native
+// g++ -pthread -I ../.. ../../crosscore.cpp xgeo2pano.cpp -o xgeo2pano -O3 -flto
 
 #include "crosscore.hpp"
 
@@ -226,6 +226,9 @@ int main(int argc, char* argv[]) {
 	nxApp::init_params(argc, argv);
 	init_sys();
 
+	int panoW = nxApp::get_int_opt("w", 512);
+	int panoH = nxApp::get_int_opt("h", 256);
+
 	const char* pInGeoPath = nxApp::get_opt("in");
 	if (!pInGeoPath) {
 		pInGeoPath = "env.xgeo";
@@ -233,7 +236,7 @@ int main(int argc, char* argv[]) {
 	nxCore::dbg_msg("Input geo: %s\n", pInGeoPath);
 
 	auto pGeo = nxData::load_as<sxGeometryData>(pInGeoPath);
-	WK.init(pGeo);
+	WK.init(pGeo, panoW, panoH);
 	double t0 = nxSys::time_micros();
 	WK.exec();
 	double dt = nxSys::time_micros() - t0;
