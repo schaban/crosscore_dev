@@ -2,6 +2,16 @@
 
 #include "crosscore.hpp"
 
+#ifndef _SCAN_BUFF_
+#	define _SCAN_BUFF_ 0
+#endif
+
+#if _SCAN_BUFF_
+#	ifndef SCANBUFF_SIZE
+#		define SCANBUFF_SIZE 4
+#	endif
+#endif
+
 static bool g_silent = false;
 
 static void dbgmsg_impl(const char* pMsg) {
@@ -89,6 +99,13 @@ protected:
 	float* mpCoefsDir;
 	float* mpCoefsEval;
 	int mOrder;
+#if _SCAN_BUFF_
+	float* mpBufCoefsDir;
+	float mBufDirX[SCANBUFF_SIZE];
+	float mBufDirY[SCANBUFF_SIZE];
+	float mBufDirZ[SCANBUFF_SIZE];
+	int mBufIdx;
+#endif
 
 	void clear_coefs() {
 		int ncoefs = num_coefs();
@@ -107,6 +124,9 @@ protected:
 				mpCoefsB[i] = 0.0f;
 			}
 		}
+#if _SCAN_BUFF_
+	mBufIdx = 0;
+#endif
 	}
 
 public:
@@ -140,6 +160,9 @@ public:
 		mpCoefsB = (float*)nxCore::mem_alloc(ncoefs * sizeof(float), "SH:coefsB");
 		mpCoefsDir = (float*)nxCore::mem_alloc(ncoefs * sizeof(float), "SH:coefsDir");
 		mpCoefsEval = (float*)nxCore::mem_alloc(ncoefs * sizeof(float), "SH:coefsEval");
+#if _SCAN_BUFF_
+		mpBufCoefsDir = (float*)nxCore::mem_alloc(ncoefs * SCANBUFF_SIZE * sizeof(float), "SH:bufCoefsDir");
+#endif
 		clear_coefs();
 	}
 
@@ -159,6 +182,10 @@ public:
 		mpCoefsDir = nullptr;
 		mpCoefsEval = nullptr;
 		mOrder = 0;
+#if _SCAN_BUFF_
+		nxCore::mem_free(mpBufCoefsDir);
+		mpBufCoefsDir = nullptr;
+#endif
 	}
 
 	void calc_weights(const float s, const float scl = 1.0f) {
@@ -166,15 +193,81 @@ public:
 		nxSH::calc_weights(mpWeights, mOrder, s, scl);
 	}
 
+#if _SCAN_BUFF_
+	void operator()(const int x, const int y, const float dx, const float dy, const float dz, const float dw) {
+		if (mOrder < 2) return;
+		if (!mpSrcImg) return;
+		mBufDirX[mBufIdx] = dx;
+		mBufDirY[mBufIdx] = dy;
+		mBufDirZ[mBufIdx] = dz;
+		++mBufIdx;
+		if (mBufIdx < SCANBUFF_SIZE) {
+			return;
+		}
+
+#if (SCANBUFF_SIZE == 4)
+		if (mOrder == 3) {
+			nxSH::eval_sh3_ary4(mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		} else if (mOrder == 6) {
+			nxSH::eval_sh6_ary4(mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		} else {
+			nxSH::eval_ary4(mOrder, mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		}
+#elif (SCANBUFF_SIZE == 8)
+		if (mOrder == 3) {
+			nxSH::eval_sh3_ary8(mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		} else if (mOrder == 6) {
+			nxSH::eval_sh6_ary8(mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		} else {
+			nxSH::eval_ary8(mOrder, mpBufCoefsDir, mBufDirX, mBufDirY, mBufDirZ, mpConsts);
+		}
+#endif
+
+		int ncoefs = num_coefs();
+		for (int i = 0; i < ncoefs * SCANBUFF_SIZE; ++i) {
+			mpBufCoefsDir[i] *= dw;
+		}
+
+		float r[SCANBUFF_SIZE];
+		float g[SCANBUFF_SIZE];
+		float b[SCANBUFF_SIZE];
+		const cxColor* pImg = mpSrcImg->get_pixels();
+		int w = mpSrcImg->get_width();
+		int x0 = x - SCANBUFF_SIZE + 1;
+		int ioffs = y*w + x0;
+		for (int i = 0; i < SCANBUFF_SIZE; ++i) {
+			cxColor c = pImg[ioffs + i];
+			r[i] = c.r;
+			g[i] = c.g;
+			b[i] = c.b;
+		}
+
+		int coffs = 0;
+		for (int i = 0; i < ncoefs; ++i) {
+			for (int j = 0; j < SCANBUFF_SIZE; ++j) {
+				mpCoefsR[i] += r[j] * mpBufCoefsDir[coffs + j];
+			}
+			for (int j = 0; j < SCANBUFF_SIZE; ++j) {
+				mpCoefsG[i] += g[j] * mpBufCoefsDir[coffs + j];
+			}
+			for (int j = 0; j < SCANBUFF_SIZE; ++j) {
+				mpCoefsB[i] += b[j] * mpBufCoefsDir[coffs + j];
+			}
+			coffs += SCANBUFF_SIZE;
+		}
+
+		mBufIdx = 0;
+	}
+
+#else
+
 	void operator()(const int x, const int y, const float dx, const float dy, const float dz, const float dw) {
 		if (mOrder < 2) return;
 		if (!mpSrcImg) return;
 		int w = mpSrcImg->get_width();
 		const cxColor* pImg = mpSrcImg->get_pixels();
 		cxColor c = pImg[y*w + x];
-#if 0
-		nxSH::eval(mOrder, mpCoefsDir, dx, dy, dz, mpConsts);
-#else
+
 		if (mOrder == 3) {
 			nxSH::eval_sh3(mpCoefsDir, dx, dy, dz, mpConsts);
 		} else if (mOrder == 6) {
@@ -182,7 +275,7 @@ public:
 		} else {
 			nxSH::eval(mOrder, mpCoefsDir, dx, dy, dz, mpConsts);
 		}
-#endif
+
 		int ncoefs = num_coefs();
 		for (int i = 0; i < ncoefs; ++i) {
 			mpCoefsDir[i] *= dw;
@@ -197,6 +290,7 @@ public:
 			mpCoefsB[i] += c.b * mpCoefsDir[i];
 		}
 	}
+#endif
 
 	XD_NOINLINE void from_img(const SrcPanoImg& srcImg) {
 		mpSrcImg = &srcImg;
@@ -319,6 +413,7 @@ int main(int argc, char* argv[]) {
 	float evalS = nxApp::get_float_opt("s", 10.0f);
 	bool dumpSrc = nxApp::get_bool_opt("dump_src", false);
 	bool dumpDst = nxApp::get_bool_opt("dump_dst", false);
+	bool printCoefs = nxApp::get_bool_opt("print_coefs", false);
 	g_silent = nxApp::get_bool_opt("silent", false);
 
 	SrcPanoImg srcImg;
@@ -334,7 +429,10 @@ int main(int argc, char* argv[]) {
 	double coefsT0 = nxSys::time_micros();
 	dstCoefs.from_img(srcImg);
 	double coefsDT = nxSys::time_micros() - coefsT0;
-	//dstCoefs.print_coefs();
+
+	if (printCoefs) {
+		dstCoefs.print_coefs();
+	}
 
 	if (dumpDst) {
 		DstPanoImg dstImg;
@@ -345,6 +443,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	nxCore::dbg_msg("%d x %d, order = %d\n", srcImg.get_width(), srcImg.get_height(), dstCoefs.order());
+#if _SCAN_BUFF_
+	nxCore::dbg_msg("bufsize: %d\n", SCANBUFF_SIZE);
+#endif
 	nxCore::dbg_msg("srcPano DT: %f millis\n", srcPanoDT * 1e-3f);
 	nxCore::dbg_msg("coefs DT: %f millis\n", coefsDT * 1e-3f);
 
