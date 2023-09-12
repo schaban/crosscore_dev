@@ -7,7 +7,7 @@ XCORE_EXE:=$(OUT_DIR)/$(PROG_NAME).exe
 XCORE_EXE_DBG:=$(OUT_DIR)/$(PROG_NAME)_dbg.exe
 .DEFAULT_GOAL := $(XCORE_EXE)
 
-CPP_FLAGS:=-std=c++11 -march=native -ffast-math -ftree-vectorize -g -Wno-psabi -Wno-deprecated-declarations -I src -I inc
+CPP_FLAGS:=-std=c++11 -ffast-math -ftree-vectorize -g -Wno-psabi -Wno-deprecated-declarations -I src -I inc
 CPP_OPTIM:=-O3 -flto
 CPP_DEBUG:=-Og -ggdb
 
