@@ -16,6 +16,8 @@ CPP_FLAGS:=-std=c++11 -ffast-math -ftree-vectorize -g -Wno-psabi -Wno-deprecated
 CPP_OPTIM:=-O3 -flto
 CPP_DEBUG:=-Og -ggdb
 
+DISASM_OPTS:=
+
 ifeq ("$(shell uname -m)", "armv7l")
 	CPP_OPTIM+=-mfpu=neon
 endif
@@ -108,7 +110,7 @@ tmp/obj/dbg/%.o: src/%.cpp tmp/dep/dbg/%.d
 $(XCORE_EXE): $(OBJS)
 	$(info Linking $(XCORE_EXE))
 	@$(XCORE_LINK) $^ -o $@ $(LINK_LIBS)
-	@objdump -d $@ > $@.txt
+	@objdump -dC $(DISASM_OPTS) $@ > $@.txt
 ifdef ODROID
 	@cp src/cmd/roof_odroid.sh $(XCORE_EXE_DIR)
 	@cp src/cmd/roof_odroid_kbd.sh $(XCORE_EXE_DIR)
@@ -120,7 +122,7 @@ endif
 $(XCORE_EXE_DBG): $(OBJS_DBG)
 	$(info Linking $(XCORE_EXE_DBG))
 	@$(XCORE_LINK_DBG) $^ -o $@ $(LINK_LIBS)
-	@objdump -d $@ > $@.txt
+	@objdump -dC $(DISASM_OPTS) $@ > $@.txt
 
 .PHONY=clean
 clean:
