@@ -21,6 +21,53 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef HANDLE_SIGBUS
+#	define HANDLE_SIGBUS 0
+#endif
+
+#if HANDLE_SIGBUS
+#include <signal.h>
+
+static void sigact_unaligned(int isig, siginfo_t* pInfo, void* pCtxMem) {
+	int scode = pInfo->si_code;
+	int handled = 0;
+	if (isig == SIGBUS && scode == BUS_ADRALN) {
+		ucontext_t* pCtx = (ucontext_t*)pCtxMem;
+		uintptr_t pc = pCtx->uc_mcontext.arm_pc;
+		uint16_t instr = *(uint16_t*)pc;
+		if (instr == 0xCA2C) {
+			/* ldmia r2, {r2, r3, r5} */
+			uint32_t buf[3];
+			volatile uint8_t* pSrc = (uint8_t*)pCtx->uc_mcontext.arm_r2;
+			uint8_t* pDst = (uint8_t*)buf;
+			int i;
+			for (i = 0; i < sizeof(uint32_t)*3; ++i) {
+				*pDst++ = *pSrc++;
+			}
+			pCtx->uc_mcontext.arm_r2 = buf[0];
+			pCtx->uc_mcontext.arm_r3 = buf[1];
+			pCtx->uc_mcontext.arm_r5 = buf[2];
+			pCtx->uc_mcontext.arm_pc += 2;
+			handled = 1;
+		}
+	}
+	if (!handled) {
+		abort();
+	}
+}
+
+static void set_handler() {
+	int res;
+	struct sigaction sa;
+	sa.sa_sigaction = sigact_unaligned;
+	sa.sa_flags = SA_SIGINFO;
+	res = sigaction(SIGBUS, &sa, NULL);
+	printf("SIGBUS action set: %s\n", res == 0 ? "ok" : "failed");
+}
+#else
+static void set_handler() {}
+#endif
+
 uint8_t* gen_rand_f01(uint8_t* pDst) {
 	union {
 		uint32_t u32;
@@ -33,6 +80,7 @@ uint8_t* gen_rand_f01(uint8_t* pDst) {
 	uint32_t r2 = rand() & 0x7F;
 	bits.f32 = 1.0f;
 	bits.u32 |= r0 | (r1 << 8) | (r2 << 16);
+	bits.f32 -= 1.0f;
 	for (i = 0; i < 4; ++i) {
 		*pDst++ = bits.b[i];
 	}
@@ -96,6 +144,7 @@ int main(int argc, char* argv[]) {
 	printf("n = %d, %d\n", n, n - (n % 3));
 	printf("seed = %d\n", seed);
 
+	set_handler();
 	srand(seed);
 	pMem = malloc(n*sizeof(float) + offs);
 	if (pMem) {
