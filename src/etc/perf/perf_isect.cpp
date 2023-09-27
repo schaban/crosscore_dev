@@ -2,6 +2,10 @@
 
 #include "crosscore.hpp"
 
+#ifndef _PRECALC_NRMS_
+#	define _PRECALC_NRMS_ 0
+#endif
+
 static float g_hitpct = 0.7f;
 static float g_radius = 1.0f;
 static float g_height = 1.0f;
@@ -15,6 +19,10 @@ static int32_t* s_pGeoIdx = nullptr;
 static cxVec* s_pRayPts = nullptr;
 static bool* s_pHitRes = nullptr;
 static cxVec* s_pHitPts = nullptr;
+
+#if _PRECALC_NRMS_
+	static cxVec* s_pGeoNrm = nullptr;
+#endif
 
 static int s_nhits = 0;
 
@@ -70,6 +78,19 @@ static void build_quads() {
 			s_pGeoIdx[i*4 + j] = ivtx[j];
 		}
 	}
+#if _PRECALC_NRMS_
+	int nnrm = g_nprims;
+	s_pGeoNrm = (cxVec*)nxCore::mem_alloc(nnrm*sizeof(cxVec), "geo:nrm");
+	for (int i = 0; i < g_nprims; ++i) {
+		int iv0 = s_pGeoIdx[i*4];
+		int iv1 = s_pGeoIdx[i*4 + 1];
+		int iv2 = s_pGeoIdx[i*4 + 2];
+		cxVec v0 = s_pGeoPts[iv0];
+		cxVec v1 = s_pGeoPts[iv1];
+		cxVec v2 = s_pGeoPts[iv2];
+		s_pGeoNrm[i] = nxGeom::tri_normal_ccw(v0, v1, v2);
+	}
+#endif
 }
 
 static void build_rays() {
@@ -163,7 +184,12 @@ XD_NOINLINE static void exec_ray_quad_isect(const int iray, const int iquad) {
 	cxVec v2 = s_pGeoPts[i2];
 	cxVec v3 = s_pGeoPts[i3];
 	cxVec hitPos;
+#if _PRECALC_NRMS_
+	cxVec nrm = s_pGeoNrm[iquad];
+	bool res = nxGeom::seg_quad_intersect_cw_n(p0, p1, v0, v1, v2, v3, nrm, &hitPos);
+#else
 	bool res = nxGeom::seg_quad_intersect_cw(p0, p1, v0, v1, v2, v3, &hitPos);
+#endif
 	if (res) {
 		s_pHitPts[iray] = hitPos;
 		s_pHitRes[iray] = true;
