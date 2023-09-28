@@ -2259,6 +2259,8 @@ public:
 		return n;
 	}
 
+	void normalize_fast(const cxVec& v);
+
 	float azimuth() const { return ::mth_atan2f(x, z); }
 	float elevation() const { return -::mth_atan2f(y, nxCalc::hypot(x, z)); }
 

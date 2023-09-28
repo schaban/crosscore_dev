@@ -3065,12 +3065,29 @@ float cxVec::mag() const {
 	return l;
 }
 
+#ifndef XD_UNSAFE_VECNRM
+#	define XD_UNSAFE_VECNRM 0
+#endif
+
 void cxVec::normalize(const cxVec& v) {
+#if XD_UNSAFE_VECNRM
+	normalize_fast(v);
+#else
 	cxVec n = v;
 	float m = v.max_abs_elem();
 	if (m > 0.0f) {
 		n.scl(1.0f / m);
 		n.scl(1.0f / n.mag_fast());
+	}
+	*this = n;
+#endif
+}
+
+void cxVec::normalize_fast(const cxVec& v) {
+	cxVec n = v;
+	float m = v.mag_fast();
+	if (m > 0.0f) {
+		n.scl(1.0f / m);
 	}
 	*this = n;
 }
