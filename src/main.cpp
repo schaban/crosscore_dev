@@ -9,6 +9,22 @@
 #	include "mac_ifc.h"
 #endif
 
+#if defined(XD_SYS_LINUX) && !defined(XD_MAIN_NO_SIGINT)
+#	include <signal.h>
+
+static void sigint_quit(int isig) {
+	nxCore::dbg_msg("\n");
+	OGLSys::quit();
+}
+
+static void sys_set_ctrlc_handler() {
+	::signal(SIGINT, sigint_quit);
+}
+#else
+static void sys_set_ctrlc_handler() {
+}
+#endif
+
 #ifndef XD_MAIN_DEF_NWRK
 #	define XD_MAIN_DEF_NWRK 4
 #endif
@@ -389,6 +405,7 @@ void mac_kbd(const char* pName, const bool state) {
 int main(int argc, char* argv[]) {
 	nxApp::init_params(argc, argv);
 	init_sys();
+	sys_set_ctrlc_handler();
 
 	float scrScl = 1.0f;
 	int x = 10;
