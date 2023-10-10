@@ -9,8 +9,10 @@ if [ "$#" -gt 0 ]; then
 	fi
 fi
 
-DEF_CXX=${DEF_PREFIX}g++
-DEF_DISASM=${DEF_PREFIX}objdump
+TOOL_PREFIX=${TOOL_PREFIX:-$DEF_PREFIX}
+
+DEF_CXX=${TOOL_PREFIX}g++
+DEF_DISASM=${TOOL_PREFIX}objdump
 
 CXX=${CXX:-$DEF_CXX}
 CXX_OPTS="-std=c++11 -ffast-math -ftree-vectorize -pthread"
