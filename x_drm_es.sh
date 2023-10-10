@@ -20,6 +20,19 @@ TGT_DIR=${TGT_DIR:-./tgt}
 
 DISASM=${DISASM:-$DEF_DISASM}
 
+if [ "$#" -gt 0 ]; then
+	if [ "$1" = "prepare" ]; then
+		if [ ! -d $TGT_DIR ]; then
+			mkdir $TGT_DIR
+		fi
+		cp src/etc/mim/*.* $TGT_DIR
+		cp -r src/etc/mim/inc $TGT_DIR
+		cd $TGT_DIR
+		CC=${TOOL_PREFIX}gcc ./build_mimics.sh
+		exit
+	fi
+fi
+
 if [ ! -d "$TGT_DIR" ]; then
 	echo "no target dir"
 	exit
