@@ -1386,7 +1386,13 @@ void OGLSysGlb::init_wnd() {
 	mWndH = mHeight;
 	mVivWnd = fbCreateWindow(mVivDisp, vivX, vivY, mWidth, mHeight);
 #elif defined(OGLSYS_DRM_ES)
-	mDrmDevFD = open("/dev/dri/card0", O_RDWR);
+	const char* pDriPath = "/dev/dri/card0";
+	const char* pDriOptPath = get_opt("ogl_dri_path");
+	if (pDriOptPath) {
+		pDriPath = pDriOptPath;
+		dbg_msg("DRI dev path: %s\n", pDriPath);
+	}
+	mDrmDevFD = open(pDriPath, O_RDWR);
 	drmModeRes* pRsrcs = mDrmDevFD >= 0 ? drmModeGetResources(mDrmDevFD) : nullptr;
 	mpDrmConn = nullptr;
 	mpDrmEnc = nullptr;
@@ -1534,7 +1540,10 @@ void OGLSysGlb::init_ogl() {
 		mEGL.display = pfnGetDisp(EGL_PLATFORM_GBM_KHR, mpGbmDev, nullptr);
 	}
 #	endif
-	if (!valid_display()) return;
+	if (!valid_display()) {
+		dbg_msg("OGLSys/ES: !valid_display, init_ogl terminated\n");
+		return;
+	}
 	int verMaj = 0;
 	int verMin = 0;
 	bool flg = !!eglInitialize(mEGL.display, &verMaj, &verMin);
@@ -1604,7 +1613,10 @@ void OGLSysGlb::init_ogl() {
 #endif
 		;
 	mEGL.surface = eglCreateWindowSurface(mEGL.display, mEGL.config, hwnd, nullptr);
-	if (!valid_surface()) return;
+	if (!valid_surface()) {
+		dbg_msg("OGLSys/ES: !valid_surface, init_ogl terminated\n");
+		return;
+	}
 
 	static EGLint ctxAttrs[] = {
 		EGL_CONTEXT_MAJOR_VERSION_KHR, 3,
@@ -1626,7 +1638,10 @@ void OGLSysGlb::init_ogl() {
 		};
 		mEGL.context = eglCreateContext(mEGL.display, mEGL.config, nullptr, ctxAttrs3);
 	}
-	if (!valid_context()) return;
+	if (!valid_context()) {
+		dbg_msg("OGLSys/ES: !valid_context, init_ogl terminated\n");
+		return;
+	}
 	eglMakeCurrent(mEGL.display, mEGL.surface, mEGL.surface, mEGL.context);
 	eglSwapInterval(mEGL.display, 1);
 #elif defined(OGLSYS_WINDOWS)
