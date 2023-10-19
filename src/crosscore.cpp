@@ -5500,6 +5500,107 @@ float sph_convex_dist(
 	return dist;
 }
 
+
+struct sxAABBTreeBuildWk {
+	const cxAABB* pSrcBoxes;
+	cxAABB* pNodeBoxes;
+	int32_t* pNodeInfos;
+	int32_t* pIdxWk;
+	int32_t nsrc;
+	int nodeCnt;
+};
+
+static void build_aabb_tree_leaf(sxAABBTreeBuildWk* pWk, int inode, int idx) {
+	int32_t* pInfo = &pWk->pNodeInfos[inode * 2];
+	int32_t isrc = pWk->pIdxWk[idx];
+	pInfo[0] = isrc;
+	pInfo[1] = -1;
+	pWk->pNodeBoxes[inode] = pWk->pSrcBoxes[isrc];
+}
+
+static void build_aabb_tree_node_bbox(sxAABBTreeBuildWk* pWk, int inode, int idx, int cnt) {
+	int32_t isrc = pWk->pIdxWk[idx];
+	cxAABB bb = pWk->pSrcBoxes[isrc];
+	for (int i = 1; i < cnt; ++i) {
+		isrc = pWk->pIdxWk[idx + i];
+		bb.merge(pWk->pSrcBoxes[isrc]);
+	}
+	pWk->pNodeBoxes[inode] = bb;
+}
+
+static int build_aabb_tree_split(sxAABBTreeBuildWk* pWk, int idx, int cnt, float pivot, int axis) {
+	int mid = 0;
+	int32_t* pIdx = pWk->pIdxWk;
+	const cxAABB* pBoxes = pWk->pSrcBoxes;
+	for (int i = 0; i < cnt; ++i) {
+		int ibox = pIdx[idx + i];
+		cxAABB bb = pBoxes[ibox];
+		float c = bb.get_center()[axis];
+		if (c < pivot) {
+			pIdx[idx + i] = pIdx[idx + mid];
+			pIdx[idx + mid] = ibox;
+			++mid;
+		}
+	}
+	if (mid == 0 || mid == cnt) {
+		mid = cnt >> 1;
+	}
+	return mid;
+}
+
+static void build_aabb_tree_node(sxAABBTreeBuildWk* pWk, int inode, int idx, int cnt, int axis) {
+	if (cnt == 1) {
+		build_aabb_tree_leaf(pWk, inode, idx);
+	} else if (cnt == 2) {
+		int32_t* pInfo = &pWk->pNodeInfos[inode * 2];
+		pInfo[0] = pWk->nodeCnt;
+		pInfo[1] = pWk->nodeCnt + 1;
+		pWk->nodeCnt += 2;
+		build_aabb_tree_leaf(pWk, pInfo[0], idx);
+		build_aabb_tree_leaf(pWk, pInfo[1], idx + 1);
+		pWk->pNodeBoxes[inode] = pWk->pNodeBoxes[pInfo[0]];
+		pWk->pNodeBoxes[inode].merge(pWk->pNodeBoxes[pInfo[1]]);
+	} else {
+		build_aabb_tree_node_bbox(pWk, inode, idx, cnt);
+		float piv = pWk->pNodeBoxes[inode].get_center()[axis];
+		int mid = build_aabb_tree_split(pWk, idx, cnt, piv, axis);
+		int nextAxis = (axis + 1) % 3;
+		int32_t* pInfo = &pWk->pNodeInfos[inode * 2];
+		pInfo[0] = pWk->nodeCnt;
+		pInfo[1] = pWk->nodeCnt + 1;
+		pWk->nodeCnt += 2;
+		build_aabb_tree_node(pWk, pInfo[0], idx, mid, nextAxis);
+		build_aabb_tree_node(pWk, pInfo[1], idx + mid, cnt - mid, nextAxis);
+	}
+}
+
+void build_aabb_tree(const cxAABB* pSrcBoxes, const int32_t nsrc, cxAABB* pNodeBoxes, int32_t* pNodeInfos, int32_t* pIdxWk) {
+	sxAABBTreeBuildWk wk;
+	wk.pSrcBoxes = pSrcBoxes;
+	wk.nsrc = nsrc;
+	wk.pNodeBoxes = pNodeBoxes;
+	wk.pNodeInfos = pNodeInfos;
+	wk.pIdxWk = pIdxWk;
+	wk.nodeCnt = 1;
+	for (int32_t i = 0; i < nsrc; ++i) {
+		pIdxWk[i] = i;
+	}
+	cxAABB rootBB = pSrcBoxes[0];
+	for (int32_t i = 1; i < nsrc; ++i) {
+		rootBB.merge(pSrcBoxes[i]);
+	}
+	pNodeBoxes[0] = rootBB;
+	cxVec vsize = rootBB.get_size_vec();
+	float maxSize = vsize.max_elem();
+	int axis = 0;
+	if (maxSize == vsize.y) {
+		axis = 1;
+	} else if (maxSize == vsize.z) {
+		axis = 2;
+	}
+	build_aabb_tree_node(&wk, 0, 0, nsrc, axis);
+}
+
 } // nxGeom
 
 

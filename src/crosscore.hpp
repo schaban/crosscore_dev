@@ -3228,6 +3228,8 @@ float sph_convex_dist(
 	const int xformMode = 0, const bool cw = false
 );
 
+void build_aabb_tree(const cxAABB* pSrcBoxes, const int32_t nsrc, cxAABB* pNodeBoxes, int32_t* pNodeInfos, int32_t* pIdxWk);
+
 } // nxGeom
 
 
