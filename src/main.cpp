@@ -182,7 +182,10 @@ static void dbgmsg_impl(const char* pMsg) {
 static void init_sys() {
 	sxSysIfc sysIfc;
 	nxCore::mem_zero(&sysIfc, sizeof(sysIfc));
-	sysIfc.fn_dbgmsg = dbgmsg_impl;
+	bool silent = nxApp::get_bool_opt("silent", false);
+	if (!silent) {
+		sysIfc.fn_dbgmsg = dbgmsg_impl;
+	}
 #ifdef USE_XROM_ARCHIVE
 	s_pROM =(ROMHead*)&_binary_xrom_start;
 	sysIfc.fn_fopen = rom_fopen;
