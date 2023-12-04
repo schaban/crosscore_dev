@@ -797,6 +797,14 @@ int get_num_active_workers() {
 	return s_pBgd ? s_pBgd->get_active_workers_num() : 0;
 }
 
+int get_num_per_worker_blocks() {
+	int n = get_num_workers();
+	if (n < 1) {
+		n = 1;
+	}
+	return n;
+}
+
 int get_visibility_job_lvl() {
 	return 1 + SCN_NUM_EXEC_PRIO;
 }
