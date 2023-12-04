@@ -142,6 +142,15 @@ XD_NOINLINE cxHeap* SmpChar::get_local_heap() {
 	return Scene::get_job_local_heap(get_job_ctx());
 }
 
+int SmpChar::get_worker_id() const {
+	int wrkId = 0;
+	const sxJobContext* pJobCtx = get_job_ctx();
+	if (pJobCtx) {
+		wrkId = pJobCtx->mWrkId;
+	}
+	return wrkId;
+}
+
 static bool char_obj_adj_for_each(ScnObj* pObj, void* pCharMem) {
 	if (!pObj) return true;
 	SmpChar* pChar = (SmpChar*)pCharMem;
