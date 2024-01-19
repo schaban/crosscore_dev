@@ -1857,6 +1857,9 @@ bool sv_decomp(T* pU, T* pS, T* pV, T* pWk, const T* pA, const int M, const int 
 	return true;
 }
 
+void mul_mm_f(float* pDst, const float* pSrc1, const float* pSrc2, const int M, const int N, const int P);
+void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P);
+
 } // nxLA
 
 typedef int32_t xt_int;

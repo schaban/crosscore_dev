@@ -2817,6 +2817,54 @@ double harmonic_mean(double* pData, const size_t num) {
 
 } // nxCalc
 
+namespace nxLA {
+
+void mul_mm_f(float* pDst, const float* pSrc1, const float* pSrc2, const int M, const int N, const int P) {
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		float s = pSrc1[ra];
+		for (int k = 0; k < P; ++k) {
+			pDst[rr + k] = pSrc2[k] * s;
+		}
+	}
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		for (int j = 1; j < N; ++j) {
+			int rb = j * P;
+			float s = pSrc1[ra + j];
+			for (int k = 0; k < P; ++k) {
+				pDst[rr + k] += pSrc2[rb + k] * s;
+			}
+		}
+	}
+}
+
+void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P) {
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		double s = pSrc1[ra];
+		for (int k = 0; k < P; ++k) {
+			pDst[rr + k] = pSrc2[k] * s;
+		}
+	}
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		for (int j = 1; j < N; ++j) {
+			int rb = j * P;
+			double s = pSrc1[ra + j];
+			for (int k = 0; k < P; ++k) {
+				pDst[rr + k] += pSrc2[rb + k] * s;
+			}
+		}
+	}
+}
+
+} // nxLA
+
 
 void xt_half::set(const float f) {
 	x = nxCore::float_to_half(f);
