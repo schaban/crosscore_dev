@@ -2027,6 +2027,7 @@ struct xt_half {
 
 	void set(const float f);
 	float get() const;
+	void rand01(sxRNG* pRNG = nullptr);
 };
 
 struct xt_half2 {

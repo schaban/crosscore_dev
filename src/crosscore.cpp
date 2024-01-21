@@ -2874,6 +2874,11 @@ float xt_half::get() const {
 	return nxCore::half_to_float(x);
 }
 
+void xt_half::rand01(sxRNG* pRNG) {
+	float r = nxCore::rng_f01(pRNG);
+	set(r);
+}
+
 
 void xt_half2::set(const float fx, const float fy) {
 	x = nxCore::float_to_half(fx);
