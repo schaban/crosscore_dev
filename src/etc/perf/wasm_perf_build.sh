@@ -8,6 +8,7 @@ OPTI_OPTS="-O3 -flto"
 CXX_CMD="$CXX -I ../.. ../../crosscore.cpp $OPTI_OPTS"
 
 $CXX_CMD -D_MTX_N_=100 perf_nnmul.cpp -o perf_nnmul.js $*
+$CXX_CMD perf_nnmul_dyn.cpp -o perf_nnmul_dyn.js $*
 $CXX_CMD perf_isect.cpp -o perf_isect.js $*
 $CXX_CMD perf_mkbvh.cpp -o perf_mkbvh.js $*
 $CXX_CMD perf_shpano.cpp -o perf_shpano.js $*

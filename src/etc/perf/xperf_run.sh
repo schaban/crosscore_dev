@@ -3,8 +3,12 @@
 clear
 
 echo
-echo -------- NxN mul
+echo -------- NxN mul static
 ./perf_nnmul -nmuls:100
+
+echo
+echo -------- NxN mul dynamic
+./perf_nnmul_dyn -nmuls:100
 
 echo
 echo -------- seg intersect

@@ -5,8 +5,12 @@ XNODE=${XNODE:-node}
 clear
 
 echo
-echo -------- wasm NxN mul
+echo -------- wasm NxN mul static
 $XNODE $* perf_nnmul.js -nmuls:100
+
+echo
+echo -------- wasm NxN mul dynamic
+$XNODE $* perf_nnmul_dyn.js -nmuls:100
 
 echo
 echo -------- wasm seg intersect
