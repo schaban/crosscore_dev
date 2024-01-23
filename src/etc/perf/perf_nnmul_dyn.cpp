@@ -1,4 +1,4 @@
-// g++ -pthread -I ../.. ../../crosscore.cpp perf_nnmul.cpp -o perf_nnmul -O3 -flto -march=native
+// g++ -pthread -I ../.. ../../crosscore.cpp perf_nnmul_dyn.cpp -o perf_nnmul_dyn -O3 -flto -march=native
 // (AArch: -mcpu=native)
 
 #include "crosscore.hpp"
