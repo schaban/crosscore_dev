@@ -3,7 +3,9 @@
 SYS_NAME=`uname -s`
 SYS_ARCH=`uname -m`
 
-if [ "$SYS_NAME" = "Darwin" ]; then
+MACOS_SYSNAME=${MACOS_SYSNAME-"Darwin"}
+
+if [ "$SYS_NAME" = $MACOS_SYSNAME ]; then
 	./mac_build.sh $*
 	exit
 fi
