@@ -111,10 +111,6 @@ android_app* oglsys_get_app();
 #	include <GLES2/gl2.h>
 #	include <GLES2/gl2ext.h>
 #	include <GLES3/gl3.h>
-#elif defined(__APPLE__)
-#	define OGLSYS_APPLE
-#	define OGLSYS_MACOS
-#	include <OpenGL/gl3.h>
 #elif defined(OGLSYS_WEB)
 #	undef OGLSYS_ES
 #	define OGLSYS_ES 0
@@ -138,6 +134,10 @@ android_app* oglsys_get_app();
 #	define OGL_FN_EXTRA
 #	include "oglsys.inc"
 #	undef OGL_FN
+#elif defined(__APPLE__)
+#	define OGLSYS_APPLE
+#	define OGLSYS_MACOS
+#	include <OpenGL/gl3.h>
 #else
 #	define OGLSYS_WINDOWS
 #	undef _WIN32_WINNT
