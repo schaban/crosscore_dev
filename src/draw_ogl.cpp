@@ -2692,3 +2692,14 @@ struct DrwInit {
 
 DRW_IMPL_END
 
+XD_NOINLINE void drwogl_read_fb(void* pDst) {
+	if (!pDst) return;
+	void* pfn = OGLSys::get_proc_addr("glReadPixels");
+	if (!pfn) return;
+	int w = OGLSys::get_width();
+	int h = OGLSys::get_height();
+	if (w*h > 0) {
+		((void (*)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void*))pfn)
+		          (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pDst);
+	}
+}
