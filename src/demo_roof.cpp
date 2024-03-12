@@ -17,6 +17,10 @@
 
 #define SAMPLING_PERIOD (120*2)
 
+#if defined(ROOF_NIC_VISION)
+void drwogl_read_fb(void* pDst);
+#endif
+
 
 DEMO_PROG_BEGIN
 
@@ -2361,6 +2365,62 @@ static void xpipe_test() {
 #endif
 }
 
+#ifdef ROOF_NIC_VISION
+static void* s_pCaptMem = nullptr;
+
+static FILE* s_pNicTTY = nullptr;
+
+XD_NOINLINE static void Nic_vision_disp() {
+	if (!s_pNicTTY) {
+		const char* pNicTTYPath = nxApp::get_opt("nic_tty");
+		if (pNicTTYPath) {
+			s_pNicTTY = fopen(pNicTTYPath, "w");
+		}
+	}
+	if (!s_pNicTTY) return;
+
+	int w = Scene::get_screen_width();
+	int h = Scene::get_screen_height();
+	int npix = w*h;
+	if (!s_pCaptMem) {
+		s_pCaptMem = nxCore::mem_alloc(npix*sizeof(uint32_t), "FBCapt");
+	}
+
+	if (s_pCaptMem) {
+		drwogl_read_fb(s_pCaptMem);
+		::fprintf(s_pNicTTY, "\x1B[H");
+		for (int y = h; --y >= 0;) {
+			for (int x = 0; x < w; ++x) {
+				int isrc = y*w + x;
+				uint32_t c32 = ((uint32_t*)s_pCaptMem)[isrc];
+				uint32_t cr = (c32) & 0xFF;
+				uint32_t cg = (c32 >> 8) & 0xFF;
+				uint32_t cb = (c32 >> 16) & 0xFF;
+				uint32_t avg = (cr + cg + cb) / 3;
+				avg = (uint32_t)((float)avg * 0.75f);
+				static const char* shdTbl[] = {
+					"\u2588", "\u2593", "\u2592", "\u2591"
+				};
+				if (avg > 0xA0) {
+					::fputs(shdTbl[0], s_pNicTTY);
+				} else if (avg > 0x80) {
+					::fputs(shdTbl[1], s_pNicTTY);
+				} else if (avg > 0x50) {
+					::fputs(shdTbl[2], s_pNicTTY);
+				} else if (avg > 0x30) {
+					::fputs(shdTbl[3], s_pNicTTY);
+				} else {
+					::fputs(" ", s_pNicTTY);
+				}
+			}
+			::fputs("\n", s_pNicTTY);
+		}
+	}
+}
+#else
+static void Nic_vision_disp() {}
+#endif
+
 static void loop(void* pLoopCtx) {
 	static double usStart = 0.0;
 	static double usEnd = 0.0;
@@ -2390,6 +2450,7 @@ static void loop(void* pLoopCtx) {
 	}
 	Scene::frame_begin(cxColor(0.7f, 0.72f, 0.73f));
 	Scene::draw();
+	Nic_vision_disp();
 	prim_test();
 	draw_2d();
 	Scene::frame_end();
