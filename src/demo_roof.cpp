@@ -2388,7 +2388,7 @@ XD_NOINLINE static void Nic_vision_disp() {
 
 	if (s_pCaptMem) {
 		drwogl_read_fb(s_pCaptMem);
-		::fprintf(s_pNicTTY, "\x1B[H");
+		::fputs("\x1B[H\x1B[?25l", s_pNicTTY);
 		for (int y = h; --y >= 0;) {
 			for (int x = 0; x < w; ++x) {
 				int isrc = y*w + x;
