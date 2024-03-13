@@ -30,6 +30,7 @@ interact with some elements in the scene and talk to NPCs
 [here](https://schaban.github.io/crosscore_web_demo/wgl_test.html?small&lowq),
 it is more suitable for devices such as Raspberry Pi.)
 
+[*See also*.](https://schaban.github.io/roof/secrets.html)
 
 ***
 Here is another project
