@@ -2367,14 +2367,43 @@ static void xpipe_test() {
 
 #ifdef ROOF_NIC_VISION
 static void* s_pCaptMem = nullptr;
-
 static FILE* s_pNicTTY = nullptr;
+static int s_nicDispW = 0;
+static int s_nicDispH = 0;
+static int s_nicDispMode = 0;
+
+XD_FORCEINLINE static void Nicvis_put_pixel(uint32_t c32) {
+	static const char* shdTbl[] = {
+		"\u2588", "\u2593", "\u2592", "\u2591"
+	};
+	uint32_t cr = (c32) & 0xFF;
+	uint32_t cg = (c32 >> 8) & 0xFF;
+	uint32_t cb = (c32 >> 16) & 0xFF;
+	uint32_t avg = (cr + cg + cb) / 3;
+	avg = (uint32_t)((float)avg * 0.75f);
+	if (avg > 0xA0) {
+		::fputs(shdTbl[0], s_pNicTTY);
+	} else if (avg > 0x80) {
+		::fputs(shdTbl[1], s_pNicTTY);
+	} else if (avg > 0x50) {
+		::fputs(shdTbl[2], s_pNicTTY);
+	} else if (avg > 0x30) {
+		::fputs(shdTbl[3], s_pNicTTY);
+	} else {
+		::fputs(" ", s_pNicTTY);
+	}
+}
 
 XD_NOINLINE static void Nic_vision_disp() {
 	if (!s_pNicTTY) {
 		const char* pNicTTYPath = nxApp::get_opt("nic_tty");
 		if (pNicTTYPath) {
 			s_pNicTTY = fopen(pNicTTYPath, "w");
+		}
+		if (s_pNicTTY) {
+			s_nicDispW = nxApp::get_int_opt("nic_w", 0);
+			s_nicDispH = nxApp::get_int_opt("nic_h", 0);
+			s_nicDispMode = s_nicDispW > 0 && s_nicDispH > 0;
 		}
 	}
 	if (!s_pNicTTY) return;
@@ -2389,31 +2418,30 @@ XD_NOINLINE static void Nic_vision_disp() {
 	if (s_pCaptMem) {
 		drwogl_read_fb(s_pCaptMem);
 		::fputs("\x1B[H\x1B[?25l", s_pNicTTY);
-		for (int y = h; --y >= 0;) {
-			for (int x = 0; x < w; ++x) {
-				int isrc = y*w + x;
-				uint32_t c32 = ((uint32_t*)s_pCaptMem)[isrc];
-				uint32_t cr = (c32) & 0xFF;
-				uint32_t cg = (c32 >> 8) & 0xFF;
-				uint32_t cb = (c32 >> 16) & 0xFF;
-				uint32_t avg = (cr + cg + cb) / 3;
-				avg = (uint32_t)((float)avg * 0.75f);
-				static const char* shdTbl[] = {
-					"\u2588", "\u2593", "\u2592", "\u2591"
-				};
-				if (avg > 0xA0) {
-					::fputs(shdTbl[0], s_pNicTTY);
-				} else if (avg > 0x80) {
-					::fputs(shdTbl[1], s_pNicTTY);
-				} else if (avg > 0x50) {
-					::fputs(shdTbl[2], s_pNicTTY);
-				} else if (avg > 0x30) {
-					::fputs(shdTbl[3], s_pNicTTY);
-				} else {
-					::fputs(" ", s_pNicTTY);
+		if (s_nicDispMode == 0) {
+			for (int y = h; --y >= 0;) {
+				int yorg = y*w;
+				for (int x = 0; x < w; ++x) {
+					int isrc = yorg + x;
+					uint32_t c32 = ((uint32_t*)s_pCaptMem)[isrc];
+					Nicvis_put_pixel(c32);
 				}
+				::fputs("\n", s_pNicTTY);
 			}
-			::fputs("\n", s_pNicTTY);
+		} else {
+			float dx = (float)w / (float)s_nicDispW;
+			float dy = (float)h / (float)s_nicDispH;
+			for (int y = s_nicDispH; --y >= 0;) {
+				int sy = (int)::mth_floor((float)y * dy);
+				int yorg = sy*w;
+				for (int x = 0; x < s_nicDispW; ++x) {
+					int sx = (int)::mth_floor((float)x * dx);
+					int isrc = yorg + sx;
+					uint32_t c32 = ((uint32_t*)s_pCaptMem)[isrc];
+					Nicvis_put_pixel(c32);
+				}
+				::fputs("\n", s_pNicTTY);
+			}
 		}
 	}
 }
