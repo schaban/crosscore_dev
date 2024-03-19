@@ -9,4 +9,5 @@ NIC_H=$((`echo $TTY_SIZE | cut -d " " -f1` - 1))
 echo "Nic vision:" $NIC_W "x" $NIC_H
 
 PROGDIR=`dirname $0`
-$PROGDIR/crosscore_demo -demo:roof -draw:ogl -bump:0 -spec:0 -smap:512 -tlod_bias:0 -lowq:1 -adapt:1 -nic_tty:$NIC_TTY -w:$NIC_W -h:$NIC_H $*
+# $PROGDIR/crosscore_demo -demo:roof -draw:ogl -bump:0 -spec:0 -smap:512 -tlod_bias:0 -lowq:1 -adapt:1 -nic_tty:$NIC_TTY -w:$NIC_W -h:$NIC_H $*
+$PROGDIR/crosscore_demo -demo:roof -draw:ogl -bump:0 -spec:0 -smap:512 -tlod_bias:0 -lowq:1 -adapt:1 -nic_tty:$NIC_TTY -w:320 -h:240 -nic_w:$NIC_W -nic_h:$NIC_H $*
