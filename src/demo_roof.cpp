@@ -53,6 +53,8 @@ static float s_viewDist = 0.0f;
 
 static int s_primTestMode = 0;
 
+static void* s_pCaptMem = nullptr;
+
 #if 0
 #define KEY_GET(_name) if (OGLSys::get_key_state(#_name)) mask |= 1ULL << _name
 #else
@@ -1444,6 +1446,7 @@ static void init() {
 	Scene::enable_split_move(nxApp::get_bool_opt("split_move", true));
 	nxCore::dbg_msg("Scene::split_move: %s\n", Scene::is_split_move_enabled() ? "Yes" : "No");
 
+	s_pCaptMem = nullptr;
 	s_kbdCtrl.init();
 	s_pipeWk.init();
 }
@@ -2366,7 +2369,6 @@ static void xpipe_test() {
 }
 
 #ifdef ROOF_NIC_VISION
-static void* s_pCaptMem = nullptr;
 static FILE* s_pNicTTY = nullptr;
 static int s_nicDispW = 0;
 static int s_nicDispH = 0;
@@ -2572,6 +2574,8 @@ static void reset() {
 		nxCore::mem_free(s_pScenarioWk);
 		s_pScenarioWk = nullptr;
 	}
+	nxCore::mem_free(s_pCaptMem);
+	s_pCaptMem = nullptr;
 }
 
 DEMO_REGISTER(roof);
