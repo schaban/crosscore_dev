@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-#if defined(_WINDOWS) || defined(WIN32) || defined(_WIN32) || defined(_WIN64)
+#if defined(_WINDOWS) || defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #	define XD_SYS_WINDOWS
 #elif defined(__APPLE__)
 #	define XD_SYS_APPLE
