@@ -2841,6 +2841,14 @@ void mul_mm_f(float* pDst, const float* pSrc1, const float* pSrc2, const int M, 
 	}
 }
 
+void mul_vm_f(float* pDstVec, const float* pSrcVec, const float* pMtx, const int M, const int N) {
+	mul_mm_f(pDstVec, pSrcVec, pMtx, 1, M, N);
+}
+void mul_mv_f(float* pDstVec, const float* pMtx, const float* pSrcVec, const int M, const int N) {
+	mul_mm_f(pDstVec, pMtx, pSrcVec, M, N, 1);
+}
+
+
 void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P) {
 	for (int i = 0; i < M; ++i) {
 		int ra = i * N;
@@ -2862,6 +2870,14 @@ void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int 
 		}
 	}
 }
+
+void mul_vm_d(double* pDstVec, const double* pSrcVec, const double* pMtx, const int M, const int N) {
+	mul_mm_d(pDstVec, pSrcVec, pMtx, 1, M, N);
+}
+void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const int M, const int N) {
+	mul_mm_d(pDstVec, pMtx, pSrcVec, M, N, 1);
+}
+
 
 } // nxLA
 
