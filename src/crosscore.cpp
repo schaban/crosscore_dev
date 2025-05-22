@@ -2891,6 +2891,19 @@ void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const 
 	mul_mm_d(pDstVec, pMtx, pSrcVec, M, N, 1);
 }
 
+float dot_f(const float* pVec1, const float* pVec2, const int N) {
+	float d = 0.0f;
+	for (int i = 0; i < N; ++i) {
+		d += pVec1[i] * pVec2[i];
+	}
+	return d;
+}
+
+void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N) {
+	for (int i = 0; i < N; ++i) {
+		pDst[i] = pSrc1[i] * pSrc2[i] * s;
+	}
+}
 
 } // nxLA
 

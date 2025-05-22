@@ -1863,7 +1863,8 @@ void mul_mv_f(float* pDstVec, const float* pMtx, const float* pSrcVec, const int
 void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P);
 void mul_vm_d(double* pDstVec, const double* pSrcVec, const double* pMtx, const int M, const int N);
 void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const int M, const int N);
-
+float dot_f(const float* pVec1, const float* pVec2, const int N);
+void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N);
 
 } // nxLA
 
