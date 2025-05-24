@@ -2908,6 +2908,23 @@ void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float
 } // nxLA
 
 
+namespace nxML {
+
+// ref: "Root Mean Square Layer Normalization"
+void rms_norm(float* pDst, const float* pSrc, const float* pWgt, const int N, const float eps) {
+	float s = nxLA::dot_f(pSrc, pSrc, N);
+	s = nxCalc::div0(s, float(N));
+	if (s > eps) {
+		s = 1.0f / ::mth_sqrtf(s);
+	} else {
+		s = 0.0f;
+	}
+	nxLA::vec_sclmul(pDst, pSrc, pWgt, s, N);
+}
+
+} // nxML
+
+
 void xt_half::set(const float f) {
 	x = nxCore::float_to_half(f);
 }

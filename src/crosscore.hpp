@@ -1868,6 +1868,14 @@ void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float
 
 } // nxLA
 
+
+namespace nxML {
+
+void rms_norm(float* pDst, const float* pSrc, const float* pWgt, const int N, const float eps = 1e-5f);
+
+} // nxML
+
+
 typedef int32_t xt_int;
 typedef float xt_float;
 
