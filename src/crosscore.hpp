@@ -1864,6 +1864,7 @@ void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int 
 void mul_vm_d(double* pDstVec, const double* pSrcVec, const double* pMtx, const int M, const int N);
 void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const int M, const int N);
 float dot_f(const float* pVec1, const float* pVec2, const int N);
+void scl_f(float* pDst, const float* pSrc, const float s, const int N);
 void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N);
 
 } // nxLA
@@ -1872,6 +1873,7 @@ void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float
 namespace nxML {
 
 void rms_norm(float* pDst, const float* pSrc, const float* pWgt, const int N, const float eps = 1e-5f);
+void softmax(float* pVec, const int N);
 
 } // nxML
 
