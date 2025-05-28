@@ -1865,7 +1865,7 @@ void mul_vm_d(double* pDstVec, const double* pSrcVec, const double* pMtx, const 
 void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const int M, const int N);
 float dot_f(const float* pVec1, const float* pVec2, const int N);
 void scl_f(float* pDst, const float* pSrc, const float s, const int N);
-void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N);
+void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N);
 
 } // nxLA
 

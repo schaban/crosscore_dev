@@ -2905,7 +2905,7 @@ void scl_f(float* pDst, const float* pSrc, const float s, const int N) {
 	}
 }
 
-void vec_sclmul(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N) {
+void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N) {
 	for (int i = 0; i < N; ++i) {
 		pDst[i] = pSrc1[i] * pSrc2[i] * s;
 	}
@@ -2925,7 +2925,7 @@ void rms_norm(float* pDst, const float* pSrc, const float* pWgt, const int N, co
 	} else {
 		s = 0.0f;
 	}
-	nxLA::vec_sclmul(pDst, pSrc, pWgt, s, N);
+	nxLA::sclmul_f(pDst, pSrc, pWgt, s, N);
 }
 
 void softmax(float* pVec, const int N) {
