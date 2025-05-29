@@ -16,7 +16,7 @@ case `uname -s` in
 			DL_MODE="CURL"
 		fi
 	;;
-	Darwin | MINGW* | CYGWIN*)
+	Darwin | MINGW*)
 		DL_MODE="CURL"
 	;;
 	OpenBSD)
