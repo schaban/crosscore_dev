@@ -50,6 +50,10 @@ case $SYS_NAME in
 	Haiku)
 		CXX_OPTS="$CXX_OPTS -fvisibility=hidden"
 	;;
+	CYGWIN*)
+		PROG_OPTS=""
+		PROG_LIBS="-lgdi32 -static"
+	;;
 esac
 
 DL_CMD=""
