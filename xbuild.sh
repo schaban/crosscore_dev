@@ -18,8 +18,8 @@ if [ ! -d $PROG_DIR ]; then mkdir -p $PROG_DIR; fi
 
 CXX_OPTS="-std=c++11 -ffast-math -ftree-vectorize -pthread"
 
-PROG_OPTS=${XBUILD_ALT_DEFS:-"-DX11"}
-PROG_LIBS=${XBUILD_ALT_LIBS:-"-lX11"}
+PROG_OPTS=${XBUILD_ALT_DEFS-"-DX11"}
+PROG_LIBS=${XBUILD_ALT_LIBS-"-lX11"}
 PROG_INCS="-I src -I inc"
 PROG_SRCS="`ls src/*.cpp`"
 
