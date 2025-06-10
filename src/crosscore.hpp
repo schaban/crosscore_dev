@@ -6596,6 +6596,8 @@ public:
 	xt_xmtx calc_skel_node_world_rest_xform(const int iskl) const { return mpData ? mpData->calc_skel_node_world_xform(iskl, nullptr) : nxMtx::xmtx_identity(); }
 	cxMtx calc_skel_node_world_rest_mtx(const int iskl) const { return nxMtx::mtx_from_xmtx(calc_skel_node_world_rest_xform(iskl)); }
 
+	int get_tris_num() const { mpData ? mpData->mTriNum : 0; }
+	
 	int get_batches_num() const { return mpData ? mpData->mBatNum : 0; }
 	bool ck_batch_id(const int ibat) const { return mpData ? mpData->ck_batch_id(ibat) : false; }
 

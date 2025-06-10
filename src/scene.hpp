@@ -106,7 +106,7 @@ public:
 	bool has_skel() const { return mpMdlWk && mpMdlWk->has_skel(); }
 	int find_skel_node_id(const char* pName) const { return mpMdlWk ? mpMdlWk->find_skel_node_id(pName) : -1; }
 	bool ck_skel_id(const int iskl) const { return mpMdlWk ? mpMdlWk->ck_skel_id(iskl) : false; }
-
+	int get_tris_num() const { return mpMdlWk ? mpMdlWk->get_tris_num() : 0; }
 	int get_batches_num() const { return mpMdlWk ? mpMdlWk->get_batches_num() : 0; }
 	const char* get_batch_mtl_name(const int ibat) const;
 
@@ -290,7 +290,6 @@ void pop_ctx();
 
 int get_num_workers();
 int get_num_active_workers();
-int get_num_per_worker_blocks();
 int get_visibility_job_lvl();
 int get_wrk_jobs_done_cnt(const int lvl, const int wrkId);
 int get_lvl_jobs_done_cnt(const int lvl);
