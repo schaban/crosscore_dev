@@ -69,6 +69,7 @@ static struct KBD_CTRL {
 		RIGHT,
 		LCTRL,
 		LSHIFT,
+		RSHIFT,
 		TAB,
 		BACK,
 		ENTER,
@@ -122,6 +123,7 @@ static struct KBD_CTRL {
 		KEY_GET(RIGHT);
 		KEY_GET(LCTRL);
 		KEY_GET(LSHIFT);
+		KEY_GET(RSHIFT);
 		KEY_GET(TAB);
 		KEY_GET(BACK);
 		KEY_GET(ENTER);
@@ -959,7 +961,7 @@ static void obj_add_deg_y(ScnObj* pObj, const float dy) {
 }
 
 static bool ck_run_modifier() {
-	return s_kbdCtrl.ck_now(KBD_CTRL::LSHIFT) || s_kbdCtrl.ck_now(KBD_CTRL::SPACE);
+	return s_kbdCtrl.ck_now(KBD_CTRL::LSHIFT) || s_kbdCtrl.ck_now(KBD_CTRL::SPACE) || s_kbdCtrl.ck_now(KBD_CTRL::RSHIFT);
 }
 
 static void Den_exec_ctrl(ScnObj* pObj) {
