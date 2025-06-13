@@ -2499,7 +2499,7 @@ sxJobContext* cxBrigade::get_job_context(const int wrkId) {
 }
 
 void cxBrigade::auto_affinity() {
-#if defined(XD_TSK_NATIVE_PTHREAD) && defined(XD_SYS_LINUX)
+#if defined(XD_TSK_NATIVE_PTHREAD) && defined(XD_SYS_LINUX) && !defined(__ANDROID__)
 	if (mWrkNum < 2) return;
 	if (!mppWrk) return;
 	int ncpu = nxSys::num_active_cpus();
