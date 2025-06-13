@@ -290,6 +290,7 @@ void pop_ctx();
 
 int get_num_workers();
 int get_num_active_workers();
+int get_num_per_worker_blocks();
 int get_visibility_job_lvl();
 int get_wrk_jobs_done_cnt(const int lvl, const int wrkId);
 int get_lvl_jobs_done_cnt(const int lvl);
