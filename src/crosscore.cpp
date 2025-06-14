@@ -7315,7 +7315,7 @@ exRotOrd rot_ord_from_str(const char* pStr) {
 }
 
 const char* rot_ord_to_str(exRotOrd rord) {
-	const char* pStr = "xyz";
+	const char* pStr;
 	switch (rord) {
 		case exRotOrd::XYZ: pStr = "xyz"; break;
 		case exRotOrd::XZY: pStr = "xzy"; break;
@@ -7323,7 +7323,7 @@ const char* rot_ord_to_str(exRotOrd rord) {
 		case exRotOrd::YZX: pStr = "yzx"; break;
 		case exRotOrd::ZXY: pStr = "zxy"; break;
 		case exRotOrd::ZYX: pStr = "zyx"; break;
-		default: break;
+		default: pStr = "xyz"; break;
 	}
 	return pStr;
 }
@@ -7353,7 +7353,7 @@ exTransformOrd xform_ord_from_str(const char* pStr) {
 }
 
 const char* xform_ord_to_str(exTransformOrd xord) {
-	const char* pStr = "srt";
+	const char* pStr;
 	switch (xord) {
 		case exTransformOrd::SRT: pStr = "srt"; break;
 		case exTransformOrd::STR: pStr = "str"; break;
@@ -7361,7 +7361,7 @@ const char* xform_ord_to_str(exTransformOrd xord) {
 		case exTransformOrd::RTS: pStr = "rts"; break;
 		case exTransformOrd::TSR: pStr = "tsr"; break;
 		case exTransformOrd::TRS: pStr = "trs"; break;
-		default: break;
+		default: pStr = "srt"; break;
 	}
 	return pStr;
 }
