@@ -2703,3 +2703,17 @@ XD_NOINLINE void drwogl_read_fb(void* pDst) {
 		          (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pDst);
 	}
 }
+
+XD_NOINLINE void drwogl_polmode_dot() {
+	void* pfn = OGLSys::get_proc_addr("glPolygonMode");
+	if (pfn) {
+		((void(*)(GLenum, GLenum))pfn)(0x0408, 0x1B00); // GL_FRONT_AND_BACK <= GL_POINT
+	}
+}
+
+XD_NOINLINE void drwogl_polmode_wire() {
+	void* pfn = OGLSys::get_proc_addr("glPolygonMode");
+	if (pfn) {
+		((void(*)(GLenum, GLenum))pfn)(0x0408, 0x1B01); // GL_FRONT_AND_BACK <= GL_LINE
+	}
+}
