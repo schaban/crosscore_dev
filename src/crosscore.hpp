@@ -205,6 +205,18 @@
 #	define XD_EXPECT(_exp, _val) (_exp)
 #endif
 
+#ifndef XD_HAS_F16
+#	ifdef __has_keyword
+#		if __has_keyword(_Float16)
+#			define XD_HAS_F16 1
+#		else
+#			define XD_HAS_F16 0 
+#		endif
+#	else
+#		define XD_HAS_F16 0
+#	endif
+#endif
+
 #ifndef XD_USE_LA
 #	define XD_USE_LA 1
 #endif
