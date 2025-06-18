@@ -1531,7 +1531,7 @@ static void view_exec() {
 	if (s_kbdCtrl.ck_trg(KBD_CTRL::BACK)) {
 		pWk->viewMode ^= 1;
 	}
-	if (s_kbdCtrl.ck_trg(KBD_CTRL::TAB)) {
+	if (s_kbdCtrl.ck_trg(KBD_CTRL::TAB) || OGLSys::get_mouse_state().ck_trg(OGLSysMouseState::BTN::OGLSYS_BTN_MIDDLE)) {
 		pWk->tgtMode ^= 1;
 	}
 	ScnObj* pObj = Scene::find_obj(pWk->tgtMode ? "Zoe" : "Den");
