@@ -1987,6 +1987,11 @@ void sort_f64(double* pVals, size_t numVals) {
 
 
 uint16_t float_to_half(const float x) {
+#if XD_HAS_F16
+	union FTOH { _Float16 h; uint16_t u; } ftoh;
+	ftoh.h = (_Float16)x;
+	return ftoh.u;
+#else
 	uint32_t b = f32_get_bits(x);
 	uint16_t s = (uint16_t)((b >> 16) & (1 << 15));
 	b &= ~(1U << 31);
@@ -2009,9 +2014,15 @@ uint16_t float_to_half(const float x) {
 		b &= (1U << 15) - 1;
 	}
 	return (uint16_t)(b | s);
+#endif
 }
 
 float half_to_float(const uint16_t h) {
+#if XD_HAS_F16
+	union HTOF { uint16_t u; _Float16 h; } htof;
+	htof.u = h;
+	return (float)htof.h;
+#else
 	float f = 0.0f;
 	if (h & ((1 << 16) - 1)) {
 		int32_t e = (((h >> 10) & 0x1F) + 0x70) << 23;
@@ -2020,6 +2031,7 @@ float half_to_float(const uint16_t h) {
 		f = f32_set_bits(e | m | s);
 	}
 	return f;
+#endif
 }
 
 float f32_set_bits(const uint32_t x) {

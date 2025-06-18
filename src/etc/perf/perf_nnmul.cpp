@@ -59,7 +59,7 @@ static void mtx_cpy(_MTX_T_* pDst, _MTX_T_* pSrc) {
 }
 
 template<typename T> void print_mtx_elem_t() { nxCore::dbg_msg("???"); }
-#if 0
+#if XD_HAS_F16
 template<> void print_mtx_elem_t<_Float16>() { nxCore::dbg_msg("f16"); }
 #endif
 template<> void print_mtx_elem_t<float>() { nxCore::dbg_msg("f32"); }
