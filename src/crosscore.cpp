@@ -3061,6 +3061,17 @@ void xt_texcoord::encode_half(uint16_t* pDst) const {
 }
 
 
+float xt_float4::dp(const xt_float4& f4) const {
+	const float* p1 = *this;
+	const float* p2 = f4;
+	float d = 0.0f;
+	for (int i = 0; i < 4; ++i) {
+		d += p1[i] * p2[i];
+	}
+	return d;
+}
+
+
 void xt_mtx::identity() {
 	nxCore::mem_copy(this, nxCalc::s_identityMtx, sizeof(*this));
 }
@@ -3762,6 +3773,7 @@ void cxMtx::mul(const cxMtx& mtx) {
 	mul(*this, mtx);
 }
 
+#ifndef XD_CLANG_EXPERIMENTAL_
 void cxMtx::mul(const cxMtx& m1, const cxMtx& m2) {
 #if defined(XD_USE_VEMA) && defined(XD_USE_VEMA_MTX)
 	VEMA_FN(MulMtx4x4F)(*((VemaMtx4x4F*)this), *((const VemaMtx4x4F*)&m1), *((const VemaMtx4x4F*)&m2));
@@ -3794,6 +3806,15 @@ void cxMtx::mul(const cxMtx& m1, const cxMtx& m2) {
 	*this = m0;
 #endif
 }
+
+#else /* XD_CLANG_EXPERIMENTAL_ */
+
+typedef float xt_fmtxmul __attribute__((matrix_type(4, 4)));
+
+void cxMtx::mul(const cxMtx& m1, const cxMtx& m2) {
+	*(xt_fmtxmul*)this = *(xt_fmtxmul*)&m2 * *(xt_fmtxmul*)&m1;
+}
+#endif /* XD_CLANG_EXPERIMENTAL_ */
 
 void cxMtx::add(const cxMtx& mtx) {
 	add(*this, mtx);

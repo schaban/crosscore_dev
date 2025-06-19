@@ -1971,6 +1971,8 @@ struct xt_float4 {
 		}
 	}
 
+	float dp(const xt_float4& f4) const;
+
 	operator float* () { return reinterpret_cast<float*>(this); }
 	operator const float* () const { return reinterpret_cast<const float*>(this); }
 };
