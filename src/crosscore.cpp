@@ -2862,10 +2862,7 @@ void mul_vm_f(float* pDstVec, const float* pSrcVec, const float* pMtx, const int
 #endif
 
 void mul_mv_f(float* pDstVec, const float* pMtx, const float* pSrcVec, const int M, const int N) {
-#if 0
-	mul_mm_f(pDstVec, pMtx, pSrcVec, M, N, 1);
-#else
-#	if XD_LA_MUL_MV_F == 0
+#if XD_LA_MUL_MV_F == 0
 	int r = 0;
 	for (int i = 0; i < M; ++i) {
 		float t = 0.0f;
@@ -2875,22 +2872,8 @@ void mul_mv_f(float* pDstVec, const float* pMtx, const float* pSrcVec, const int
 		pDstVec[i] = t;
 		r += N;
 	}
-#	else
-	int r = 0;
-	for (int i = 0; i < M; ++i) {
-		pDstVec[i] = pMtx[r] * pSrcVec[0];
-		r += N;
-	}
-	r = 0;
-	for (int i = 0; i < M; ++i) {
-		float t = pDstVec[i];
-		for (int j = 1; j < N; ++j) {
-			 t += pMtx[r + j] * pSrcVec[j];
-		}
-		pDstVec[i] = t;
-		r += N;
-	}
-#	endif
+#else
+	mul_mm_f(pDstVec, pMtx, pSrcVec, M, N, 1);
 #endif
 }
 
