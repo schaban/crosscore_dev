@@ -2832,25 +2832,7 @@ double harmonic_mean(double* pData, const size_t num) {
 namespace nxLA {
 
 void mul_mm_f(float* pDst, const float* pSrc1, const float* pSrc2, const int M, const int N, const int P) {
-	for (int i = 0; i < M; ++i) {
-		int ra = i * N;
-		int rr = i * P;
-		float s = pSrc1[ra];
-		for (int k = 0; k < P; ++k) {
-			pDst[rr + k] = pSrc2[k] * s;
-		}
-	}
-	for (int i = 0; i < M; ++i) {
-		int ra = i * N;
-		int rr = i * P;
-		for (int j = 1; j < N; ++j) {
-			int rb = j * P;
-			float s = pSrc1[ra + j];
-			for (int k = 0; k < P; ++k) {
-				pDst[rr + k] += pSrc2[rb + k] * s;
-			}
-		}
-	}
+	mul_mm<float, float, float>(pDst, pSrc1, pSrc2, M, N, P);
 }
 
 void mul_vm_f(float* pDstVec, const float* pSrcVec, const float* pMtx, const int M, const int N) {
@@ -2879,25 +2861,7 @@ void mul_mv_f(float* pDstVec, const float* pMtx, const float* pSrcVec, const int
 
 
 void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P) {
-	for (int i = 0; i < M; ++i) {
-		int ra = i * N;
-		int rr = i * P;
-		double s = pSrc1[ra];
-		for (int k = 0; k < P; ++k) {
-			pDst[rr + k] = pSrc2[k] * s;
-		}
-	}
-	for (int i = 0; i < M; ++i) {
-		int ra = i * N;
-		int rr = i * P;
-		for (int j = 1; j < N; ++j) {
-			int rb = j * P;
-			double s = pSrc1[ra + j];
-			for (int k = 0; k < P; ++k) {
-				pDst[rr + k] += pSrc2[rb + k] * s;
-			}
-		}
-	}
+	mul_mm<double, double, double>(pDst, pSrc1, pSrc2, M, N, P);
 }
 
 void mul_vm_d(double* pDstVec, const double* pSrcVec, const double* pMtx, const int M, const int N) {
