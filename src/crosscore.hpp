@@ -248,6 +248,8 @@
 #define XD_SPRINTF nxCore::str_fmt
 #define XD_SPRINTF_BUF(_buf, _bufsize)  (_buf), (_bufsize)
 
+struct xt_half;
+
 typedef void* xt_fhandle;
 
 struct sxSysIfc {
@@ -1878,6 +1880,8 @@ void mul_mv_d(double* pDstVec, const double* pMtx, const double* pSrcVec, const 
 float dot_f(const float* pVec1, const float* pVec2, const int N);
 void scl_f(float* pDst, const float* pSrc, const float s, const int N);
 void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s, const int N);
+
+void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, xt_half* pSrc2, const int M, const int N, const int P);
 
 } // nxLA
 

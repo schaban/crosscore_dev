@@ -2891,6 +2891,32 @@ void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s
 	}
 }
 
+void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, xt_half* pSrc2, const int M, const int N, const int P) {
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		float s = pSrc1[ra].get();
+		for (int k = 0; k < P; ++k) {
+			xt_half t;
+			t.set(pSrc2[k].get() * s);
+			pDst[rr + k] = t;
+		}
+	}
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		for (int j = 1; j < N; ++j) {
+			int rb = j * P;
+			float s = pSrc1[ra + j].get();
+			for (int k = 0; k < P; ++k) {
+				xt_half t;
+				t.set(pDst[rr + k].get() + pSrc2[rb + k].get()*s);
+				pDst[rr + k] = t;
+			}
+		}
+	}
+}
+
 } // nxLA
 
 
