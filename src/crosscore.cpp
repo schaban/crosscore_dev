@@ -2891,7 +2891,7 @@ void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s
 	}
 }
 
-void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, xt_half* pSrc2, const int M, const int N, const int P) {
+void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, const xt_half* pSrc2, const int M, const int N, const int P) {
 	for (int i = 0; i < M; ++i) {
 		int ra = i * N;
 		int rr = i * P;
