@@ -2046,6 +2046,13 @@ uint32_t f32_get_bits(const float x) {
 	return v.u;
 }
 
+float f32_get_mantissa(const float x) {
+	uxVal32 v;
+	v.f = 1.0f;
+	v.u |= f32_get_mantissa_bits(x);
+	return v.f;
+};
+
 bool f32_almost_eq(const float x, const float y, const float tol) {
 	bool eq = false;
 	float adif = ::mth_fabsf(x - y);
@@ -2057,6 +2064,42 @@ bool f32_almost_eq(const float x, const float y, const float tol) {
 		eq = (adif / ax) <= tol && (adif / ay) <= tol;
 	}
 	return eq;
+}
+
+uint32_t f32_encode(const float x, const int nexp, const int nmts, const bool sgn/*=false*/) {
+	uint32_t enc = 0;
+	if (x != 0.0f) {
+		if (nexp <= 8) {
+			int e = f32_get_exp(x);
+			int bias = (1 << (nexp - 1)) - 1;
+			if (e < -(bias - 1)) {
+				enc = (1U << nmts) - 1;
+			} else if (e > bias) {
+				enc = (1U << (nexp + nmts)) - 1;
+			} else {
+				enc |= (e + bias) << nmts;
+			}
+		}
+		if (nmts <= 23) {
+			enc |= f32_get_mantissa_bits(x) >> (23 - nmts);
+		}
+	}
+	if (sgn) {
+		if (x < 0.0f) {
+			enc |= 1U << (nexp + nmts);
+		}
+	}
+	return enc;
+}
+
+float f32_decode(const uint32_t enc, const int nexp, const int nmts, const bool sgn /*=false*/) {
+	uxVal32 mv;
+	if (enc == 0) return 0.0f;
+	int bias = (1 << (nexp - 1)) - 1;
+	int e = int((enc >> nmts) & ((1U << nexp) - 1)) - bias;
+	mv.f = 1.0f;
+	mv.u |= (enc & ((1 << nmts) - 1)) << (23 - nmts);
+	return nxCalc::ipow(2.0f, e) * mv.f;
 }
 
 uint32_t fetch_bits32(const uint8_t* pTop, const uint32_t org, const uint32_t len) {
@@ -2961,6 +3004,25 @@ void xt_half::set(const float f) {
 
 float xt_half::get() const {
 	return nxCore::half_to_float(x);
+}
+
+uint32_t xt_half::get_exp_bits() const {
+	return (x >> 10) & 0x1F;
+}
+
+int xt_half::get_exp() const {
+	return int(get_exp_bits()) - 0xF;
+}
+
+uint32_t xt_half::get_mantissa_bits() const {
+	return x & ((1U << 10) - 1);
+}
+
+float xt_half::get_mantissa() const {
+	uxVal32 v;
+	v.f = 1.0f;
+	v.u |= get_mantissa_bits() << (23 - 10);
+	return v.f;
 }
 
 void xt_half::rand01(sxRNG* pRNG) {

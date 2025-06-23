@@ -464,10 +464,14 @@ uint16_t float_to_half(const float x);
 float half_to_float(const uint16_t h);
 float f32_set_bits(const uint32_t x);
 uint32_t f32_get_bits(const float x);
+inline uint32_t f32_get_mantissa_bits(const float x) { return f32_get_bits(x) & ((1U << 23) - 1); }
+float f32_get_mantissa(const float x);
 inline uint32_t f32_get_exp_bits(const float x) { return (f32_get_bits(x) >> 23) & 0xFF; }
-inline int f32_get_exp(const float x) { return (int)f32_get_exp_bits(x) - 127; }
+inline int f32_get_exp(const float x) { return int(f32_get_exp_bits(x)) - 0x7F; }
 inline float f32_mk_nan() { return f32_set_bits(0xFFC00000); }
 bool f32_almost_eq(const float x, const float y, const float tol = 0.0001f);
+uint32_t f32_encode(const float x, const int nexp, const int nmts, const bool sgn = false);
+float f32_decode(const uint32_t enc, const int nexp, const int nmts, const bool sgn = false);
 
 uint32_t fetch_bits32(const uint8_t* pTop, const uint32_t org, const uint32_t len);
 
@@ -2061,6 +2065,11 @@ struct xt_half {
 
 	void set(const float f);
 	float get() const;
+	uint32_t get_bits() const { return x; }
+	uint32_t get_exp_bits() const;
+	int get_exp() const;
+	uint32_t get_mantissa_bits() const;
+	float get_mantissa() const;
 	void rand01(sxRNG* pRNG = nullptr);
 };
 
