@@ -2068,19 +2068,22 @@ bool f32_almost_eq(const float x, const float y, const float tol) {
 
 uint32_t f32_encode(const float x, const int nexp, const int nmts, const bool sgn/*=false*/) {
 	uint32_t enc = 0;
+	bool minFlg = false;
 	if (x != 0.0f) {
 		if (nexp <= 8) {
 			int e = f32_get_exp(x);
 			int bias = (1 << (nexp - 1)) - 1;
 			if (e < -(bias - 1)) {
-				enc = (1U << nmts) - 1;
+				minFlg = true;
 			} else if (e > bias) {
 				enc = (1U << (nexp + nmts)) - 1;
 			} else {
 				enc |= (e + bias) << nmts;
 			}
 		}
-		if (nmts <= 23) {
+		if (minFlg) {
+			enc = 1;
+		} else if (nmts <= 23) {
 			enc |= f32_get_mantissa_bits(x) >> (23 - nmts);
 		}
 	}
