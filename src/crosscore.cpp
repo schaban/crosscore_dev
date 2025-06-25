@@ -2095,13 +2095,14 @@ uint32_t f32_encode(const float x, const int nexp, const int nmts, const bool sg
 	return enc;
 }
 
-float f32_decode(const uint32_t enc, const int nexp, const int nmts, const bool sgn /*=false*/) {
+float f32_decode(const uint32_t enc, const int nexp, const int nmts) {
 	uxVal32 mv;
 	if (enc == 0) return 0.0f;
 	int bias = (1 << (nexp - 1)) - 1;
 	int e = int((enc >> nmts) & ((1U << nexp) - 1)) - bias;
 	mv.f = 1.0f;
-	mv.u |= (enc & ((1 << nmts) - 1)) << (23 - nmts);
+	mv.u |= (enc & ((1U << nmts) - 1)) << (23 - nmts);
+	mv.u |= (enc & (1U << (nexp + nmts))) << ((23 + 8) - (nexp + nmts));
 	return nxCalc::ipow(2.0f, e) * mv.f;
 }
 
