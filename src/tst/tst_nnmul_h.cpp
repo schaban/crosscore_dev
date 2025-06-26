@@ -61,9 +61,9 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < N*N; ++i) {
 		s += pRes[i].get();
 	}
-	bool ok = (mth_roundf(s) == N);
+	bool ok = nxCore::f32_almost_eq(s, float(N), 0.1f);
 
-	nxCore::dbg_msg("test: %s\n", ok ? "pass" : "fail");
+	nxCore::dbg_msg("test: %s (%f)\n", ok ? "pass" : "fail", s);
 
 
 	nxApp::reset();
