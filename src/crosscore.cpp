@@ -2949,6 +2949,30 @@ void sclmul_f(float* pDst, const float* pSrc1, const float* pSrc2, const float s
 }
 
 void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, const xt_half* pSrc2, const int M, const int N, const int P) {
+#if XD_HAS_F16
+	_Float16* pDstH = (_Float16*)pDst;
+	const _Float16* pSrc1H = (const _Float16*)pSrc1;
+	const _Float16* pSrc2H = (const _Float16*)pSrc2;
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		_Float16 s = pSrc1H[ra];
+		for (int k = 0; k < P; ++k) {
+			pDstH[rr + k] = pSrc2H[k] * s;
+		}
+	}
+	for (int i = 0; i < M; ++i) {
+		int ra = i * N;
+		int rr = i * P;
+		for (int j = 1; j < N; ++j) {
+			int rb = j * P;
+			_Float16 s = pSrc1H[ra + j];
+			for (int k = 0; k < P; ++k) {
+				pDstH[rr + k] += pSrc2H[rb + k] * s;
+			}
+		}
+	}
+#else
 	for (int i = 0; i < M; ++i) {
 		int ra = i * N;
 		int rr = i * P;
@@ -2972,6 +2996,7 @@ void mul_mm_h(xt_half* pDst, const xt_half* pSrc1, const xt_half* pSrc2, const i
 			}
 		}
 	}
+#endif
 }
 
 } // nxLA
