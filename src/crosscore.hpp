@@ -1894,6 +1894,7 @@ namespace nxML {
 
 void rms_norm(float* pDst, const float* pSrc, const float* pWgt, const int N, const float eps = 1e-5f);
 void softmax(float* pVec, const int N);
+void mul_mv_f_hcalc(float* pDstVec, const float* pMtx, const float* pSrcVec, const int M, const int N);
 
 } // nxML
 

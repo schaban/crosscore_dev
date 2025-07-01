@@ -3034,6 +3034,22 @@ void softmax(float* pVec, const int N) {
 	nxLA::scl_f(pVec, pVec, nxCalc::rcp0(s), N);
 }
 
+void mul_mv_f_hcalc(float* pDstVec, const float* pMtx, const float* pSrcVec, const int M, const int N) {
+#if XD_HAS_F16
+	int r = 0;
+	for (int i = 0; i < M; ++i) {
+		_Float16 t = 0;
+		for (int j = 0; j < N; ++j) {
+			t += (_Float16)pMtx[r + j] * (_Float16)pSrcVec[j];
+		}
+		pDstVec[i] = (float)t;
+		r += N;
+	}
+#else
+	nxLA::mul_mv_f(pDstVec, pMtx, pSrcVec, M, N);
+#endif
+}
+
 } // nxML
 
 
