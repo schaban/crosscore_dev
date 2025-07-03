@@ -217,6 +217,11 @@
 #	endif
 #endif
 
+#ifdef __EMSCRIPTEN__
+#	undef XD_HAS_F16
+#	define XD_HAS_F16 0
+#endif
+
 #ifndef XD_USE_LA
 #	define XD_USE_LA 1
 #endif
