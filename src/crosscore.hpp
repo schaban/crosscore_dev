@@ -226,6 +226,10 @@
 #	define XD_USE_LA 1
 #endif
 
+#ifndef XD_HCALC_LOCBUF_SIZE
+#	define XD_HCALC_LOCBUF_SIZE 768
+#endif
+
 #define XD_MAX_PATH 4096
 
 #define XD_FOURCC(c1, c2, c3, c4) ( (uint32_t)((((uint8_t)(c4))<<24)|(((uint8_t)(c3))<<16)|(((uint8_t)(c2))<<8)|((uint8_t)(c1))) )
