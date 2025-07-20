@@ -2947,6 +2947,45 @@ void mul_mv_f_hcalc(float* pDstVec, const float* pMtx, const float* pSrcVec, con
 #endif
 }
 
+void mul_mv_hf(float* pDstVec, const xt_half* pMtx, const float* pSrcVec, const int M, const int N) {
+#if XD_HAS_F16 && XD_HCALC_LOCBUF_SIZE > 0
+	int r = 0;
+	if (N <= XD_HCALC_LOCBUF_SIZE) {
+		_Float16 hvec[XD_HCALC_LOCBUF_SIZE];
+		for (int j = 0; j < N; ++j) {
+			hvec[j] = (_Float16)pSrcVec[j];
+		}
+		for (int i = 0; i < M; ++i) {
+			_Float16 t = 0;
+			for (int j = 0; j < N; ++j) {
+				t += *(_Float16*)&pMtx[r + j] * hvec[j];
+			}
+			pDstVec[i] = (float)t;
+			r += N;
+		}
+	} else {
+		for (int i = 0; i < M; ++i) {
+			float t = 0;
+			for (int j = 0; j < N; ++j) {
+				t += pMtx[r + j].get() * pSrcVec[j];
+			}
+			pDstVec[i] = t;
+			r += N;
+		}
+	}
+#else
+	int r = 0;
+	for (int i = 0; i < M; ++i) {
+		float t = 0;
+		for (int j = 0; j < N; ++j) {
+			t += pMtx[r + j].get() * pSrcVec[j];
+		}
+		pDstVec[i] = t;
+		r += N;
+	}
+#endif
+}
+
 void mul_mm_d(double* pDst, const double* pSrc1, const double* pSrc2, const int M, const int N, const int P) {
 	mul_mm<double, double, double>(pDst, pSrc1, pSrc2, M, N, P);
 }
