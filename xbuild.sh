@@ -104,12 +104,14 @@ echo "Compiling with $CXX..."
 rm -f $PROG_PATH
 $CXX $CXX_OPTS $VEMA_OPTS $PROG_OPTS $PROG_INCS $VEMA_SRCS $PROG_SRCS $PROG_LIBS -o $PROG_PATH $*
 MSG="Failed."
+SYMSG="\e[31m\u2717\e[0m"
 if [ -f $PROG_PATH ]; then
 	objdump $DISASM_OPTS -dC $PROG_PATH > $PROG_PATH.txt
 	cp $CP_OPTS src/cmd/roof.sh $PROG_DIR
 	cp $CP_OPTS src/cmd/roof_low.sh $PROG_DIR
 	cp $CP_OPTS src/cmd/lot_low.sh $PROG_DIR
 	MSG="Done."
+	SYMSG="\e[92m\u2714\e[0m"
 fi
 ls $LS_OPTS $PROG_PATH
-echo $MSG
+echo -e $SYMSG $MSG
