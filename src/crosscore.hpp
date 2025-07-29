@@ -128,7 +128,7 @@
 #else
 #	define _USE_MATH_DEFINES
 #	include <math.h>
-#	if defined(__INTEL_LLVM_COMPILER)
+#	if defined(__INTEL_LLVM_COMPILER) || defined(__clang__)
 	template<typename T> inline T mth_isnan(T x) { return false; }
 #	else
 #	define mth_isnan isnan
