@@ -258,6 +258,7 @@
 #define XD_SPRINTF_BUF(_buf, _bufsize)  (_buf), (_bufsize)
 
 struct xt_half;
+struct xt_bf16;
 
 typedef void* xt_fhandle;
 
@@ -471,6 +472,8 @@ inline uintptr_t align_pad(uintptr_t x, int a) {
 
 uint16_t float_to_half(const float x);
 float half_to_float(const uint16_t h);
+uint16_t float_to_bf16(const float x);
+float bf16_to_float(const uint16_t h);
 float f32_set_bits(const uint32_t x);
 uint32_t f32_get_bits(const float x);
 inline uint32_t f32_get_mantissa_bits(const float x) { return f32_get_bits(x) & ((1U << 23) - 1); }
@@ -2082,6 +2085,13 @@ struct xt_half {
 	uint32_t get_mantissa_bits() const;
 	float get_mantissa() const;
 	void rand01(sxRNG* pRNG = nullptr);
+};
+
+struct xt_bf16 {
+	uint16_t x;
+
+	void set(const float f);
+	float get() const;
 };
 
 struct xt_half2 {

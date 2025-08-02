@@ -2034,6 +2034,14 @@ float half_to_float(const uint16_t h) {
 #endif
 }
 
+uint16_t float_to_bf16(const float x) {
+	return (uint16_t)(f32_get_bits(x) >> 16);
+}
+
+float bf16_to_float(const uint16_t h) {
+	return f32_set_bits((uint32_t)h << 16);
+}
+
 float f32_set_bits(const uint32_t x) {
 	uxVal32 v;
 	v.u = x;
@@ -3137,6 +3145,15 @@ float xt_half::get_mantissa() const {
 void xt_half::rand01(sxRNG* pRNG) {
 	float r = nxCore::rng_f01(pRNG);
 	set(r);
+}
+
+
+void xt_bf16::set(const float f) {
+	x = nxCore::float_to_bf16(f);
+}
+
+float xt_bf16::get() const {
+	return nxCore::bf16_to_float(x);
 }
 
 
