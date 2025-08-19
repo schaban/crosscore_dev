@@ -3112,7 +3112,7 @@ void ScnObj::update_visibility() {
 	}
 }
 
-void ScnObj::update_batch_vilibility(const int ibat) {
+void ScnObj::update_batch_visibility(const int ibat) {
 	if (mpMdlWk) {
 		mpMdlWk->calc_batch_visibility(Scene::get_view_frustum_ptr(), ibat);
 		if (mpMdlWk->mpExtMem) {
