@@ -1103,6 +1103,9 @@ void GPUProg::enable_attrs(const int minIdx, const size_t vtxSize) const {
 #include "ogl/progs.inc"
 #undef GPU_PROG
 
+static int s_prgCnt = 0;
+static int s_prgOK = 0;
+
 
 static void prepare_texture(sxTextureData* pTex) {
 	if (!pTex) return;
@@ -1417,6 +1420,8 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 #		define GPU_PROG(_vert_name, _frag_name) ++prgCnt;
 #		include "ogl/progs.inc"
 #		undef GPU_PROG
+		s_prgCnt = prgCnt;
+		s_prgOK = 0;
 		if (prgCnt > 0) {
 			GPUProg** ppProg = (GPUProg**)nxCore::mem_alloc(sizeof(GPUProg*)*prgCnt, "GPUProgsList");
 			if (ppProg) {
@@ -1463,7 +1468,7 @@ static void init(int shadowSize, cxResourceManager* pRsrcMgr, Draw::Font* pFont)
 		nxCore::dbg_msg("\n");
 	}
 	double prgDT = nxSys::time_micros() - prgT0;
-
+	s_prgOK = prgOK;
 	nxCore::dbg_msg("GPU progs: %d/%d\n", prgOK, prgCnt);
 	if (s_glslEcho) {
 		nxCore::dbg_msg("GPU progs init time: %.3f seconds\n", prgDT / 1.0e6);
@@ -2717,3 +2722,19 @@ XD_NOINLINE void drwogl_polmode_wire() {
 		((void(*)(GLenum, GLenum))pfn)(0x0408, 0x1B01); // GL_FRONT_AND_BACK <= GL_LINE
 	}
 }
+
+XD_NOINLINE void drwogl_polmode_std() {
+	void* pfn = OGLSys::get_proc_addr("glPolygonMode");
+	if (pfn) {
+		((void(*)(GLenum, GLenum))pfn)(0x0408, 0x1B02); // GL_FRONT_AND_BACK <= GL_FILL
+	}
+}
+
+XD_NOINLINE int drwogl_prgs_total() {
+	return s_prgCnt;
+}
+
+XD_NOINLINE int drwogl_prgs_ready() {
+	return s_prgOK;
+}
+
