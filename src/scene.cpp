@@ -2779,6 +2779,14 @@ static void obj_bat_draw(ScnObj* pObj, const int ibat, const Draw::Mode mode) {
 	}
 }
 
+static bool obj_bat_visible(ScnObj* pObj, const int ibat) {
+	cxModelWork* pWk = pObj->mpMdlWk;
+	if (!pWk) return false;
+	if (pWk->is_bat_mtl_hidden(ibat)) return false;
+	if (XD_BIT_ARY_CK(uint32_t, pWk->mpCullBits, ibat)) return false;
+	return true;
+}
+
 const char* ScnObj::get_batch_mtl_name(const int ibat) const {
 	const char* pName = nullptr;
 	const sxModelData* pMdl = get_model_data();
@@ -3131,6 +3139,16 @@ void ScnObj::update_batch_visibility(const int ibat) {
 			}
 		}
 	}
+}
+
+bool ScnObj::visible() {
+	if (!mpMdlWk) return false;
+	int nbats = mpMdlWk->get_batches_num();
+	if (nbats < 1) return false;
+	for (int ibat = 0; ibat < nbats; ++ibat) {
+		if (!obj_bat_visible(this, ibat)) return false;
+	}
+	return true;
 }
 
 void ScnObj::move(const sxMotionData* pMot, const float frameAdd) {

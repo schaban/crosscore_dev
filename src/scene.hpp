@@ -170,6 +170,7 @@ public:
 	void update_bounds();
 	void update_visibility();
 	void update_batch_visibility(const int ibat);
+	bool visible();
 
 	void move(const float frameAdd) { move(nullptr, frameAdd); }
 	void move(const sxMotionData* pMot, const float frameAdd);
