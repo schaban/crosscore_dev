@@ -22,6 +22,7 @@ struct Ifc {
 	struct Info {
 		const char* pName;
 		void* pData;
+		int result;
 	} info;
 	void (*init)();
 	void (*loop)(void*);

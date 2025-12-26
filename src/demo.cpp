@@ -18,9 +18,11 @@ int32_t register_demo(Ifc* pIfc) {
 		int maxIfcs = (int)XD_ARY_LEN(s_ifcLst);
 		if (idx < maxIfcs) {
 			s_ifcLst[idx] = pIfc;
+			pIfc->info.result = 0;
 		} else {
 			nxSys::atomic_dec(&s_idx);
 			idx = -1;
+			pIfc->info.result = 99;
 		}
 	}
 	return idx;
