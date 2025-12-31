@@ -46,6 +46,8 @@ static const bool c_defReduce = false;
 static int c_defW = 1200;
 static int c_defH = 700;
 
+static int s_demo_result = 0;
+
 extern "C" {
 
 // web-interface functions
@@ -288,6 +290,7 @@ static void exec_demo() {
 		pIfc->init();
 		Scene::mem_info();
 		OGLSys::loop(pIfc->loop, &pIfc->info);
+		s_demo_result = pIfc->info.result;
 		pIfc->reset();
 	}
 }
@@ -325,6 +328,7 @@ void mac_init(const char* pAppPath) {
 void mac_exec() {
 	if (s_pIfc && s_pIfc->loop) {
 		s_pIfc->loop(&s_pIfc->info);
+		
 	}
 }
 
@@ -332,6 +336,7 @@ void mac_stop() {
 	s_macStartFlg = false;
 
 	if (s_pIfc) {
+		s_demo_result = pIfc->info.result;
 		s_pIfc->reset();
 		s_pIfc = nullptr;
 	}
@@ -436,7 +441,7 @@ int main(int argc, char* argv[]) {
 	nxCore::mem_dbg();
 	reset_sys();
 
-	return 0;
+	return s_demo_result;
 }
 
 #endif
