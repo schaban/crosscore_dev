@@ -80,11 +80,13 @@ static struct KBD_CTRL {
 	uint64_t mNow;
 	uint64_t mOld;
 	bool mSkip;
+	bool mActive;
 
 	void init() {
 		mNow = 0;
 		mOld = 0;
 		mSkip = false;
+		mActive = false;
 	}
 
 	const char* get_alt_key_name(const int code) {
@@ -114,6 +116,10 @@ static struct KBD_CTRL {
 	}
 
 	void update() {
+		if (!mActive) {
+			mActive = true;
+			return;
+		}
 		if (mSkip) return;
 		mOld = mNow;
 		uint64_t mask = 0;
