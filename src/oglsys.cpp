@@ -121,6 +121,10 @@
 #	endif
 #endif
 
+#ifndef OGLSYS_CAPT
+#	define OGLSYS_CAPT 0
+#endif
+
 #if (!defined(OGLSYS_WINDOWS) && !defined(OGLSYS_DUMMY) && !defined(OGLSYS_APPLE) && !defined(OGLSYS_ANDROID)) || (defined(OGLSYS_DUMMY) && OGLSYS_CL && defined(OGLSYS_LINUX))
 #include <dlfcn.h>
 namespace OGLSys {
@@ -348,6 +352,17 @@ static struct OGLSysGlb {
 	int mRawKbdFD;
 	int mRawKbdMode;
 	input_event mRawKbdEvent;
+#endif
+
+#if OGLSYS_CAPT
+	struct Capt {
+		uint32_t* mpPixels;
+		void* pfnReadFB;
+		void* hdrv;
+		void (*pfnOpen)(const char* pDevName, int w, int h, int param);
+		void (*pfnExec)(uint32_t* pPixels, int w, int h);
+		void (*pfnClose)();
+	} mCapt;
 #endif
 
 	uint64_t mFrameCnt;
@@ -773,6 +788,10 @@ static struct OGLSysGlb {
 	void init_ogl();
 	void reset_wnd();
 	void reset_ogl();
+
+	void init_capt();
+	void exec_capt();
+	void reset_capt();
 
 	void handle_ogl_ext(const GLubyte* pStr, const int lenStr);
 
@@ -1934,6 +1953,78 @@ void OGLSysGlb::reset_ogl() {
 #endif
 }
 
+void OGLSysGlb::init_capt() {
+#if OGLSYS_CAPT
+	mCapt.pfnReadFB = OGLSys::get_proc_addr("glReadPixels");
+	if (!mCapt.pfnReadFB) return;
+	int npix = mWidth*mHeight;
+	if (npix <= 0) return;
+	mCapt.mpPixels = (uint32_t*)mem_alloc(npix*sizeof(uint32_t), "CaptFB");
+	if (!mCapt.mpPixels) return;
+	const char* pDrvPath = get_opt("oglsys_capt_drv");
+	if (pDrvPath) {
+#if defined(OGLSYS_WINDOWS)
+		mCapt.hdrv = (void*)::LoadLibraryA(pDrvPath);
+#else
+		mCapt.hdrv = ::dlopen(pDrvPath, RTLD_LAZY | RTLD_GLOBAL);
+#endif
+	}
+	if (!mCapt.hdrv) return;
+	const char* pOpenName = "capt_open";
+	const char* pExecName = "capt_exec";
+	const char* pCloseName = "capt_close";
+#if defined(OGLSYS_WINDOWS)
+	*(void**)&mCapt.pfnOpen = (void*)::GetProcAddress((HMODULE)mCapt.hdrv, pOpenName);
+	*(void**)&mCapt.pfnExec = (void*)::GetProcAddress((HMODULE)mCapt.hdrv, pExecName);
+	*(void**)&mCapt.pfnClose = (void*)::GetProcAddress((HMODULE)mCapt.hdrv, pCloseName);
+#else
+	*(void**)&mCapt.pfnOpen = ::dlsym(mCapt.hdrv, pOpenName);
+	*(void**)&mCapt.pfnExec = ::dlsym(mCapt.hdrv, pExecName);
+	*(void**)&mCapt.pfnClose = ::dlsym(mCapt.hdrv, pCloseName);
+#endif
+	if (mCapt.pfnOpen) {
+		const char* pDevName = get_opt("oglsys_capt_dev");
+		int w = get_int_opt("oglsys_capt_w", 0);
+		int h = get_int_opt("oglsys_capt_h", 0);
+		int param = get_int_opt("oglsys_capt_param", 0);
+		mCapt.pfnOpen(pDevName, w, h, param);
+	}
+
+#endif // OGLSYS_CAPT
+}
+
+void OGLSysGlb::exec_capt() {
+#if OGLSYS_CAPT
+	if (!mCapt.pfnReadFB) return;
+	if (!mCapt.mpPixels) return;
+	if (mCapt.pfnExec) {
+		((void (*) (GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void*))mCapt.pfnReadFB)
+		       (0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, mCapt.mpPixels);
+		mCapt.pfnExec(mCapt.mpPixels, mWidth, mHeight);
+	}
+#endif
+}
+
+void OGLSysGlb::reset_capt() {
+#if OGLSYS_CAPT
+	if (mCapt.pfnClose) {
+		mCapt.pfnClose();
+	}
+	if (mCapt.mpPixels) {
+		mem_free(mCapt.mpPixels);
+		mCapt.mpPixels = nullptr;
+	}
+	if (mCapt.hdrv) {
+#if defined(OGLSYS_WINDOWS)
+		::FreeLibrary((HMODULE)mCapt.hdrv);
+#else
+		::dlclose(mCapt.hdrv);
+#endif
+		mCapt.hdrv = nullptr;
+	}
+#endif
+}
+
 
 #if defined(_MSC_VER)
 	__declspec(noinline)
@@ -2479,6 +2570,7 @@ namespace OGLSys {
 			}
 		}
 #endif
+		GLG.init_capt();
 		s_initFlg = true;
 	}
 
@@ -2490,6 +2582,7 @@ namespace OGLSys {
 		}
 		GLG.mRawKbdFD = -1;
 #endif
+		GLG.reset_capt();
 		GLG.reset_ogl();
 		GLG.reset_wnd();
 		s_initFlg = false;
@@ -2522,6 +2615,7 @@ namespace OGLSys {
 			GLG.mDummyGL.swap_func();
 		}
 #endif
+		GLG.exec_capt();
 	}
 
 	void loop(void(*pLoop)(void*), void* pLoopCtx) {
