@@ -811,6 +811,8 @@ float fit(const float val, const float oldMin, const float oldMax, const float n
 
 float calc_fovy(const float focal, const float aperture, const float aspect);
 
+float limit_pi(float rad);
+
 template<typename FN> float panorama_scan(FN& fn, int w, int h) {
 	float da = (float)((2.0*XD_PI / w) * (XD_PI / h));
 	float iw = 1.0f / (float)w;

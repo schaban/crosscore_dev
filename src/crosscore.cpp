@@ -2851,6 +2851,18 @@ float calc_fovy(const float focal, const float aperture, const float aspect) {
 	return fovy;
 }
 
+float limit_pi(float rad) {
+	rad = ::mth_fmodf(rad, XD_PI * 2);
+	if (::mth_fabsf(rad) > XD_PI) {
+		if (rad < 0.0f) {
+			rad = XD_PI * 2 + rad;
+		} else {
+			rad = rad - XD_PI * 2;
+		}
+	}
+	return rad;
+}
+
 bool is_prime(const int32_t x) {
 	if (x <= 1) return false;
 	if (is_even(x)) return x == 2;
@@ -4148,18 +4160,6 @@ bool cxMtx::is_valid_rot(float tol) const {
 	return true;
 }
 
-static inline float limit_pi(float rad) {
-	rad = ::mth_fmodf(rad, XD_PI*2);
-	if (::mth_fabsf(rad) > XD_PI) {
-		if (rad < 0.0f) {
-			rad = XD_PI*2 + rad;
-		} else {
-			rad = rad - XD_PI*2;
-		}
-	}
-	return rad;
-}
-
 static struct { uint8_t i0, i1, i2, s; } s_getRotTbl[] = {
 	/* XYZ */ { 0, 1, 2, 1 },
 	/* XZY */ { 0, 2, 1, 0 },
@@ -4185,19 +4185,19 @@ cxVec cxMtx::get_rot(exRotOrd ord) const {
 		case 6: /* 0110 -> X */
 			rv.x = ::mth_acosf(qw) * 2.0f;
 			if (q.x < 0.0f) rv.x = -rv.x;
-			rv.x = limit_pi(rv.x);
+			rv.x = nxCalc::limit_pi(rv.x);
 			singleAxis = true;
 			break;
 		case 5: /* 0101 -> Y */
 			rv.y = ::mth_acosf(qw) * 2.0f;
 			if (q.y < 0.0f) rv.y = -rv.y;
-			rv.y = limit_pi(rv.y);
+			rv.y = nxCalc::limit_pi(rv.y);
 			singleAxis = true;
 			break;
 		case 3: /* 0011 -> Z */
 			rv.z = ::mth_acosf(qw) * 2.0f;
 			if (q.z < 0.0f) rv.z = -rv.z;
-			rv.z = limit_pi(rv.z);
+			rv.z = nxCalc::limit_pi(rv.z);
 			singleAxis = true;
 			break;
 		case 7: /* 0111 -> identity */
@@ -4228,7 +4228,7 @@ cxVec cxMtx::get_rot(exRotOrd ord) const {
 		r[i] *= sgn;
 	}
 	for (int i = 0; i < 3; ++i) {
-		r[i] = limit_pi(r[i]);
+		r[i] = nxCalc::limit_pi(r[i]);
 	}
 	rv.from_mem(r);
 	return rv;
@@ -4615,19 +4615,19 @@ cxVec cxQuat::get_rot(exRotOrd ord) const {
 		case 6: /* 0110 -> X */
 			rv.x = ::mth_acosf(qw) * 2.0f;
 			if (x < 0.0f) rv.x = -rv.x;
-			rv.x = limit_pi(rv.x);
+			rv.x = nxCalc::limit_pi(rv.x);
 			singleAxis = true;
 			break;
 		case 5: /* 0101 -> Y */
 			rv.y = ::mth_acosf(qw) * 2.0f;
 			if (y < 0.0f) rv.y = -rv.y;
-			rv.y = limit_pi(rv.y);
+			rv.y = nxCalc::limit_pi(rv.y);
 			singleAxis = true;
 			break;
 		case 3: /* 0011 -> Z */
 			rv.z = ::mth_acosf(qw) * 2.0f;
 			if (z < 0.0f) rv.z = -rv.z;
-			rv.z = limit_pi(rv.z);
+			rv.z = nxCalc::limit_pi(rv.z);
 			singleAxis = true;
 			break;
 		case 7: /* 0111 -> identity */
@@ -4662,7 +4662,7 @@ cxVec cxQuat::get_rot(exRotOrd ord) const {
 		r[i] *= sgn;
 	}
 	for (int i = 0; i < 3; ++i) {
-		r[i] = limit_pi(r[i]);
+		r[i] = nxCalc::limit_pi(r[i]);
 	}
 	rv.from_mem(r);
 	return rv;
