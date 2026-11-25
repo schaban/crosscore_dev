@@ -5,6 +5,10 @@
 #include "draw.hpp"
 #include "scene.hpp"
 
+#ifdef SCN_TRNG
+#	include <immintrin.h>
+#endif
+
 static Draw::Ifc* s_pDraw = nullptr;
 
 static cxResourceManager* s_pRsrcMgr = nullptr;
@@ -1056,7 +1060,14 @@ uint64_t glb_rng_next() {
 	if (s_pGlbRNGLock) {
 		nxSys::lock_acquire(s_pGlbRNGLock);
 	}
+#ifdef SCN_TRNG
+	unsigned long long r;
+	while (__builtin_ia32_rdseed_di_step(&r) == 0) {
+		_mm_pause();
+	}
+#else
 	uint64_t r = nxCore::rng_next(&s_glbRNG);
+#endif
 	if (s_pGlbRNGLock) {
 		nxSys::lock_release(s_pGlbRNGLock);
 	}
@@ -1067,7 +1078,15 @@ float glb_rng_f01() {
 	if (s_pGlbRNGLock) {
 		nxSys::lock_acquire(s_pGlbRNGLock);
 	}
+#ifdef SCN_TRNG
+	uint32_t r32;
+	while (__builtin_ia32_rdseed_si_step(&r32) == 0) {
+		_mm_pause();
+	}
+	float r = (r32 >> 8) * 5.9604644775e-8f;
+#else
 	float r = nxCore::rng_f01(&s_glbRNG);
+#endif
 	if (s_pGlbRNGLock) {
 		nxSys::lock_release(s_pGlbRNGLock);
 	}
