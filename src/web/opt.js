@@ -5,7 +5,7 @@ Module.arguments = [
 	"-draw:ogl",
 	"-w:900", "-h:600",
 	"-nwrk:0",
-	"-adapt:1",
+	"-adapt:4",
 	"-data:bin/data",
 	"-glsl_echo:1"
 ];
